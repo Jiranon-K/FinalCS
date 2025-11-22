@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "title": "Person Tracking",
+    "home": "หน้าแรก",
+    "reports": "รายงาน",
+    "manage": "จัดการ",
+    "settings": "ตั้งค่า",
+    "collapse": "ย่อเมนู"
+  },
+  "settings": {
+    "title": "ตั้งค่า",
+    "language": "ภาษา",
+    "selectLanguage": "เลือกภาษา",
+    "languageSettings": "ตั้งค่าภาษา",
+    "languageDescription": "เลือกภาษาที่คุณต้องการใช้งานในระบบ",
+    "appearanceSettings": "ตั้งค่าการแสดงผล",
+    "appearanceDescription": "เลือกธีมสีและรูปแบบการแสดงผลที่คุณชอบ",
+    "notificationSettings": "ตั้งค่าการแจ้งเตือน",
+    "notificationDescription": "จัดการการแจ้งเตือนและข้อความต่างๆ",
+    "comingSoon": "เร็วๆ นี้",
+    "currentTheme": "ธีมปัจจุบัน",
+    "lightThemes": "ธีมสว่าง",
+    "darkThemes": "ธีมมืด"
+  },
+  "toasts": {
+    "saveSuccess": "บันทึกสำเร็จ",
+    "saveError": "บันทึกล้มเหลว",
+    "deleteSuccess": "ลบสำเร็จ",
+    "deleteError": "ลบล้มเหลว",
+    "updateSuccess": "อัปเดตสำเร็จ",
+    "updateError": "อัปเดตล้มเหลว",
+    "networkError": "เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย",
+    "validationError": "กรุณาตรวจสอบข้อมูลที่กรอก",
+    "operationSuccess": "ดำเนินการสำเร็จ",
+    "operationError": "เกิดข้อผิดพลาดในการดำเนินการ"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "title": "Person Tracking",
+    "home": "Home",
+    "reports": "Reports",
+    "manage": "Manage",
+    "settings": "Settings",
+    "collapse": "Collapse Menu"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "languageSettings": "Language Settings",
+    "languageDescription": "Choose your preferred language for the system",
+    "appearanceSettings": "Appearance Settings",
+    "appearanceDescription": "Choose your favorite color theme and display style",
+    "notificationSettings": "Notification Settings",
+    "notificationDescription": "Manage notifications and alerts",
+    "comingSoon": "Coming Soon",
+    "currentTheme": "Current Theme",
+    "lightThemes": "Light Themes",
+    "darkThemes": "Dark Themes"
+  },
+  "toasts": {
+    "saveSuccess": "Saved successfully",
+    "saveError": "Failed to save",
+    "deleteSuccess": "Deleted successfully",
+    "deleteError": "Failed to delete",
+    "updateSuccess": "Updated successfully",
+    "updateError": "Failed to update",
+    "networkError": "Network connection error",
+    "validationError": "Please check your input",
+    "operationSuccess": "Operation completed successfully",
+    "operationError": "Operation failed"
+  }
+}
