@@ -1,0 +1,398 @@
+{
+  "collections": {
+    "face-recognition.attendance_records": {
+      "ns": "face-recognition.attendance_records",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "face-recognition.attendance_sessions": {
+      "ns": "face-recognition.attendance_sessions",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "face-recognition.courses": {
+      "ns": "face-recognition.courses",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "academicYear",
+          "courseCode",
+          "courseName",
+          "createdAt",
+          "createdBy",
+          "enrolledStudents",
+          "id",
+          "room",
+          "schedule",
+          "semester",
+          "status",
+          "teacherId",
+          "teacherName",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "academicYear": {
+            "bsonType": "string"
+          },
+          "courseCode": {
+            "bsonType": "string"
+          },
+          "courseName": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "createdBy": {
+            "bsonType": "objectId"
+          },
+          "enrolledStudents": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "enrolledAt": {
+                  "bsonType": "date"
+                },
+                "studentId": {
+                  "bsonType": "objectId"
+                }
+              },
+              "required": [
+                "enrolledAt",
+                "studentId"
+              ]
+            }
+          },
+          "id": {
+            "bsonType": "string"
+          },
+          "room": {
+            "bsonType": "string"
+          },
+          "schedule": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "dayOfWeek": {
+                  "bsonType": "int"
+                },
+                "endTime": {
+                  "bsonType": "string"
+                },
+                "graceMinutes": {
+                  "bsonType": "int"
+                },
+                "room": {
+                  "bsonType": "string"
+                },
+                "startTime": {
+                  "bsonType": "string"
+                }
+              },
+              "required": [
+                "dayOfWeek",
+                "endTime",
+                "graceMinutes",
+                "room",
+                "startTime"
+              ]
+            }
+          },
+          "semester": {
+            "bsonType": "string"
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "teacherId": {
+            "bsonType": "objectId"
+          },
+          "teacherName": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "face-recognition.face_update_requests": {
+      "ns": "face-recognition.face_update_requests",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "face-recognition.students": {
+      "ns": "face-recognition.students",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "class",
+          "createdAt",
+          "department",
+          "faceDescriptor",
+          "grade",
+          "id",
+          "imageKey",
+          "imageUrl",
+          "name",
+          "phone",
+          "studentId",
+          "updatedAt",
+          "userId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "class": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "department": {
+            "bsonType": "string"
+          },
+          "faceDescriptor": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "double"
+            }
+          },
+          "grade": {
+            "bsonType": "string"
+          },
+          "id": {
+            "bsonType": "string"
+          },
+          "imageKey": {
+            "bsonType": "string"
+          },
+          "imageUrl": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "phone": {
+            "bsonType": "string"
+          },
+          "studentId": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "userId": {
+            "bsonType": "objectId"
+          }
+        }
+      }
+    },
+    "face-recognition.teachers": {
+      "ns": "face-recognition.teachers",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "face-recognition.users": {
+      "ns": "face-recognition.users",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "createdAt",
+          "fullName",
+          "imageKey",
+          "imageUrl",
+          "lastLogin",
+          "password",
+          "role",
+          "updatedAt",
+          "username"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "fullName": {
+            "bsonType": "string"
+          },
+          "imageKey": {
+            "bsonType": "string"
+          },
+          "imageUrl": {
+            "bsonType": "string"
+          },
+          "lastLogin": {
+            "bsonType": "date"
+          },
+          "password": {
+            "bsonType": "string"
+          },
+          "profileId": {
+            "bsonType": "objectId"
+          },
+          "role": {
+            "bsonType": "string"
+          },
+          "studentId": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "username": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "face-recognition.new-collection": {
+      "ns": "face-recognition.new-collection",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          }
+        },
+        "required": [
+          "_id"
+        ]
+      }
+    }
+  },
+  "relationships": [
+    {
+      "id": "483d074a-3be2-4d73-b832-4f0e925adc0a",
+      "relationship": [
+        {
+          "ns": "face-recognition.courses",
+          "cardinality": 1,
+          "fields": [
+            "enrolledStudents",
+            "studentId"
+          ]
+        },
+        {
+          "ns": "face-recognition.students",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "288a12e2-ee14-4379-83a1-cd7baddaa572",
+      "relationship": [
+        {
+          "ns": "face-recognition.users",
+          "cardinality": 1,
+          "fields": [
+            "profileId"
+          ]
+        },
+        {
+          "ns": "face-recognition.students",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "6319e816-7969-4f7d-8563-024c4d238ff5",
+      "relationship": [
+        {
+          "ns": "face-recognition.courses",
+          "cardinality": 1,
+          "fields": [
+            "createdBy"
+          ]
+        },
+        {
+          "ns": "face-recognition.users",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "8b64f9e2-cd45-4f53-94ca-60ba51a9db1a",
+      "relationship": [
+        {
+          "ns": "face-recognition.courses",
+          "cardinality": 1,
+          "fields": [
+            "teacherId"
+          ]
+        },
+        {
+          "ns": "face-recognition.users",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "80fd0296-b7cb-4628-abc5-f64759288368",
+      "relationship": [
+        {
+          "ns": "face-recognition.students",
+          "cardinality": 1,
+          "fields": [
+            "userId"
+          ]
+        },
+        {
+          "ns": "face-recognition.users",
+          "cardinality": 1,
+          "fields": [
+            "_id"
+          ]
+        }
+      ],
+      "isInferred": true
+    }
+  ]
+}
