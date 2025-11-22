@@ -5,6 +5,7 @@
     "reports": "Reports",
     "manage": "Manage",
     "settings": "Settings",
+    "camera": "Camera",
     "collapse": "Collapse Menu"
   },
   "settings": {
@@ -33,5 +34,22 @@
     "validationError": "Please check your input",
     "operationSuccess": "Operation completed successfully",
     "operationError": "Operation failed"
+  },
+  "camera": {
+    "selectCamera": "Select Camera",
+    "resolution": "Resolution",
+    "start": "Start Camera",
+    "stop": "Stop Camera",
+    "noCamera": "No camera found",
+    "permissionDenied": "Camera permission denied",
+    "device": "device",
+    "devices": "devices",
+    "clickToView": "Click to view camera",
+    "live": "LIVE",
+    "cameraReady": "Camera Ready",
+    "clickStartToBegin": "Click the Start button to begin streaming",
+    "failedToGetDevices": "Failed to get camera devices",
+    "failedToStartCamera": "Failed to start camera",
+    "camera": "Camera"
   }
 }

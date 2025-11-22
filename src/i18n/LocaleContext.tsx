@@ -25,6 +25,14 @@ interface LocaleProviderProps {
   children: ReactNode;
 }
 
+export function useLocale() {
+  const context = React.useContext(LocaleContext);
+  if (!context) {
+    throw new Error('useLocale must be used within LocaleProvider');
+  }
+  return context;
+}
+
 export function LocaleProvider({ children }: LocaleProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof window !== 'undefined') {

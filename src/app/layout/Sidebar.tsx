@@ -37,6 +37,18 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           <span className={!isOpen ? 'hidden' : ''}>{t.nav.home}</span>
         </Link>
       </li>
+      <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
+        <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+          <Image
+            src="/menu-icon/face-recognition.png"
+            alt="Camera"
+            width={32}
+            height={32}
+            className="w-8 h-8"
+          />
+          <span className={!isOpen ? 'hidden' : ''}>{t.nav.camera}</span>
+        </Link>
+      </li>
       <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.settings : undefined}>
         <Link href="/settings" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
           <Image

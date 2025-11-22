@@ -3,6 +3,8 @@
 import { useLocale } from "@/i18n/useLocale";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useState } from "react";
+import Loading from "@/components/ui/Loading";
 
 const languages = [
   { code: 'th' as const, name: 'ไทย', flag: '🇹🇭' },
@@ -11,6 +13,15 @@ const languages = [
 
 export default function LanguageSelector() {
   const { locale, setLocale, t } = useLocale();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return <Loading variant="dots" size="sm" />;
+  }
 
   return (
     <div className="space-y-3">

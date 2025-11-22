@@ -5,7 +5,9 @@ import Drawer from "./layout/Drawer";
 import { LocaleProvider } from "@/i18n/LocaleContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { CameraProvider } from "@/contexts/CameraContext";
 import { ToastContainer } from "@/components/toast/ToastContainer";
+import FloatingCameraPreview from "@/components/camera/FloatingCameraPreview";
 
 const notoSansThai = Noto_Sans_Thai({
   variable: "--font-noto-sans-thai",
@@ -28,10 +30,13 @@ export default function RootLayout({
       <body className={`${notoSansThai.variable} antialiased`}>
         <ThemeProvider>
           <LocaleProvider>
-            <ToastProvider>
-              <Drawer>{children}</Drawer>
-              <ToastContainer />
-            </ToastProvider>
+            <CameraProvider>
+              <ToastProvider>
+                <Drawer>{children}</Drawer>
+                <ToastContainer />
+                <FloatingCameraPreview />
+              </ToastProvider>
+            </CameraProvider>
           </LocaleProvider>
         </ThemeProvider>
       </body>

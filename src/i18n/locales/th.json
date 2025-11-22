@@ -5,6 +5,7 @@
     "reports": "รายงาน",
     "manage": "จัดการ",
     "settings": "ตั้งค่า",
+    "camera": "กล้อง",
     "collapse": "ย่อเมนู"
   },
   "settings": {
@@ -33,5 +34,22 @@
     "validationError": "กรุณาตรวจสอบข้อมูลที่กรอก",
     "operationSuccess": "ดำเนินการสำเร็จ",
     "operationError": "เกิดข้อผิดพลาดในการดำเนินการ"
+  },
+  "camera": {
+    "selectCamera": "เลือกกล้อง",
+    "resolution": "ความละเอียด",
+    "start": "เปิดกล้อง",
+    "stop": "ปิดกล้อง",
+    "noCamera": "ไม่พบกล้อง",
+    "permissionDenied": "ไม่ได้รับอนุญาตให้เข้าถึงกล้อง",
+    "device": "อุปกรณ์",
+    "devices": "อุปกรณ์",
+    "clickToView": "คลิกเพื่อดูกล้อง",
+    "live": "สด",
+    "cameraReady": "กล้องพร้อม",
+    "clickStartToBegin": "คลิกปุ่มเริ่มเพื่อเปิดกล้อง",
+    "failedToGetDevices": "ไม่สามารถดึงรายการกล้องได้",
+    "failedToStartCamera": "ไม่สามารถเปิดกล้องได้",
+    "camera": "กล้อง"
   }
 }

@@ -5,6 +5,7 @@ import { useLocale } from "@/i18n/useLocale";
 import { lightThemes, darkThemes, type Theme } from "@/contexts/ThemeContext";
 import { faCheck, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Loading from "@/components/ui/Loading";
 
 export default function ThemeSelector() {
   const { theme, setTheme, isMounted } = useTheme();
@@ -60,8 +61,8 @@ export default function ThemeSelector() {
           </div>
           <div>
             <div className="text-xs text-base-content/70">{t.settings.currentTheme}</div>
-            <div className="text-sm font-semibold capitalize">
-              {isMounted ? theme : 'light'}
+            <div className="text-sm font-semibold capitalize min-h-[20px]">
+              {isMounted ? theme : <Loading variant="dots" size="xs" />}
             </div>
           </div>
         </div>
