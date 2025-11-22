@@ -12,7 +12,7 @@ export default function SettingsCard({
   children,
 }: SettingsCardProps) {
   return (
-    <div className="card bg-base-100 shadow-xl">
+    <div className="card bg-base-100">
       <div className="card-body">
         <h2 className="card-title text-xl">{title}</h2>
         {description && (

@@ -15,16 +15,6 @@ interface LocaleContextType {
 
 const locales = { th, en };
 
-const getInitialLocale = (): Locale => {
-  if (typeof window !== 'undefined') {
-    const savedLocale = localStorage.getItem('locale') as Locale;
-    if (savedLocale === 'th' || savedLocale === 'en') {
-      return savedLocale;
-    }
-  }
-  return 'th';
-};
-
 export const LocaleContext = createContext<LocaleContextType>({
   locale: 'th',
   setLocale: () => {},
@@ -36,7 +26,15 @@ interface LocaleProviderProps {
 }
 
 export function LocaleProvider({ children }: LocaleProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLocale = localStorage.getItem('locale') as Locale;
+      if (savedLocale === 'th' || savedLocale === 'en') {
+        return savedLocale;
+      }
+    }
+    return 'th';
+  });
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);

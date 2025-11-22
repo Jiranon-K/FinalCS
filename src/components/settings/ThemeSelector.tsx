@@ -18,7 +18,7 @@ export default function ThemeSelector() {
         onClick={() => setTheme(themeName)}
         className={`relative overflow-hidden rounded-lg border-2 transition-all ${
           isSelected
-            ? 'border-primary scale-105 shadow-lg'
+            ? 'border-primary scale-105'
             : 'border-base-300 hover:border-primary/50 hover:scale-102'
         }`}
         data-theme={themeName}
