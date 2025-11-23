@@ -1,24 +1,37 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { useCameraContext } from '@/contexts/CameraContext';
+import { useFaceAPI } from '@/hooks/useFaceAPI';
 import Loading from '@/components/ui/Loading';
+import type { FaceDetectionResult } from '@/types/face';
+import type { Person } from '@/types/person';
 
 export default function CameraView() {
   const { t } = useLocale();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { 
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const detectionIntervalRef = useRef<number | null>(null);
+
+  const [detectedFaces, setDetectedFaces] = useState<FaceDetectionResult[]>([]);
+  const [faceDetectionEnabled, setFaceDetectionEnabled] = useState(true);
+  const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number }>>(new Map());
+  const [knownPersons, setKnownPersons] = useState<Person[]>([]);
+
+  const {
     stream,
-    isStreaming, 
+    isStreaming,
     isLoading,
-    selectedDeviceId, 
-    devices, 
+    selectedDeviceId,
+    devices,
     error,
-    startCamera, 
-    stopCamera, 
-    setSelectedDeviceId 
+    startCamera,
+    stopCamera,
+    setSelectedDeviceId
   } = useCameraContext();
+
+  const { modelsLoaded, detectFaces, recognizeFace } = useFaceAPI();
 
   useEffect(() => {
     if (videoRef.current && stream) {
@@ -31,6 +44,134 @@ export default function CameraView() {
       startCamera(selectedDeviceId);
     }
   }, [selectedDeviceId]);
+
+  useEffect(() => {
+    const loadKnownPersons = async () => {
+      try {
+        const response = await fetch('/api/persons');
+        const data = await response.json();
+        if (data.success) {
+          setKnownPersons(data.data);
+          console.log(`✅ Loaded ${data.data.length} known persons for recognition`);
+        }
+      } catch (err) {
+        console.error('Error loading known persons:', err);
+      }
+    };
+
+    if (modelsLoaded) {
+      loadKnownPersons();
+    }
+  }, [modelsLoaded]);
+
+  useEffect(() => {
+    if (!isStreaming || !faceDetectionEnabled || !modelsLoaded || !videoRef.current || !canvasRef.current) {
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    const updateCanvasSize = () => {
+      if (video.videoWidth && video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', updateCanvasSize);
+    updateCanvasSize();
+
+    const runDetection = async () => {
+      try {
+        if (video.readyState === 4) {
+          const faces = await detectFaces(video);
+          setDetectedFaces(faces);
+
+          const recognitionMap = new Map<number, { name: string; confidence: number }>();
+
+          for (let i = 0; i < faces.length; i++) {
+            const face = faces[i];
+            if (face.descriptor && knownPersons.length > 0) {
+              const match = recognizeFace(face.descriptor, knownPersons);
+              if (match) {
+                recognitionMap.set(i, {
+                  name: match.personName,
+                  confidence: match.confidence
+                });
+              } else {
+                recognitionMap.set(i, {
+                  name: 'Unknown',
+                  confidence: 0
+                });
+              }
+            }
+          }
+          setRecognizedPersons(recognitionMap);
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            faces.forEach((face, index) => {
+              const { box } = face.detection;
+              const recognized = recognitionMap.get(index);
+
+              const isUnknown = recognized?.name === 'Unknown';
+              const boxColor = isUnknown ? '#ef4444' : '#10b981'; 
+              const bgColor = isUnknown ? '#ef4444' : '#10b981';
+
+              ctx.strokeStyle = boxColor;
+              ctx.lineWidth = 3;
+              ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+              let label = '';
+              if (recognized) {
+                if (isUnknown) {
+                  label = `Unknown (${(face.detection.score * 100).toFixed(1)}%)`;
+                } else {
+                  label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
+                }
+              } else {
+                label = `Detecting... ${(face.detection.score * 100).toFixed(1)}%`;
+              }
+
+              ctx.font = 'bold 16px sans-serif';
+              const textWidth = ctx.measureText(label).width;
+              const padding = 10;
+              const labelHeight = 28;
+
+              ctx.fillStyle = bgColor;
+              ctx.fillRect(box.x, box.y - labelHeight - 5, textWidth + padding * 2, labelHeight);
+
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(label, box.x + padding, box.y - 12);
+
+              if (face.landmarks) {
+                ctx.fillStyle = '#3b82f6'; 
+                face.landmarks.positions.forEach((point) => {
+                  ctx.beginPath();
+                  ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                  ctx.fill();
+                });
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Face detection error:', err);
+      }
+    };
+
+    detectionIntervalRef.current = window.setInterval(runDetection, 300);
+
+    return () => {
+      video.removeEventListener('loadedmetadata', updateCanvasSize);
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+      }
+    };
+  }, [isStreaming, faceDetectionEnabled, modelsLoaded, detectFaces, recognizeFace, knownPersons]);
 
   return (
     <div className="flex flex-col h-full w-full gap-4">
@@ -61,7 +202,21 @@ export default function CameraView() {
           </div>
           
           <div className="flex items-center gap-3">
-            <select 
+            {modelsLoaded && isStreaming && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="toggle toggle-success toggle-sm"
+                  checked={faceDetectionEnabled}
+                  onChange={(e) => setFaceDetectionEnabled(e.target.checked)}
+                />
+                <span className="text-sm text-base-content/70">
+                  Face Detection
+                </span>
+              </label>
+            )}
+
+            <select
               className="select select-bordered select-sm bg-base-100/20 min-w-[180px]"
               value={selectedDeviceId}
               onChange={(e) => setSelectedDeviceId(e.target.value)}
@@ -73,9 +228,9 @@ export default function CameraView() {
                 </option>
               ))}
             </select>
-            
+
             {!isStreaming ? (
-              <button 
+              <button
                 className="btn btn-primary btn-sm gap-2"
                 onClick={() => startCamera()}
                 disabled={!selectedDeviceId}
@@ -86,7 +241,7 @@ export default function CameraView() {
                 {t.camera.start}
               </button>
             ) : (
-              <button 
+              <button
                 className="btn btn-error btn-sm gap-2"
                 onClick={stopCamera}
               >
@@ -110,12 +265,16 @@ export default function CameraView() {
       )}
 
       <div className="flex-1 min-h-[600px] relative bg-base-200/20 rounded-2xl overflow-hidden shadow-lg border border-base-content/10">
-        <video 
+        <video
           ref={videoRef}
-          autoPlay 
+          autoPlay
           playsInline
           muted
           className="w-full h-full object-cover"
+        />
+        <canvas
+          ref={canvasRef}
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
         />
 
         {isLoading && (
@@ -152,13 +311,61 @@ export default function CameraView() {
         )}
         
         {isStreaming && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 bg-error/20 backdrop-blur-sm text-error-content px-3 py-1.5 rounded-full border border-error/20">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error"></span>
-            </span>
-            <span className="text-xs font-bold">{t.camera.live}</span>
-          </div>
+          <>
+            <div className="absolute top-4 right-4 flex items-center gap-2 bg-error/20 backdrop-blur-sm text-error-content px-3 py-1.5 rounded-full border border-error/20">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-error"></span>
+              </span>
+              <span className="text-xs font-bold">{t.camera.live}</span>
+            </div>
+
+            {faceDetectionEnabled && modelsLoaded && (
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2 bg-success/20 backdrop-blur-sm text-success-content px-3 py-1.5 rounded-lg border border-success/20">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-bold">
+                    {detectedFaces.length} {detectedFaces.length === 1 ? 'Face' : 'Faces'} Detected
+                  </span>
+                </div>
+
+                {detectedFaces.length > 0 && recognizedPersons.size > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 bg-primary/20 backdrop-blur-sm text-primary-content px-3 py-1.5 rounded-lg border border-primary/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                        <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-xs font-bold">
+                        {Array.from(recognizedPersons.values()).filter(p => p.name !== 'Unknown').length} Known
+                      </span>
+                    </div>
+                    {Array.from(recognizedPersons.values()).filter(p => p.name === 'Unknown').length > 0 && (
+                      <div className="flex items-center gap-2 bg-error/20 backdrop-blur-sm text-error-content px-3 py-1.5 rounded-lg border border-error/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                          <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs font-bold">
+                          {Array.from(recognizedPersons.values()).filter(p => p.name === 'Unknown').length} Unknown
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {!modelsLoaded && (
+                  <div className="flex items-center gap-2 bg-warning/20 backdrop-blur-sm text-warning-content px-3 py-1.5 rounded-lg border border-warning/20">
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-xs font-bold">Loading AI Models...</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
