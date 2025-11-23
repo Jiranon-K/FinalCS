@@ -8,7 +8,7 @@ import type {
   FaceMatch,
   FaceDescriptor,
 } from '@/types/face';
-import type { Person } from '@/types/person';
+import type { PersonForRecognition } from '@/types/person';
 
 interface FaceApiDetection {
   detection: {
@@ -48,7 +48,7 @@ interface FaceAPIContextType {
   ) => Promise<FaceDescriptor | null>;
   recognizeFace: (
     descriptor: FaceDescriptor,
-    knownPersons: Person[]
+    knownPersons: PersonForRecognition[]
   ) => FaceMatch | null;
   updateSettings: (newSettings: Partial<FaceRecognitionSettings>) => void;
 }
@@ -228,7 +228,7 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
   );
 
   const recognizeFace = useCallback(
-    (descriptor: FaceDescriptor, knownPersons: Person[]): FaceMatch | null => {
+    (descriptor: FaceDescriptor, knownPersons: PersonForRecognition[]): FaceMatch | null => {
       if (knownPersons.length === 0) {
         return null;
       }

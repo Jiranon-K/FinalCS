@@ -84,9 +84,8 @@
     "role": "Role",
     "roleStudent": "Student",
     "roleTeacher": "Teacher",
-    "roleStaff": "Staff",
-    "department": "Department",
-    "departmentPlaceholder": "Enter department",
+    "department": "Major/Field of Study",
+    "departmentPlaceholder": "Enter major/field of study",
     "grade": "Grade/Level",
     "gradePlaceholder": "Enter grade/level",
     "class": "Class",
@@ -102,7 +101,12 @@
     "submit": "Submit",
     "cancel": "Cancel",
     "success": "Registration successful",
-    "error": "Registration failed"
+    "error": "Registration failed",
+    "invalidFileType": "Please select an image file",
+    "fileTooLarge": "Image file must be less than 5MB",
+    "faceImageInfo": "Please upload a clear face image. Only one face should be visible in the image.",
+    "confirmCancel": "Are you sure you want to cancel registration?",
+    "saving": "Saving..."
   },
   "persons": {
     "title": "Manage Persons",
@@ -113,7 +117,6 @@
     "all": "All",
     "students": "Students",
     "teachers": "Teachers",
-    "staff": "Staff",
     "totalPersons": "Total Persons",
     "noPerson": "No persons found",
     "addPerson": "Add Person",

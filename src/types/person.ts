@@ -56,3 +56,11 @@ export interface PersonStats {
   staff: number;
   recentlyAdded: number;
 }
+
+export interface PersonForRecognition {
+  id: string;
+  name: string;
+  role: 'student' | 'teacher';
+  imageUrl: string;
+  faceDescriptor: number[];
+}

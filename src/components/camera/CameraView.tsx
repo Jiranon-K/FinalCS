@@ -6,7 +6,7 @@ import { useCameraContext } from '@/contexts/CameraContext';
 import { useFaceAPI } from '@/hooks/useFaceAPI';
 import Loading from '@/components/ui/Loading';
 import type { FaceDetectionResult } from '@/types/face';
-import type { Person } from '@/types/person';
+import type { PersonForRecognition } from '@/types/person';
 
 export default function CameraView() {
   const { t } = useLocale();
@@ -15,9 +15,9 @@ export default function CameraView() {
   const detectionIntervalRef = useRef<number | null>(null);
 
   const [detectedFaces, setDetectedFaces] = useState<FaceDetectionResult[]>([]);
-  const faceDetectionEnabled = true; // Always enabled - no toggle needed
+  const faceDetectionEnabled = true;
   const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number }>>(new Map());
-  const [knownPersons, setKnownPersons] = useState<Person[]>([]);
+  const [knownPersons, setKnownPersons] = useState<PersonForRecognition[]>([]);
 
   const {
     stream,
@@ -42,7 +42,7 @@ export default function CameraView() {
   useEffect(() => {
     const loadKnownPersons = async () => {
       try {
-        const response = await fetch('/api/persons');
+        const response = await fetch('/api/faces');
         const data = await response.json();
         if (data.success) {
           setKnownPersons(data.data);

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(test:*)",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(echo:*)",
+      "Bash(\"src/hooks/useTheme.ts\")"
     ],
     "deny": [],
     "ask": []
