@@ -15,7 +15,7 @@ export default function CameraView() {
   const detectionIntervalRef = useRef<number | null>(null);
 
   const [detectedFaces, setDetectedFaces] = useState<FaceDetectionResult[]>([]);
-  const [faceDetectionEnabled, setFaceDetectionEnabled] = useState(true);
+  const faceDetectionEnabled = true; // Always enabled - no toggle needed
   const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number }>>(new Map());
   const [knownPersons, setKnownPersons] = useState<Person[]>([]);
 
@@ -38,12 +38,6 @@ export default function CameraView() {
       videoRef.current.srcObject = stream;
     }
   }, [stream]);
-
-  useEffect(() => {
-    if (isStreaming && selectedDeviceId) {
-      startCamera(selectedDeviceId);
-    }
-  }, [selectedDeviceId]);
 
   useEffect(() => {
     const loadKnownPersons = async () => {
@@ -117,23 +111,19 @@ export default function CameraView() {
               const { box } = face.detection;
               const recognized = recognitionMap.get(index);
 
-              const isUnknown = recognized?.name === 'Unknown';
-              const boxColor = isUnknown ? '#ef4444' : '#10b981'; 
-              const bgColor = isUnknown ? '#ef4444' : '#10b981';
+              const isKnown = recognized && recognized.name !== 'Unknown';
+              const boxColor = isKnown ? '#10b981' : '#ef4444';
+              const bgColor = isKnown ? '#10b981' : '#ef4444';
 
               ctx.strokeStyle = boxColor;
               ctx.lineWidth = 3;
               ctx.strokeRect(box.x, box.y, box.width, box.height);
 
               let label = '';
-              if (recognized) {
-                if (isUnknown) {
-                  label = `Unknown (${(face.detection.score * 100).toFixed(1)}%)`;
-                } else {
-                  label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
-                }
+              if (isKnown) {
+                label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
               } else {
-                label = `Detecting... ${(face.detection.score * 100).toFixed(1)}%`;
+                label = `Unknown (${(face.detection.score * 100).toFixed(1)}%)`;
               }
 
               ctx.font = 'bold 16px sans-serif';
@@ -202,20 +192,6 @@ export default function CameraView() {
           </div>
           
           <div className="flex items-center gap-3">
-            {modelsLoaded && isStreaming && (
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="toggle toggle-success toggle-sm"
-                  checked={faceDetectionEnabled}
-                  onChange={(e) => setFaceDetectionEnabled(e.target.checked)}
-                />
-                <span className="text-sm text-base-content/70">
-                  Face Detection
-                </span>
-              </label>
-            )}
-
             <select
               className="select select-bordered select-sm bg-base-100/20 min-w-[180px]"
               value={selectedDeviceId}

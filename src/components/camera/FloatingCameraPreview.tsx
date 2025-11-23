@@ -2,7 +2,7 @@
 
 import { useCameraContext } from '@/contexts/CameraContext';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import Loading from '@/components/ui/Loading';
 
@@ -11,13 +11,9 @@ export default function FloatingCameraPreview() {
   const { stream, isStreaming, isLoading, stopCamera } = useCameraContext();
   const pathname = usePathname();
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    const shouldShow = isStreaming && pathname !== '/camera';
-    setIsVisible(shouldShow);
-  }, [isStreaming, pathname]);
+  const isVisible = isStreaming && pathname !== '/camera';
 
   useEffect(() => {
     if (localVideoRef.current && stream) {
@@ -68,7 +64,7 @@ export default function FloatingCameraPreview() {
             <span className="text-xs font-bold">{t.camera.live}</span>
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-base-300/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-base-300/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="flex items-center justify-between">
               <span className="text-xs text-base-content/80 font-medium">{t.camera.clickToView}</span>
               <button
