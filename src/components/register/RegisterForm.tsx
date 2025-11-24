@@ -173,6 +173,7 @@ export default function RegisterForm() {
             <div className="form-control">
               <label className="label">
                 <span className="label-text">{t.register.studentId}</span>
+                <span className="label-text-alt text-error">*</span>
               </label>
               <input
                 type="text"
@@ -182,12 +183,14 @@ export default function RegisterForm() {
                 onChange={handleInputChange}
                 placeholder={t.register.studentIdPlaceholder}
                 className="input input-bordered w-full"
+                required
               />
             </div>
 
             <div className="form-control">
               <label className="label">
                 <span className="label-text">{t.register.email}</span>
+                <span className="label-text-alt text-error">*</span>
               </label>
               <input
                 type="email"
@@ -197,12 +200,14 @@ export default function RegisterForm() {
                 onChange={handleInputChange}
                 placeholder={t.register.emailPlaceholder}
                 className="input input-bordered w-full"
+                required
               />
             </div>
 
             <div className="form-control">
               <label className="label">
                 <span className="label-text">{t.register.phone}</span>
+                <span className="label-text-alt text-error">*</span>
               </label>
               <input
                 type="tel"
@@ -212,6 +217,7 @@ export default function RegisterForm() {
                 onChange={handleInputChange}
                 placeholder={t.register.phonePlaceholder}
                 className="input input-bordered w-full"
+                required
               />
             </div>
 
@@ -224,15 +230,16 @@ export default function RegisterForm() {
                 value={formData.role}
                 onChange={handleInputChange}
                 className="select select-bordered w-full"
+                disabled
               >
                 <option value="student">{t.register.roleStudent}</option>
-                <option value="teacher">{t.register.roleTeacher}</option>
               </select>
             </div>
 
             <div className="form-control">
               <label className="label">
                 <span className="label-text">{t.register.department}</span>
+                <span className="label-text-alt text-error">*</span>
               </label>
               <input
                 type="text"
@@ -242,6 +249,7 @@ export default function RegisterForm() {
                 onChange={handleInputChange}
                 placeholder={t.register.departmentPlaceholder}
                 className="input input-bordered w-full"
+                required
               />
             </div>
 
@@ -250,21 +258,27 @@ export default function RegisterForm() {
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">{t.register.grade}</span>
+                    <span className="label-text-alt text-error">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="grade"
-                    maxLength={20}
                     value={formData.grade}
                     onChange={handleInputChange}
-                    placeholder={t.register.gradePlaceholder}
-                    className="input input-bordered w-full"
-                  />
+                    className="select select-bordered w-full"
+                    required
+                  >
+                    <option value="">{t.register.gradePlaceholder}</option>
+                    <option value="1">{t.register.gradeYear1}</option>
+                    <option value="2">{t.register.gradeYear2}</option>
+                    <option value="3">{t.register.gradeYear3}</option>
+                    <option value="4">{t.register.gradeYear4}</option>
+                  </select>
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">{t.register.class}</span>
+                    <span className="label-text-alt text-error">*</span>
                   </label>
                   <input
                     type="text"
@@ -274,6 +288,7 @@ export default function RegisterForm() {
                     onChange={handleInputChange}
                     placeholder={t.register.classPlaceholder}
                     className="input input-bordered w-full"
+                    required
                   />
                 </div>
               </>

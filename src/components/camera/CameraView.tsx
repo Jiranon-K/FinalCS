@@ -349,7 +349,7 @@ export default function CameraView() {
         )}
         
         {!isStreaming && !error && !isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-base-200/20">
+          <div className="absolute inset-0 flex items-center justify-center bg-base-200 backdrop-blur-sm">
             <div className="text-center space-y-6">
               <div className="relative inline-block">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-32 h-32 text-base-content/20">

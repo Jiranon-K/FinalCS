@@ -38,7 +38,7 @@ export function Toast({ toast, onClose }: ToastProps) {
   const config = toastConfig[toast.type];
 
   return (
-    <div className={`alert ${config.alertClass} shadow-lg`}>
+    <div className={`alert ${config.alertClass} shadow-lg text-white`}>
       <FontAwesomeIcon icon={config.icon} className="w-5 h-5" />
       <span>{toast.message}</span>
       <button

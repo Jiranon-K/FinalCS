@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { useToast } from '@/hooks/useToast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUpload, faCheckCircle, faExclamationTriangle, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Image from 'next/image';
@@ -19,15 +20,19 @@ export default function FaceUpload({
   currentImage,
 }: FaceUploadProps) {
   const { t } = useLocale();
+  const { showToast } = useToast();
   const [isDetecting, setIsDetecting] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
   const [detectionError, setDetectionError] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modelsLoadedRef = useRef(false);
 
   useEffect(() => {
     const loadModels = async () => {
+      if (modelsLoadedRef.current) return;
+      
       try {
         const MODEL_URL = '/model';
         await Promise.all([
@@ -35,15 +40,31 @@ export default function FaceUpload({
           faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
           faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         ]);
-        setModelsLoaded(true);
+        
+        if (!modelsLoadedRef.current) {
+          modelsLoadedRef.current = true;
+          setModelsLoaded(true);
+          showToast({
+            type: 'success',
+            message: t.faceDetection.loadingModels + ' สำเร็จ',
+            duration: 2000,
+          });
+        }
       } catch (error) {
         console.error('Error loading face detection models:', error);
         setDetectionError(t.faceDetection.loadingModels + ' failed');
+        if (!modelsLoadedRef.current) {
+          showToast({
+            type: 'error',
+            message: t.faceDetection.loadingModels + ' ล้มเหลว',
+            duration: 4000,
+          });
+        }
       }
     };
 
     loadModels();
-  }, [t]);
+  }, [t, showToast]);
 
   const detectFace = async (file: File) => {
     if (!modelsLoaded) {
@@ -192,23 +213,16 @@ export default function FaceUpload({
       </div>
 
       {!currentImage && !isDetecting && (
-        <div className="alert alert-info">
+        <div className="alert alert-info alert-soft text-base-content/50">
           <FontAwesomeIcon icon={faUpload} />
           <span>{t.register.faceImageInfo}</span>
         </div>
       )}
 
       {detectionError && !isDetecting && (
-        <div className="alert alert-error">
+        <div className="alert alert-error alert-soft">
           <FontAwesomeIcon icon={faExclamationTriangle} />
           <span>{detectionError}</span>
-        </div>
-      )}
-
-      {!modelsLoaded && (
-        <div className="alert alert-warning">
-          <span className="loading loading-spinner"></span>
-          <span>{t.faceDetection.loadingModels}</span>
         </div>
       )}
     </div>
