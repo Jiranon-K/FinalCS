@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/mongodb';
+import { connectDB } from '@/lib/mongoose';
+import { Student } from '@/models';
 import { uploadBase64Image } from '@/lib/r2-upload';
-import type { Student } from '@/types/student';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
     const body = await request.json();
     const {
       name,
@@ -33,24 +35,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = await getDatabase();
-    const collection = db.collection<Student>('students');
-
-    const existingStudent = await collection.findOne({
-      studentId: studentId || '',
-    });
-
-    if (existingStudent && studentId) {
-      return NextResponse.json(
-        { success: false, error: 'Student with this ID already exists' },
-        { status: 409 }
-      );
+    if (studentId) {
+      const existingStudent = await Student.findOne({ studentId });
+      if (existingStudent) {
+        return NextResponse.json(
+          { success: false, error: 'Student with this ID already exists' },
+          { status: 409 }
+        );
+      }
     }
 
     const personId = uuidv4();
     const { imageUrl, imageKey } = await uploadBase64Image(imageData, personId, 'student');
 
-    const newStudent: Student = {
+    const newStudent = await Student.create({
       id: personId,
       name,
       studentId: studentId || undefined,
@@ -62,16 +60,12 @@ export async function POST(request: NextRequest) {
       imageUrl,
       imageKey,
       faceDescriptor,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collection.insertOne(newStudent as any);
+    });
 
     return NextResponse.json(
       {
         success: true,
-        data: { ...newStudent, _id: result.insertedId },
+        data: newStudent.toObject(),
       },
       { status: 201 }
     );
@@ -86,32 +80,38 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = parseInt(searchParams.get('skip') || '0');
 
-    const db = await getDatabase();
-    const collection = db.collection<Student>('students');
-
-    let query: Record<string, any> = {};
-
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { studentId: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-      ];
+    interface StudentQuery {
+      $or?: Array<{
+        name?: { $regex: string; $options: string };
+        studentId?: { $regex: string; $options: string };
+        email?: { $regex: string; $options: string };
+      }>;
     }
 
+    const query: StudentQuery = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { studentId: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
+
     const [students, total] = await Promise.all([
-      collection
-        .find(query)
+      Student.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .toArray(),
-      collection.countDocuments(query),
+        .lean(),
+      Student.countDocuments(query),
     ]);
 
     return NextResponse.json({

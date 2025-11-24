@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/mongodb';
-import type { Student } from '@/types/student';
+import { connectDB } from '@/lib/mongoose';
+import { Student } from '@/models';
+import type { UpdateStudentRequest } from '@/types/student';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    await connectDB();
+    const { id } = await params;
 
-    const db = await getDatabase();
-    const collection = db.collection<Student>('students');
-
-    const student = await collection.findOne({ id });
+    const student = await Student.findOne({ id }).lean();
 
     if (!student) {
       return NextResponse.json(
@@ -36,19 +35,15 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    await connectDB();
+    const { id } = await params;
     const body = await request.json();
     const { name, studentId, email, phone, department, grade, class: className } = body;
 
-    const db = await getDatabase();
-    const collection = db.collection<Student>('students');
-
-    const updateData: Partial<Student> & { updatedAt: Date } = {
-      updatedAt: new Date(),
-    };
+    const updateData: Partial<UpdateStudentRequest> = {};
 
     if (name !== undefined) updateData.name = name;
     if (studentId !== undefined) updateData.studentId = studentId;
@@ -58,11 +53,11 @@ export async function PUT(
     if (grade !== undefined) updateData.grade = grade;
     if (className !== undefined) updateData.class = className;
 
-    const result = await collection.findOneAndUpdate(
+    const result = await Student.findOneAndUpdate(
       { id },
       { $set: updateData },
-      { returnDocument: 'after' }
-    );
+      { new: true }
+    ).lean();
 
     if (!result) {
       return NextResponse.json(
@@ -86,15 +81,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    await connectDB();
+    const { id } = await params;
 
-    const db = await getDatabase();
-    const collection = db.collection<Student>('students');
-
-    const result = await collection.deleteOne({ id });
+    const result = await Student.deleteOne({ id });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(

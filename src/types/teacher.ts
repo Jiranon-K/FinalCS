@@ -8,7 +8,7 @@ export interface Teacher {
   department?: string;
   imageUrl: string;
   imageKey: string;
-  faceDescriptor: number[];
+  faceDescriptor?: number[];
   createdAt: Date;
   updatedAt: Date;
 }

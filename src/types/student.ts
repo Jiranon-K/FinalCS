@@ -10,7 +10,7 @@ export interface Student {
   class?: string;
   imageUrl: string;
   imageKey: string;
-  faceDescriptor: number[];
+  faceDescriptor?: number[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/mongodb';
+import { connectDB } from '@/lib/mongoose';
+import { Teacher } from '@/models';
 import { uploadBase64Image } from '@/lib/r2-upload';
-import type { Teacher } from '@/types/teacher';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
     const body = await request.json();
     const {
       name,
@@ -31,24 +33,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = await getDatabase();
-    const collection = db.collection<Teacher>('teachers');
-
-    const existingTeacher = await collection.findOne({
-      teacherId: teacherId || '',
-    });
-
-    if (existingTeacher && teacherId) {
-      return NextResponse.json(
-        { success: false, error: 'Teacher with this ID already exists' },
-        { status: 409 }
-      );
+    if (teacherId) {
+      const existingTeacher = await Teacher.findOne({ teacherId });
+      if (existingTeacher) {
+        return NextResponse.json(
+          { success: false, error: 'Teacher with this ID already exists' },
+          { status: 409 }
+        );
+      }
     }
 
     const personId = uuidv4();
     const { imageUrl, imageKey } = await uploadBase64Image(imageData, personId, 'teacher');
 
-    const newTeacher: Teacher = {
+    const newTeacher = await Teacher.create({
       id: personId,
       name,
       teacherId: teacherId || undefined,
@@ -58,16 +56,12 @@ export async function POST(request: NextRequest) {
       imageUrl,
       imageKey,
       faceDescriptor,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const result = await collection.insertOne(newTeacher as any);
+    });
 
     return NextResponse.json(
       {
         success: true,
-        data: { ...newTeacher, _id: result.insertedId },
+        data: newTeacher.toObject(),
       },
       { status: 201 }
     );
@@ -82,32 +76,38 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = parseInt(searchParams.get('skip') || '0');
 
-    const db = await getDatabase();
-    const collection = db.collection<Teacher>('teachers');
-
-    let query: Record<string, any> = {};
-
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { teacherId: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-      ];
+    interface TeacherQuery {
+      $or?: Array<{
+        name?: { $regex: string; $options: string };
+        teacherId?: { $regex: string; $options: string };
+        email?: { $regex: string; $options: string };
+      }>;
     }
 
+    const query: TeacherQuery = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { teacherId: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
+
     const [teachers, total] = await Promise.all([
-      collection
-        .find(query)
+      Teacher.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .toArray(),
-      collection.countDocuments(query),
+        .lean(),
+      Teacher.countDocuments(query),
     ]);
 
     return NextResponse.json({

@@ -5,7 +5,8 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(echo:*)",
-      "Bash(\"src/hooks/useTheme.ts\")"
+      "Bash(\"src/hooks/useTheme.ts\")",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
