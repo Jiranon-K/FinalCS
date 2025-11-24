@@ -9,6 +9,8 @@ import { CameraProvider } from "@/contexts/CameraContext";
 import { ToastContainer } from "@/components/toast/ToastContainer";
 import FloatingCameraPreview from "@/components/camera/FloatingCameraPreview";
 import { FaceAPIProvider } from "@/contexts/FaceAPIContext";
+import AuthGuard from "@/components/auth/AuthGuard";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const notoSansThai = Noto_Sans_Thai({
   variable: "--font-noto-sans-thai",
@@ -34,9 +36,13 @@ export default function RootLayout({
             <FaceAPIProvider>
               <CameraProvider>
                 <ToastProvider>
-                  <Drawer>{children}</Drawer>
-                  <ToastContainer />
-                  <FloatingCameraPreview />
+                  <AuthProvider>
+                    <AuthGuard>
+                      <Drawer>{children}</Drawer>
+                      <ToastContainer />
+                      <FloatingCameraPreview />
+                    </AuthGuard>
+                  </AuthProvider>
                 </ToastProvider>
               </CameraProvider>
             </FaceAPIProvider>

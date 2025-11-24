@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useCallback, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import * as faceapi from 'face-api.js';
 import type {
   FaceDetectionResult,
@@ -65,6 +66,7 @@ const DEFAULT_SETTINGS: FaceRecognitionSettings = {
 };
 
 export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState<FaceRecognitionSettings>(DEFAULT_SETTINGS);
@@ -276,10 +278,12 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !modelsLoaded && !isLoading) {
+    const isLoginPage = pathname === '/login' || pathname === '/admin/login';
+    
+    if (typeof window !== 'undefined' && !modelsLoaded && !isLoading && !isLoginPage) {
       loadModels();
     }
-  }, [loadModels, modelsLoaded, isLoading]);
+  }, [loadModels, modelsLoaded, isLoading, pathname]);
 
   const value: FaceAPIContextType = {
     modelsLoaded,

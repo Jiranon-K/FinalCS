@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
@@ -12,6 +13,15 @@ config.autoAddCss = false;
 const Drawer = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(true);
   const { t } = useLocale();
+  const pathname = usePathname();
+
+  const isLoginPage = useMemo(() => {
+    return pathname === '/login' || pathname === '/admin/login';
+  }, [pathname]);
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="drawer lg:drawer-open">
@@ -38,18 +48,22 @@ const Drawer = ({ children }: { children: React.ReactNode }) => {
           aria-label="close sidebar"
           className="drawer-overlay"
         ></label>
-        <div className={`flex min-h-full flex-col p-4 ${isOpen ? 'w-72 items-start' : 'w-24 items-center'}`}>
+        <div className={`flex flex-col h-screen bg-base-100 ${isOpen ? 'w-72' : 'w-24'}`}>
           {/* Desktop collapse toggle button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="btn btn-ghost btn-sm mb-4 hidden lg:flex"
-            aria-label={t.nav.collapse}
-            title={t.nav.collapse}
-          >
-            <FontAwesomeIcon icon={isOpen ? faChevronLeft : faChevronRight} />
-            {isOpen && <span className="ml-2">{t.nav.collapse}</span>}
-          </button>
-          <Sidebar isOpen={isOpen} />
+          <div className={`p-4 ${!isOpen ? 'flex justify-center' : ''}`}>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="btn btn-ghost btn-sm hidden lg:flex"
+              aria-label={t.nav.collapse}
+              title={t.nav.collapse}
+            >
+              <FontAwesomeIcon icon={isOpen ? faChevronLeft : faChevronRight} />
+              {isOpen && <span className="ml-2">{t.nav.collapse}</span>}
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col">
+            <Sidebar isOpen={isOpen} />
+          </div>
         </div>
       </div>
     </div>

@@ -208,5 +208,33 @@
     "enableAgeGenderDesc": "Predict age and gender from faces",
     "save": "Save Settings",
     "reset": "Reset to Default"
+  },
+  "login": {
+    "welcome": "Welcome Back",
+    "subtitle": "Login to access facial recognition services and manage your teaching data",
+    "selectRole": "Select Role",
+    "roleStudent": "Student",
+    "roleTeacher": "Teacher",
+    "roleAdmin": "Administrator",
+    "usernamePlaceholder": "Email / Student ID",
+    "usernamePlaceholderEmail": "user@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "forgotPassword": "Forgot Password?",
+    "loginButton": "Login",
+    "adminTitle": "Admin Portal",
+    "adminSubtitle": "System management and administration",
+    "adminBadge": "Restricted Access",
+    "adminUsernameLabel": "Admin Username",
+    "adminUsernamePlaceholder": "admin",
+    "adminLoginButton": "Login to Dashboard",
+    "backToGeneral": "Back to General Login",
+    "secureConnection": "SECURE CONNECTION",
+    "usernameRequired": "Please enter value",
+    "passwordRequired": "Please enter password",
+    "adminUsernameRequired": "Please enter username",
+    "loginFailed": "Login failed",
+    "loginError": "An error occurred. Please try again.",
+    "loading": "Loading..."
   }
 }

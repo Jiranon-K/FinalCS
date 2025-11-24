@@ -208,5 +208,33 @@
     "enableAgeGenderDesc": "คาดเดาอายุและเพศจากใบหน้า",
     "save": "บันทึกการตั้งค่า",
     "reset": "รีเซ็ตเป็นค่าเริ่มต้น"
+  },
+  "login": {
+    "welcome": "ยินดีต้อนรับกลับมา",
+    "subtitle": "เข้าสู่ระบบเพื่อเข้าถึงบริการตรวจสอบใบหน้าและจัดการข้อมูลการเรียนการสอนของคุณ",
+    "selectRole": "เลือกสถานะ",
+    "roleStudent": "นักศึกษา",
+    "roleTeacher": "อาจารย์",
+    "roleAdmin": "ผู้ดูแลระบบ",
+    "usernamePlaceholder": "อีเมล / รหัสนักศึกษา",
+    "usernamePlaceholderEmail": "user@example.com",
+    "passwordLabel": "รหัสผ่าน",
+    "passwordPlaceholder": "••••••••",
+    "forgotPassword": "ลืมรหัสผ่าน?",
+    "loginButton": "เข้าสู่ระบบ",
+    "adminTitle": "Admin Portal",
+    "adminSubtitle": "ระบบจัดการและดูแลความเรียบร้อยสำหรับผู้ดูแลระบบ",
+    "adminBadge": "Restricted Access",
+    "adminUsernameLabel": "ชื่อผู้ใช้ Admin",
+    "adminUsernamePlaceholder": "admin",
+    "adminLoginButton": "เข้าสู่ระบบ Dashboard",
+    "backToGeneral": "กลับสู่หน้าเข้าสู่ระบบทั่วไป",
+    "secureConnection": "การเชื่อมต่อปลอดภัย",
+    "usernameRequired": "กรุณากรอกข้อมูล",
+    "passwordRequired": "กรุณากรอกรหัสผ่าน",
+    "adminUsernameRequired": "กรุณากรอกชื่อผู้ใช้",
+    "loginFailed": "เข้าสู่ระบบล้มเหลว",
+    "loginError": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+    "loading": "กำลังโหลด..."
   }
 }
