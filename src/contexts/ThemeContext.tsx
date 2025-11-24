@@ -7,9 +7,9 @@ export type Theme =
   | 'light' | 'cupcake' | 'bumblebee' | 'emerald' | 'corporate' | 'retro'
   | 'valentine' | 'garden' | 'lofi' | 'pastel' | 'fantasy' | 'wireframe'
   | 'cmyk' | 'autumn' | 'acid' | 'lemonade' | 'winter' | 'nord'
-  | 'sunset' | 'caramellatte' | 'silk'
+  | 'caramellatte' | 'silk'
   // Dark themes
-  | 'dark' | 'synthwave' | 'cyberpunk' | 'halloween' | 'forest' | 'aqua'
+  | 'dark' | 'synthwave' | 'halloween' | 'forest' 
   | 'black' | 'luxury' | 'dracula' | 'business' | 'night' | 'coffee'
   | 'dim' | 'abyss';
 
@@ -17,12 +17,11 @@ export const lightThemes: Theme[] = [
   'light', 'cupcake', 'bumblebee', 'emerald', 'corporate', 'retro',
   'valentine', 'garden', 'lofi', 'pastel', 'fantasy', 'wireframe',
   'cmyk', 'autumn', 'acid', 'lemonade', 'winter', 'nord',
-  'sunset', 'caramellatte', 'silk'
+  'caramellatte', 'silk'
 ];
 
 export const darkThemes: Theme[] = [
-  'dark', 'synthwave', 'cyberpunk', 'halloween', 'forest', 'aqua',
-  'black', 'luxury', 'dracula', 'business', 'night', 'coffee',
+  'dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee',
   'dim', 'abyss'
 ];
 
@@ -47,7 +46,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // Load theme from localStorage after component mounts (client-side only)
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme && [...lightThemes, ...darkThemes].includes(savedTheme)) {
       setThemeState(savedTheme);

@@ -34,15 +34,15 @@ export function useLocale() {
 }
 
 export function LocaleProvider({ children }: LocaleProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window !== 'undefined') {
-      const savedLocale = localStorage.getItem('locale') as Locale;
-      if (savedLocale === 'th' || savedLocale === 'en') {
-        return savedLocale;
-      }
+  const [locale, setLocaleState] = useState<Locale>('th');
+  const [isHydrated, setIsHydrated] = useState(false);
+  React.useEffect(() => {
+    setIsHydrated(true);
+    const savedLocale = localStorage.getItem('locale') as Locale;
+    if (savedLocale === 'th' || savedLocale === 'en') {
+      setLocaleState(savedLocale);
     }
-    return 'th';
-  });
+  }, []);
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);

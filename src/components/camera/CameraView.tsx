@@ -31,7 +31,7 @@ export default function CameraView() {
     setSelectedDeviceId
   } = useCameraContext();
 
-  const { modelsLoaded, detectFaces, recognizeFace } = useFaceAPI();
+  const { modelsLoaded, detectFaces, recognizeFace, settings, updateSettings } = useFaceAPI();
 
   useEffect(() => {
     if (videoRef.current && stream) {
@@ -192,18 +192,107 @@ export default function CameraView() {
           </div>
           
           <div className="flex items-center gap-3">
-            <select
-              className="select select-bordered select-sm bg-base-100/20 min-w-[180px]"
-              value={selectedDeviceId}
-              onChange={(e) => setSelectedDeviceId(e.target.value)}
-              disabled={devices.length === 0}
-            >
-              {devices.map(device => (
-                <option key={device.deviceId} value={device.deviceId}>
-                  {device.label}
-                </option>
-              ))}
-            </select>
+            <div className="dropdown dropdown-end">
+              <div 
+                tabIndex={0} 
+                role="button" 
+                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-[240px] h-auto py-1 justify-between font-normal ${isStreaming ? 'btn-disabled opacity-50' : ''}`}
+              >
+                <div className="flex flex-col items-start text-left overflow-hidden w-full mr-2">
+                  <span className="font-bold text-xs truncate w-full">
+                    {settings.detectorModel === 'ssd_mobilenetv1' && t.faceSettings.ssdMobilenetName}
+                    {settings.detectorModel === 'tiny_face_detector' && t.faceSettings.tinyFaceDetectorName}
+                    {settings.detectorModel === 'mtcnn' && t.faceSettings.mtcnnName}
+                  </span>
+                  <span className="text-[10px] opacity-70 truncate w-full">
+                    {settings.detectorModel === 'ssd_mobilenetv1' && t.faceSettings.ssdMobilenetDesc}
+                    {settings.detectorModel === 'tiny_face_detector' && t.faceSettings.tinyFaceDetectorDesc}
+                    {settings.detectorModel === 'mtcnn' && t.faceSettings.mtcnnDesc}
+                  </span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 opacity-50 shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-64 mt-1 border border-base-content/10">
+                <li>
+                  <button 
+                    onClick={() => {
+                      updateSettings({ detectorModel: 'ssd_mobilenetv1' });
+                      const elem = document.activeElement as HTMLElement;
+                      if (elem) elem.blur();
+                    }}
+                    className={`flex flex-col items-start gap-0.5 py-2 ${settings.detectorModel === 'ssd_mobilenetv1' ? 'active' : ''}`}
+                  >
+                    <span className="font-bold text-xs">{t.faceSettings.ssdMobilenetName}</span>
+                    <span className="text-[10px] opacity-70 truncate block w-full">{t.faceSettings.ssdMobilenetDesc}</span>
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => {
+                      updateSettings({ detectorModel: 'tiny_face_detector' });
+                      const elem = document.activeElement as HTMLElement;
+                      if (elem) elem.blur();
+                    }}
+                    className={`flex flex-col items-start gap-0.5 py-2 ${settings.detectorModel === 'tiny_face_detector' ? 'active' : ''}`}
+                  >
+                    <span className="font-bold text-xs">{t.faceSettings.tinyFaceDetectorName}</span>
+                    <span className="text-[10px] opacity-70 truncate block w-full">{t.faceSettings.tinyFaceDetectorDesc}</span>
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => {
+                      updateSettings({ detectorModel: 'mtcnn' });
+                      const elem = document.activeElement as HTMLElement;
+                      if (elem) elem.blur();
+                    }}
+                    className={`flex flex-col items-start gap-0.5 py-2 ${settings.detectorModel === 'mtcnn' ? 'active' : ''}`}
+                  >
+                    <span className="font-bold text-xs">{t.faceSettings.mtcnnName}</span>
+                    <span className="text-[10px] opacity-70 truncate block w-full">{t.faceSettings.mtcnnDesc}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div className="dropdown dropdown-end">
+              <div 
+                tabIndex={0} 
+                role="button" 
+                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-[240px] h-auto py-1 justify-between font-normal ${devices.length === 0 || isStreaming ? 'btn-disabled opacity-50' : ''}`}
+              >
+                <div className="flex flex-col items-start text-left overflow-hidden w-full mr-2">
+                  <span className="font-bold text-xs truncate w-full">
+                    {devices.find(d => d.deviceId === selectedDeviceId)?.label || t.camera.selectDevice || 'Select Device'}
+                  </span>
+                  <span className="text-[10px] opacity-70 truncate w-full">
+                    {t.camera.camera} {devices.findIndex(d => d.deviceId === selectedDeviceId) + 1}
+                  </span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 opacity-50 shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-64 mt-1 border border-base-content/10">
+                {devices.map((device, index) => (
+                  <li key={device.deviceId}>
+                    <button 
+                      onClick={() => {
+                        setSelectedDeviceId(device.deviceId);
+                        const elem = document.activeElement as HTMLElement;
+                        if (elem) elem.blur();
+                      }}
+                      className={`flex flex-col items-start gap-0.5 py-2 ${selectedDeviceId === device.deviceId ? 'active' : ''}`}
+                    >
+                      <span className="font-bold text-xs truncate block w-full">{device.label}</span>
+                      <span className="text-[10px] opacity-70 truncate block w-full">{t.camera.camera} {index + 1}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             {!isStreaming ? (
               <button

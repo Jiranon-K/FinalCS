@@ -57,9 +57,9 @@ export const FaceAPIContext = createContext<FaceAPIContextType | undefined>(unde
 
 const DEFAULT_SETTINGS: FaceRecognitionSettings = {
   detectionThreshold: 0.5,
-  recognitionThreshold: 0.6,
+  recognitionThreshold: 0.5,
   detectorModel: 'ssd_mobilenetv1',
-  enableLandmarks: true,
+  enableLandmarks: false,
   enableExpressions: false,
   enableAgeGender: false,
 };

@@ -2,9 +2,12 @@
 
 import { useCameraContext } from '@/contexts/CameraContext';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
+import { useFaceAPI } from '@/hooks/useFaceAPI';
 import Loading from '@/components/ui/Loading';
+import type { FaceDetectionResult } from '@/types/face';
+import type { PersonForRecognition } from '@/types/person';
 
 export default function FloatingCameraPreview() {
   const { t } = useLocale();
@@ -12,8 +15,34 @@ export default function FloatingCameraPreview() {
   const pathname = usePathname();
   const router = useRouter();
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const detectionIntervalRef = useRef<number | null>(null);
+
+  const [detectedFaces, setDetectedFaces] = useState<FaceDetectionResult[]>([]);
+  const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number }>>(new Map());
+  const [knownPersons, setKnownPersons] = useState<PersonForRecognition[]>([]);
+
+  const { modelsLoaded, detectFaces, recognizeFace } = useFaceAPI();
 
   const isVisible = isStreaming && pathname !== '/camera';
+
+  useEffect(() => {
+    const loadKnownPersons = async () => {
+      try {
+        const response = await fetch('/api/faces');
+        const data = await response.json();
+        if (data.success) {
+          setKnownPersons(data.data);
+        }
+      } catch (err) {
+        console.error('Error loading known persons:', err);
+      }
+    };
+
+    if (modelsLoaded && isVisible) {
+      loadKnownPersons();
+    }
+  }, [modelsLoaded, isVisible]);
 
   useEffect(() => {
     if (localVideoRef.current && stream) {
@@ -23,6 +52,102 @@ export default function FloatingCameraPreview() {
       });
     }
   }, [stream, isVisible]);
+
+  useEffect(() => {
+    if (!isVisible || !modelsLoaded || !localVideoRef.current || !canvasRef.current) {
+      return;
+    }
+
+    const video = localVideoRef.current;
+    const canvas = canvasRef.current;
+
+    const updateCanvasSize = () => {
+      if (video.videoWidth && video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+    };
+
+    video.addEventListener('loadedmetadata', updateCanvasSize);
+    updateCanvasSize();
+
+    const runDetection = async () => {
+      try {
+        if (video.readyState === 4) {
+          const faces = await detectFaces(video);
+          setDetectedFaces(faces);
+
+          const recognitionMap = new Map<number, { name: string; confidence: number }>();
+
+          for (let i = 0; i < faces.length; i++) {
+            const face = faces[i];
+            if (face.descriptor && knownPersons.length > 0) {
+              const match = recognizeFace(face.descriptor, knownPersons);
+              if (match) {
+                recognitionMap.set(i, {
+                  name: match.personName,
+                  confidence: match.confidence
+                });
+              } else {
+                recognitionMap.set(i, {
+                  name: 'Unknown',
+                  confidence: 0
+                });
+              }
+            }
+          }
+          setRecognizedPersons(recognitionMap);
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            faces.forEach((face, index) => {
+              const { box } = face.detection;
+              const recognized = recognitionMap.get(index);
+
+              const isKnown = recognized && recognized.name !== 'Unknown';
+              const boxColor = isKnown ? '#10b981' : '#ef4444';
+              const bgColor = isKnown ? '#10b981' : '#ef4444';
+
+              ctx.strokeStyle = boxColor;
+              ctx.lineWidth = 2;
+              ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+              let label = '';
+              if (isKnown) {
+                label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
+              } else {
+                label = `Unknown (${(face.detection.score * 100).toFixed(1)}%)`;
+              }
+
+              ctx.font = 'bold 12px sans-serif';
+              const textWidth = ctx.measureText(label).width;
+              const padding = 6;
+              const labelHeight = 20;
+
+              ctx.fillStyle = bgColor;
+              ctx.fillRect(box.x, box.y - labelHeight - 3, textWidth + padding * 2, labelHeight);
+
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(label, box.x + padding, box.y - 8);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Face detection error:', err);
+      }
+    };
+
+    detectionIntervalRef.current = window.setInterval(runDetection, 300);
+
+    return () => {
+      video.removeEventListener('loadedmetadata', updateCanvasSize);
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+      }
+    };
+  }, [isVisible, modelsLoaded, detectFaces, recognizeFace, knownPersons]);
 
   const handleClick = () => {
     router.push('/camera');
@@ -48,6 +173,10 @@ export default function FloatingCameraPreview() {
             playsInline
             muted
             className="w-full h-full object-cover"
+          />
+          <canvas
+            ref={canvasRef}
+            className="absolute top-0 left-0 w-full h-full pointer-events-none"
           />
           
           {isLoading && (
