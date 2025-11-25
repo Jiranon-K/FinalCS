@@ -44,14 +44,15 @@ const studentSchema = new Schema<StudentDocument>(
     },
     imageUrl: {
       type: String,
-      required: true,
+      required: false,
     },
     imageKey: {
       type: String,
-      required: true,
+      required: false,
     },
     faceDescriptor: {
       type: [Number],
+      required: false,
       validate: {
         validator: function (v: number[] | undefined) {
           return v === undefined || v === null || v.length === 128;

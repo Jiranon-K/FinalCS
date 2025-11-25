@@ -48,9 +48,11 @@ export async function GET() {
         username: payload.username,
         role: payload.role,
         name: profile?.name,
+        fullName: user.fullName,
         email: profile?.email,
         phone: profile?.phone,
         department: profile?.department,
+        imageUrl: user.imageUrl,
       },
     });
   } catch (error) {

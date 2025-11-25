@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import User from '@/models/User';
 import { generateToken, setTokenCookie } from '@/lib/jwt';
+import { verifyPassword } from '@/lib/password';
 
 export async function POST(req: Request) {
   try {
@@ -25,7 +26,8 @@ export async function POST(req: Request) {
       );
     }
 
-    if (user.password !== password) {
+    const isPasswordValid = await verifyPassword(password, user.password || '');
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }

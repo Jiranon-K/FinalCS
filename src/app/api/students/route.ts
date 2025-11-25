@@ -21,14 +21,14 @@ export async function POST(request: NextRequest) {
       imageData,
     } = body;
 
-    if (!name || !faceDescriptor || !imageData) {
+    if (!name) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: name, faceDescriptor, imageData' },
+        { success: false, error: 'Missing required field: name' },
         { status: 400 }
       );
     }
 
-    if (!Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
+    if (faceDescriptor && (!Array.isArray(faceDescriptor) || faceDescriptor.length !== 128)) {
       return NextResponse.json(
         { success: false, error: 'Invalid face descriptor' },
         { status: 400 }
@@ -46,7 +46,14 @@ export async function POST(request: NextRequest) {
     }
 
     const personId = uuidv4();
-    const { imageUrl, imageKey } = await uploadBase64Image(imageData, personId, 'student');
+    let imageUrl = `${process.env.R2_PUBLIC_URL}/default_profile/student.png`;
+    let imageKey = 'default_profile/student.png';
+
+    if (imageData) {
+      const uploadResult = await uploadBase64Image(imageData, personId, 'student');
+      imageUrl = uploadResult.imageUrl;
+      imageKey = uploadResult.imageKey;
+    }
 
     const newStudent = await Student.create({
       id: personId,
@@ -59,7 +66,7 @@ export async function POST(request: NextRequest) {
       class: className || undefined,
       imageUrl,
       imageKey,
-      faceDescriptor,
+      faceDescriptor: faceDescriptor || undefined,
     });
 
     return NextResponse.json(

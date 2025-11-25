@@ -37,16 +37,16 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
   };
 
   const getDisplayName = () => {
-    return user?.name || user?.username || 'Unknown User';
+    return user?.fullName || user?.name || user?.username || 'Unknown User';
   };
 
   const getRoleDisplay = () => {
     if (!user) return '';
     
     const roleMap: Record<string, string> = {
-      'admin': 'ผู้ดูแลระบบ',
-      'teacher': 'อาจารย์',
-      'student': 'นักเรียน',
+      'admin': t.register.roleAdmin,
+      'teacher': t.register.roleTeacher,
+      'student': t.register.roleStudent,
     };
     
     return roleMap[user.role] || user.role;
@@ -84,7 +84,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
           <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
             <Image
-              src="/menu-icon/face-recognition.png"
+              src="/menu-icon/camera.png"
               alt="Camera"
               width={32}
               height={32}
@@ -105,6 +105,20 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             <span className={!isOpen ? 'hidden' : ''}>{t.nav.register}</span>
           </Link>
         </li>
+        {user?.role === 'admin' && (
+          <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.users : undefined}>
+            <Link href="/users" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/user-manage.png"
+                alt="Users"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.users}</span>
+            </Link>
+          </li>
+        )}
         <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.settings : undefined}>
           <Link href="/settings" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
             <Image
@@ -126,9 +140,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           isOpen ? (
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="bg-primary text-primary-content w-12 rounded-full">
-                  <span className="text-lg font-semibold">{getInitials()}</span>
-                </div>
+                {user.imageUrl ? (
+                  <div className="w-12 rounded-full">
+                    <Image
+                      src={user.imageUrl}
+                      alt="Profile"
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-primary text-primary-content w-12 rounded-full">
+                    <span className="text-lg font-semibold">{getInitials()}</span>
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">
@@ -149,9 +175,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           ) : (
             <div className="flex justify-center">
               <div className="avatar placeholder">
-                <div className="bg-primary text-primary-content w-10 rounded-full">
-                  <span className="text-sm font-semibold">{getInitials()}</span>
-                </div>
+                {user.imageUrl ? (
+                  <div className="w-10 rounded-full">
+                    <Image
+                      src={user.imageUrl}
+                      alt="Profile"
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-primary text-primary-content w-10 rounded-full">
+                    <span className="text-sm font-semibold">{getInitials()}</span>
+                  </div>
+                )}
               </div>
             </div>
           )

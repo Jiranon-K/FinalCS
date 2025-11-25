@@ -6,7 +6,9 @@
       "Bash(npm run build:*)",
       "Bash(echo:*)",
       "Bash(\"src/hooks/useTheme.ts\")",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebSearch",
+      "Bash(cmd /c \"if not exist C:\\Users\\stell\\.claude\\plans mkdir C:\\Users\\stell\\.claude\\plans\")"
     ],
     "deny": [],
     "ask": []

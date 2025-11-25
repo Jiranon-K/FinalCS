@@ -6,9 +6,11 @@ export interface UserProfile {
   username: string;
   role: 'student' | 'teacher' | 'admin';
   name?: string;
+  fullName?: string;
   email?: string;
   phone?: string;
   department?: string;
+  imageUrl?: string;
 }
 
 interface AuthContextType {
