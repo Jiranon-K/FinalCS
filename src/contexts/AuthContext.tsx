@@ -14,6 +14,9 @@ export interface UserProfile {
   phone?: string;
   department?: string;
   imageUrl?: string;
+  createdAt?: string;
+  lastLogin?: string;
+  faceDescriptorCount?: number;
 }
 
 interface AuthContextType {

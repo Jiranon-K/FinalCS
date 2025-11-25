@@ -56,6 +56,8 @@ export async function GET() {
         phone: profile?.phone,
         department: profile?.department,
         imageUrl: user.imageUrl,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
       },
     });
   } catch (error) {

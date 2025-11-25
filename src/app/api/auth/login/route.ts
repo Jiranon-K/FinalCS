@@ -41,6 +41,8 @@ export async function POST(req: Request) {
 
     await setTokenCookie(token);
 
+    await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
+
     return NextResponse.json({
       message: 'Login successful',
       user: {

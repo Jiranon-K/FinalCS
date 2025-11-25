@@ -28,7 +28,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-base-200/50 py-8">
+    <div className="min-h-screen bg-base-100 py-8">
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-base-content">{t.profile.title}</h1>

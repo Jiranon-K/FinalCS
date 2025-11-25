@@ -9,6 +9,9 @@ export interface UserDocument extends mongoose.Document {
   profileId?: mongoose.Types.ObjectId;
   imageUrl?: string;
   imageKey?: string;
+  lastLogin?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const userSchema = new Schema<UserDocument>(
@@ -49,6 +52,10 @@ const userSchema = new Schema<UserDocument>(
     },
     imageKey: {
       type: String,
+      required: false,
+    },
+    lastLogin: {
+      type: Date,
       required: false,
     },
   },

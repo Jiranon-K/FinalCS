@@ -86,8 +86,8 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           </li>
         )}
 
-        {/* Camera - Hidden if student has registered profile */}
-        {(!user || user.role !== 'student' || !user.hasProfileRegistered) && (
+        {/* Camera - Only visible to Admin and Teacher */}
+        {(!user || user.role !== 'student') && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
             <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
               <Image

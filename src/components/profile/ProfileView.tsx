@@ -6,19 +6,34 @@ import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faIdCard, faEnvelope, faPhone, faBuilding, faGraduationCap, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faBuilding, faCamera } from '@fortawesome/free-solid-svg-icons';
 import FaceUpdateRequestStatus from './FaceUpdateRequestStatus';
 import FaceUpdateRequestForm from './FaceUpdateRequestForm';
+import ProfileEditForm from './ProfileEditForm';
+import PasswordChangeForm from './PasswordChangeForm';
+import AccountInfoCard from './AccountInfoCard';
+import FaceRecognitionStatusCard from './FaceRecognitionStatusCard';
+
+interface FaceUpdateRequest {
+  _id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+  newImageUrl: string;
+}
 
 export default function ProfileView() {
   const { user, refreshUser } = useAuth();
   const { t } = useLocale();
   const { showToast } = useToast();
   
-  const [activeRequest, setActiveRequest] = useState<any>(null);
+  const [activeRequest, setActiveRequest] = useState<FaceUpdateRequest | null>(null);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [isLoadingRequest, setIsLoadingRequest] = useState(true);
   const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
+  const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
 
   const fetchActiveRequest = useCallback(async () => {
     try {
@@ -67,7 +82,7 @@ export default function ProfileView() {
       } else {
         throw new Error(data.error);
       }
-    } catch (error) {
+    } catch {
       showToast({ message: t.profile.cancelError, type: 'error' });
     }
   };
@@ -75,6 +90,17 @@ export default function ProfileView() {
   const handleRequestSuccess = () => {
     setShowUpdateForm(false);
     fetchActiveRequest();
+  };
+
+  const handleProfileUpdateSuccess = async () => {
+    await refreshUser();
+    setProfileUpdateSuccess(true);
+    setTimeout(() => setProfileUpdateSuccess(false), 3000);
+  };
+
+  const handlePasswordChangeSuccess = () => {
+    setPasswordChangeSuccess(true);
+    setTimeout(() => setPasswordChangeSuccess(false), 3000);
   };
 
   const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +128,7 @@ export default function ProfileView() {
         }
       };
       reader.readAsDataURL(file);
-    } catch (error) {
+    } catch {
       showToast({ message: t.profile.profilePictureError, type: 'error' });
     } finally {
       setIsUploadingProfilePicture(false);
@@ -163,7 +189,12 @@ export default function ProfileView() {
             </div>
           </div>
 
-          {/* Contact Info */}
+          <AccountInfoCard
+            username={user.username}
+            createdAt={user.createdAt}
+            lastLogin={user.lastLogin}
+          />
+
           <div className="card bg-base-100 shadow-xl border border-base-200">
             <div className="card-body p-6">
               <h3 className="font-bold text-lg mb-4 border-b pb-2">{t.profile.contactInfo}</h3>
@@ -189,6 +220,13 @@ export default function ProfileView() {
               </div>
             </div>
           </div>
+
+          <FaceRecognitionStatusCard
+            hasFaceRegistered={user.hasProfileRegistered}
+            faceDescriptorCount={user.faceDescriptorCount || 1}
+            hasPendingRequest={activeRequest?.status === 'pending'}
+            onRequestUpdate={() => setShowUpdateForm(true)}
+          />
         </div>
 
         {/* Right Column: Details & Actions */}
@@ -209,41 +247,89 @@ export default function ProfileView() {
             </div>
           </div>
 
-          {/* Face Update Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">{t.profile.updateFace}</h3>
-              {!showUpdateForm && !activeRequest && (
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setShowUpdateForm(true)}
-                >
-                  {t.profile.uploadNewFace}
-                </button>
+          {/* Profile Edit Section */}
+          <div className="card bg-base-100 shadow-xl border border-base-200">
+            <div className="card-body">
+              <h3 className="font-bold text-lg mb-4 border-b pb-2">
+                {t.profile.editProfile}
+              </h3>
+              {profileUpdateSuccess && (
+                <div className="alert alert-success mb-4">
+                  <span>{t.profile.updateSuccess}</span>
+                </div>
+              )}
+              <ProfileEditForm
+                initialData={{
+                  name: user.name || '',
+                  email: user.email,
+                  phone: user.phone,
+                  department: user.department,
+                  studentId: user.studentId,
+                }}
+                profileId={user.profileId || ''}
+                onSuccess={handleProfileUpdateSuccess}
+              />
+            </div>
+          </div>
+
+          {/* Password Change Section */}
+          <div className="card bg-base-100 shadow-xl border border-base-200">
+            <div className="card-body">
+              <h3 className="font-bold text-lg mb-4 border-b pb-2">
+                {t.profile.changePassword}
+              </h3>
+              {passwordChangeSuccess && (
+                <div className="alert alert-success mb-4">
+                  <span>{t.profile.passwordChangeSuccess}</span>
+                </div>
+              )}
+              <PasswordChangeForm
+                username={user.username}
+                onSuccess={handlePasswordChangeSuccess}
+              />
+            </div>
+          </div>
+
+          <div className="card bg-base-100 shadow-xl border border-base-200">
+            <div className="card-body">
+              <h3 className="font-bold text-lg mb-4 border-b pb-2">
+                {t.profile.faceUpdateRequest}
+              </h3>
+              {isLoadingRequest ? (
+                <div className="flex justify-center p-4">
+                  <span className="loading loading-spinner loading-md"></span>
+                </div>
+              ) : (
+                <>
+                  {activeRequest && (
+                    <FaceUpdateRequestStatus 
+                      request={activeRequest} 
+                      onCancel={handleCancelRequest}
+                    />
+                  )}
+
+                  {showUpdateForm && !activeRequest && (
+                    <FaceUpdateRequestForm 
+                      onSuccess={handleRequestSuccess}
+                      onCancel={() => setShowUpdateForm(false)}
+                    />
+                  )}
+
+                  {!activeRequest && !showUpdateForm && (
+                    <div className="text-center py-4">
+                      <p className="text-base-content/60 mb-4">{t.profile.noActiveRequest}</p>
+                      <button
+                        onClick={() => setShowUpdateForm(true)}
+                        className="btn btn-primary"
+                      >
+                        <FontAwesomeIcon icon={faCamera} className="mr-2" />
+                        {t.profile.submitNewFace}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-
-            {isLoadingRequest ? (
-              <div className="flex justify-center p-8">
-                <span className="loading loading-spinner loading-md"></span>
-              </div>
-            ) : (
-              <>
-                {activeRequest && (
-                  <FaceUpdateRequestStatus 
-                    request={activeRequest} 
-                    onCancel={handleCancelRequest}
-                  />
-                )}
-
-                {showUpdateForm && !activeRequest && (
-                  <FaceUpdateRequestForm 
-                    onSuccess={handleRequestSuccess}
-                    onCancel={() => setShowUpdateForm(false)}
-                  />
-                )}
-              </>
-            )}
           </div>
         </div>
       </div>
