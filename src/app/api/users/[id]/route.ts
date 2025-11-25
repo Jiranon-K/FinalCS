@@ -50,7 +50,7 @@ export async function PUT(
     const { id } = await params;
 
     const body = await request.json();
-    const { password, role, profileId, imageData } = body;
+    const { password, role, profileId, imageData, fullName, studentId, removeImage } = body;
 
     const query = id.match(/^[0-9a-fA-F]{24}$/)
       ? { _id: id }
@@ -69,8 +69,10 @@ export async function PUT(
       password?: string;
       role?: 'student' | 'teacher' | 'admin';
       profileId?: string | null;
-      imageUrl?: string;
-      imageKey?: string;
+      imageUrl?: string | null;
+      imageKey?: string | null;
+      fullName?: string;
+      studentId?: string;
     } = {};
 
     if (password) {
@@ -81,6 +83,16 @@ export async function PUT(
       updateData.role = role;
     }
 
+    if (fullName !== undefined) {
+      updateData.fullName = fullName;
+    }
+
+    if (role === 'student' || (user.role === 'student' && !role)) {
+        if (studentId !== undefined) {
+            updateData.studentId = studentId;
+        }
+    }
+
     if (profileId !== undefined) {
       updateData.profileId = profileId || null;
     }
@@ -89,11 +101,30 @@ export async function PUT(
       const uploadResult = await uploadBase64Image(imageData, id, 'user');
       updateData.imageUrl = uploadResult.imageUrl;
       updateData.imageKey = uploadResult.imageKey;
+    } else if (removeImage) {
+        if (user.imageKey) {
+            try {
+                await deleteR2Image(user.imageKey);
+            } catch (error) {
+                console.error('Failed to delete R2 image:', error);
+            }
+        }
+        updateData.imageUrl = null;
+        updateData.imageKey = null;
+    }
+
+    const finalUpdate: {
+        $set: typeof updateData;
+        $unset?: { [key: string]: 1 };
+    } = { $set: updateData };
+
+    if (role && role !== 'student' && user.role === 'student') {
+        finalUpdate.$unset = { studentId: 1 };
     }
 
     const updatedUser = await User.findOneAndUpdate(
       query,
-      { $set: updateData },
+      finalUpdate,
       { new: true }
     )
       .select('-password')

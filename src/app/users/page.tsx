@@ -13,6 +13,7 @@ import UserTable, { User } from '@/components/users/UserTable';
 import UserFooterBadge from '@/components/users/UserFooterBadge';
 import DeleteConfirmModal from '@/components/common/DeleteConfirmModal';
 import CreateUserModal from '@/components/users/CreateUserModal';
+import EditUserModal from '@/components/users/EditUserModal';
 
 export default function UsersPage() {
   const { t } = useLocale();
@@ -24,13 +25,14 @@ export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   
-  // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
   
-  // Create modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
 
   useEffect(() => {
     if (user && user.role !== 'admin') {
@@ -117,8 +119,9 @@ export default function UsersPage() {
     showToast({ message: t.users.editFeatureComingSoon, type: 'info' });
   };
 
-  const handleEdit = () => {
-    showToast({ message: t.users.editFeatureComingSoon, type: 'info' });
+  const handleEdit = (user: User) => {
+    setUserToEdit(user);
+    setEditModalOpen(true);
   };
 
   const handleClearFilters = () => {
@@ -183,6 +186,17 @@ export default function UsersPage() {
           isOpen={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           onSuccess={fetchUsers}
+        />
+
+        {/* Edit User Modal */}
+        <EditUserModal
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setUserToEdit(null);
+          }}
+          onSuccess={fetchUsers}
+          user={userToEdit}
         />
       </div>
     </div>
