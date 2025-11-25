@@ -5,6 +5,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 export interface UserProfile {
   username: string;
   role: 'student' | 'teacher' | 'admin';
+  studentId?: string;
+  hasProfileRegistered: boolean;
+  profileId?: string;
   name?: string;
   fullName?: string;
   email?: string;

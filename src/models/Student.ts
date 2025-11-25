@@ -1,8 +1,9 @@
 import mongoose, { Schema, Model } from 'mongoose';
 import type { Student as IStudent } from '@/types/student';
 
-export interface StudentDocument extends Omit<IStudent, '_id'>, mongoose.Document {
+export interface StudentDocument extends Omit<IStudent, '_id' | 'userId'>, mongoose.Document {
   _id: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
 }
 
 const studentSchema = new Schema<StudentDocument>(
@@ -11,6 +12,12 @@ const studentSchema = new Schema<StudentDocument>(
       type: String,
       required: true,
       unique: true,
+      index: true,
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
       index: true,
     },
     name: {

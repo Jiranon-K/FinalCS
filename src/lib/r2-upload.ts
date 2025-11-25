@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 
 const s3Client = new S3Client({
@@ -27,7 +27,7 @@ export interface UploadResult {
 export async function uploadFaceImage(
   file: File | Buffer,
   personId: string,
-  type: 'student' | 'teacher' | 'user'
+  type: 'student' | 'teacher' | 'user' | 'temp-face'
 ): Promise<UploadResult> {
   try {
     const fileExtension = file instanceof File ? file.name.split('.').pop() : 'jpg';
@@ -60,7 +60,7 @@ export async function uploadFaceImage(
 export async function uploadBase64Image(
   base64Data: string,
   personId: string,
-  type: 'student' | 'teacher' | 'user'
+  type: 'student' | 'teacher' | 'user' | 'temp-face'
 ): Promise<UploadResult> {
   try {
     if (!BUCKET_NAME || !PUBLIC_URL) {
@@ -100,5 +100,24 @@ export async function uploadBase64Image(
   } catch (error) {
     console.error('Error uploading base64 to R2:', error);
     throw new Error('Failed to upload image to storage');
+  }
+}
+
+export async function deleteR2Image(imageKey: string): Promise<void> {
+  try {
+    if (!BUCKET_NAME) {
+      throw new Error('R2 storage is not configured properly');
+    }
+
+    const command = new DeleteObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: imageKey,
+    });
+
+    await s3Client.send(command);
+    console.log('Deleted image from R2:', imageKey);
+  } catch (error) {
+    console.error('Error deleting from R2:', error);
+    throw new Error('Failed to delete image from storage');
   }
 }

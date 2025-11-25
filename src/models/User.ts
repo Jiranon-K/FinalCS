@@ -5,6 +5,7 @@ export interface UserDocument extends mongoose.Document {
   password?: string;
   fullName?: string;
   role: 'student' | 'teacher' | 'admin';
+  studentId?: string;
   profileId?: mongoose.Types.ObjectId;
   imageUrl?: string;
   imageKey?: string;
@@ -30,6 +31,13 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       enum: ['student', 'teacher', 'admin'],
       required: true,
+    },
+    studentId: {
+      type: String,
+      required: function(this: UserDocument) { return this.role === 'student'; },
+      unique: true,
+      sparse: true,
+      index: true,
     },
     profileId: {
       type: Schema.Types.ObjectId,

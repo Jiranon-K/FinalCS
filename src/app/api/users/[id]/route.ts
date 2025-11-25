@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import User from '@/models/User';
-import { uploadBase64Image } from '@/lib/r2-upload';
+import { Student, FaceUpdateRequest } from '@/models';
+import { uploadBase64Image, deleteR2Image } from '@/lib/r2-upload';
 import { hashPassword } from '@/lib/password';
 
 export async function GET(
@@ -123,18 +124,45 @@ export async function DELETE(
       ? { _id: id }
       : { username: decodeURIComponent(id) };
 
-    const result = await User.deleteOne(query);
+    const user = await User.findOne(query);
 
-    if (result.deletedCount === 0) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
       );
     }
 
+    const studentDeleteResult = await Student.deleteMany({ userId: user._id });
+    console.log(`Deleted ${studentDeleteResult.deletedCount} student(s) for user ${user.username}`);
+
+    const requestDeleteResult = await FaceUpdateRequest.deleteMany({ userId: user._id });
+    console.log(`Deleted ${requestDeleteResult.deletedCount} face update request(s) for user ${user.username}`);
+
+    if (user.imageKey) {
+      try {
+        await deleteR2Image(user.imageKey);
+      } catch (error) {
+        console.error('Failed to delete R2 image:', error);
+      }
+    }
+
+    const result = await User.deleteOne({ _id: user._id });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete user' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'User deleted successfully',
+      message: 'User and related data deleted successfully',
+      details: {
+        studentsDeleted: studentDeleteResult.deletedCount,
+        requestsDeleted: requestDeleteResult.deletedCount,
+      }
     });
   } catch (error) {
     console.error('Error deleting user:', error);

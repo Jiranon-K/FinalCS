@@ -9,11 +9,11 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { username, password, role, fullName, imageData } = body;
+    const { username, password, role, fullName, studentId, imageData } = body;
 
-    if (!username || !password || !role) {
+    if (!username || !role) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: username, password, role' },
+        { success: false, error: 'Missing required fields: username, role' },
         { status: 400 }
       );
     }
@@ -25,11 +25,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (role === 'student') {
+      if (!studentId?.trim()) {
+        return NextResponse.json(
+          { success: false, error: 'Student ID is required for students' },
+          { status: 400 }
+        );
+      }
+      const existingStudentId = await User.findOne({ studentId });
+      if (existingStudentId) {
+        return NextResponse.json(
+          { success: false, error: 'Student ID already exists' },
+          { status: 409 }
+        );
+      }
+    }
+
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return NextResponse.json(
         { success: false, error: 'Username already exists' },
         { status: 409 }
+      );
+    }
+    const finalPassword = role === 'student' && studentId ? studentId : password;
+
+    if (!finalPassword) {
+      return NextResponse.json(
+        { success: false, error: 'Password is required' },
+        { status: 400 }
       );
     }
 
@@ -42,13 +66,14 @@ export async function POST(request: NextRequest) {
       imageKey = uploadResult.imageKey;
     }
 
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(finalPassword);
 
     const newUser = await User.create({
       username,
       password: hashedPassword,
       role,
       fullName: fullName || undefined,
+      studentId: role === 'student' ? studentId : undefined,
       imageUrl,
       imageKey,
     });

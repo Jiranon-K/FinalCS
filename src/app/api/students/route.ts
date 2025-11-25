@@ -1,12 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { Student } from '@/models';
+import User from '@/models/User';
 import { uploadBase64Image } from '@/lib/r2-upload';
+import { verifyToken } from '@/lib/jwt';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    if (payload.role !== 'student') {
+      return NextResponse.json(
+        { success: false, error: 'Only students can register face' },
+        { status: 403 }
+      );
+    }
+
+    const user = await User.findOne({
+      username: payload.username,
+      role: 'student'
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    if (user.profileId) {
+      return NextResponse.json(
+        { success: false, error: 'Profile already registered. Use profile page to update.' },
+        { status: 409 }
+      );
+    }
 
     const body = await request.json();
     const {
@@ -28,15 +72,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (faceDescriptor && (!Array.isArray(faceDescriptor) || faceDescriptor.length !== 128)) {
+    if (!faceDescriptor || !Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
       return NextResponse.json(
         { success: false, error: 'Invalid face descriptor' },
         { status: 400 }
       );
     }
 
-    if (studentId) {
-      const existingStudent = await Student.findOne({ studentId });
+    if (studentId && studentId !== user.studentId) {
+      return NextResponse.json(
+        { success: false, error: 'Student ID does not match your account' },
+        { status: 400 }
+      );
+    }
+
+    if (studentId || user.studentId) {
+      const existingStudent = await Student.findOne({
+        studentId: studentId || user.studentId
+      });
       if (existingStudent) {
         return NextResponse.json(
           { success: false, error: 'Student with this ID already exists' },
@@ -57,8 +110,9 @@ export async function POST(request: NextRequest) {
 
     const newStudent = await Student.create({
       id: personId,
+      userId: user._id,
       name,
-      studentId: studentId || undefined,
+      studentId: studentId || user.studentId,
       email: email || undefined,
       phone: phone || undefined,
       department: department || undefined,
@@ -66,20 +120,27 @@ export async function POST(request: NextRequest) {
       class: className || undefined,
       imageUrl,
       imageKey,
-      faceDescriptor: faceDescriptor || undefined,
+      faceDescriptor,
+    });
+
+    await User.findByIdAndUpdate(user._id, {
+      $set: {
+        profileId: newStudent._id,
+      },
     });
 
     return NextResponse.json(
       {
         success: true,
         data: newStudent.toObject(),
+        message: 'Face registration completed successfully',
       },
       { status: 201 }
     );
   } catch (error) {
     console.error('Error creating student:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create student' },
+      { success: false, error: 'Failed to create student profile' },
       { status: 500 }
     );
   }

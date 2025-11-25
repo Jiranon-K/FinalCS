@@ -69,42 +69,87 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             {t.nav.title}
           </Link>
         </li>
-        <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.home : undefined}>
-          <Link href="/" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
-            <Image
-              src="/menu-icon/house.png"
-              alt="Home"
-              width={32}
-              height={32}
-              className="w-8 h-8"
-            />
-            <span className={!isOpen ? 'hidden' : ''}>{t.nav.home}</span>
-          </Link>
-        </li>
-        <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
-          <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
-            <Image
-              src="/menu-icon/camera.png"
-              alt="Camera"
-              width={32}
-              height={32}
-              className="w-8 h-8"
-            />
-            <span className={!isOpen ? 'hidden' : ''}>{t.nav.camera}</span>
-          </Link>
-        </li>
-        <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.register : undefined}>
-          <Link href="/register" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
-            <Image
-              src="/menu-icon/document.png"
-              alt="Register"
-              width={32}
-              height={32}
-              className="w-8 h-8"
-            />
-            <span className={!isOpen ? 'hidden' : ''}>{t.nav.register}</span>
-          </Link>
-        </li>
+
+        {/* Home - Hidden if student hasn't registered profile */}
+        {(!user || user.role !== 'student' || user.hasProfileRegistered) && (
+          <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.home : undefined}>
+            <Link href="/" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/house.png"
+                alt="Home"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.home}</span>
+            </Link>
+          </li>
+        )}
+
+        {/* Camera - Hidden if student has registered profile */}
+        {(!user || user.role !== 'student' || !user.hasProfileRegistered) && (
+          <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
+            <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/camera.png"
+                alt="Camera"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.camera}</span>
+            </Link>
+          </li>
+        )}
+
+        {/* Register */}
+        {(!user || user.role !== 'student' || !user.hasProfileRegistered) && (
+           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.register : undefined}>
+            <Link href="/register" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/document.png"
+                alt="Register"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.register}</span>
+            </Link>
+          </li>
+        )}
+
+        {/* Profile - Only for Students who HAVE registered */}
+        {user?.role === 'student' && user.hasProfileRegistered && (
+           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.profile : undefined}>
+            <Link href="/profile" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/profile.png"
+                alt="Profile"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.profile}</span>
+            </Link>
+          </li>
+        )}
+
+        {/* Face Requests - Only for Admin */}
+        {user?.role === 'admin' && (
+           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.faceRequests : undefined}>
+            <Link href="/face-requests" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/folder-approve.png"
+                alt="Face Requests"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.faceRequests}</span>
+            </Link>
+          </li>
+        )}
+
         {user?.role === 'admin' && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.users : undefined}>
             <Link href="/users" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>

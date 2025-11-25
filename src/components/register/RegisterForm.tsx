@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
+import { useAuth } from '@/contexts/AuthContext';
 import FaceUpload from './FaceUpload';
 
 type PersonRole = 'student' | 'teacher';
@@ -24,6 +25,7 @@ export default function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [faceDescriptor, setFaceDescriptor] = useState<number[] | null>(null);
   const [faceImagePreview, setFaceImagePreview] = useState<string | null>(null);
+  const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     studentId: '',
@@ -33,6 +35,18 @@ export default function RegisterForm() {
     department: '',
     grade: '',
     class: '',
+  });
+
+  // Pre-fill
+  useState(() => {
+    if (user && user.role === 'student') {
+      setFormData(prev => ({
+        ...prev,
+        name: user.fullName || prev.name,
+        studentId: user.studentId || prev.studentId,
+        role: 'student'
+      }));
+    }
   });
 
   const handleInputChange = (
@@ -167,6 +181,7 @@ export default function RegisterForm() {
                 placeholder={t.register.namePlaceholder}
                 className="input input-bordered w-full"
                 required
+                disabled={user?.role === 'student' && !!user.fullName}
               />
             </div>
 
@@ -184,6 +199,7 @@ export default function RegisterForm() {
                 placeholder={t.register.studentIdPlaceholder}
                 className="input input-bordered w-full"
                 required
+                disabled={user?.role === 'student' && !!user.studentId}
               />
             </div>
 

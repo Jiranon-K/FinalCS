@@ -78,6 +78,7 @@ export default function CreateUserModal({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('student');
+  const [studentId, setStudentId] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   
@@ -95,6 +96,7 @@ export default function CreateUserModal({
     setPassword('');
     setConfirmPassword('');
     setRole('student');
+    setStudentId('');
     setImagePreview(null);
     setImageFile(null);
     setErrors({});
@@ -118,14 +120,20 @@ export default function CreateUserModal({
       newErrors.email = t.users.emailInvalid;
     }
 
-    if (!password) {
-      newErrors.password = t.users.passwordRequired;
-    } else if (password.length < 6) {
-      newErrors.password = t.users.passwordTooShort;
+    if (role !== 'student') {
+      if (!password) {
+        newErrors.password = t.users.passwordRequired;
+      } else if (password.length < 6) {
+        newErrors.password = t.users.passwordTooShort;
+      }
+
+      if (password !== confirmPassword) {
+        newErrors.confirmPassword = t.users.passwordMismatch;
+      }
     }
 
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = t.users.passwordMismatch;
+    if (role === 'student' && !studentId.trim()) {
+      newErrors.studentId = t.users.studentIdRequired;
     }
 
     setErrors(newErrors);
@@ -192,9 +200,10 @@ export default function CreateUserModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: email.trim(),
-          password,
+          password: role === 'student' ? studentId.trim() : password,
           role,
           fullName: fullName.trim(),
+          studentId: role === 'student' ? studentId.trim() : undefined,
           imageData,
         }),
       });
@@ -320,6 +329,30 @@ export default function CreateUserModal({
             ))}
           </div>
 
+          {/* Student ID - Only for students */}
+          {role === 'student' && (
+            <div className="form-control">
+              <label className="label py-1">
+                <span className="label-text text-sm font-medium">{t.users.studentId}</span>
+              </label>
+              <input
+                type="text"
+                className={`input input-bordered w-full ${errors.studentId ? 'input-error' : ''}`}
+                placeholder={t.users.studentIdPlaceholder || "Enter Student ID"}
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                maxLength={20}
+                disabled={saving}
+              />
+              {errors.studentId && (
+                <p className="text-xs text-error mt-1">{errors.studentId}</p>
+              )}
+              <label className="label py-0">
+                 <span className="label-text-alt text-xs text-base-content/60">{t.users.studentIdWillBePassword}</span>
+              </label>
+            </div>
+          )}
+
           {/* Full Name */}
           <div className="form-control">
             <label className="label py-1">
@@ -357,60 +390,62 @@ export default function CreateUserModal({
             )}
           </div>
 
-          {/* Password Fields */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="form-control">
-              <label className="label py-1">
-                <span className="label-text text-sm font-medium">{t.users.password}</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className={`input input-bordered w-full pr-10 ${errors.password ? 'input-error' : ''}`}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={saving}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
-                </button>
+          {/* Password Fields - Hide for students */}
+          {role !== 'student' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label py-1">
+                  <span className="label-text text-sm font-medium">{t.users.password}</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className={`input input-bordered w-full pr-10 ${errors.password ? 'input-error' : ''}`}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={saving}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-xs text-error mt-1">{errors.password}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-xs text-error mt-1">{errors.password}</p>
-              )}
-            </div>
 
-            <div className="form-control">
-              <label className="label py-1">
-                <span className="label-text text-sm font-medium">{t.users.confirmPassword}</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  className={`input input-bordered w-full pr-10 ${errors.confirmPassword ? 'input-error' : ''}`}
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={saving}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content transition-colors"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <EyeSlashIcon /> : <EyeIcon />}
-                </button>
+              <div className="form-control">
+                <label className="label py-1">
+                  <span className="label-text text-sm font-medium">{t.users.confirmPassword}</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className={`input input-bordered w-full pr-10 ${errors.confirmPassword ? 'input-error' : ''}`}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={saving}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content transition-colors"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeSlashIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-error mt-1">{errors.confirmPassword}</p>
+                )}
               </div>
-              {errors.confirmPassword && (
-                <p className="text-xs text-error mt-1">{errors.confirmPassword}</p>
-              )}
             </div>
-          </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">

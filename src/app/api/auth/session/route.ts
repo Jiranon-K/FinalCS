@@ -47,6 +47,9 @@ export async function GET() {
       user: {
         username: payload.username,
         role: payload.role,
+        studentId: user.studentId,
+        hasProfileRegistered: !!user.profileId,
+        profileId: user.profileId,
         name: profile?.name,
         fullName: user.fullName,
         email: profile?.email,
