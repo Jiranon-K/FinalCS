@@ -140,8 +140,10 @@
     "confirmDeleteMessage": "Are you sure you want to delete this person? This action cannot be undone.",
     "deleteSuccess": "Person deleted successfully",
     "deleteError": "Failed to delete person",
-    "updateSuccess": "Person updated successfully",
-    "updateError": "Failed to update person"
+    "updateSuccess": "Person updated successfully"
+  },
+  "common": {
+    "close": "Close"
   },
   "attendance": {
     "title": "Class Attendance",
@@ -224,7 +226,7 @@
     "roleStudent": "Student",
     "roleTeacher": "Teacher",
     "roleAdmin": "Administrator",
-    "usernamePlaceholder": "Email / Student ID",
+    "usernamePlaceholder": "Email",
     "usernamePlaceholderEmail": "user@example.com",
     "passwordLabel": "Password",
     "passwordPlaceholder": "••••••••",
@@ -385,18 +387,6 @@
     "lastLogin": "Last Login",
     "faceRecognitionStatus": "Face Recognition Status",
     "faceRegistered": "Face Registered",
-    "faceNotRegistered": "Face Not Registered",
-    "faceRegisteredDesc": "Your face is registered for recognition",
-    "faceNotRegisteredDesc": "Please register your face to use the system",
-    "faceDescriptors": "Face Data",
-    "descriptorsRegistered": "descriptors registered",
-    "requestFaceUpdate": "Request Face Update",
-    "noActiveRequest": "No active face update request"
-  },
-  "faceRequests": {
-    "title": "Face Update Requests",
-    "subtitle": "Manage student face update requests",
-    "pending": "Pending",
     "approved": "Approved",
     "rejected": "Rejected",
     "all": "All",
@@ -431,6 +421,27 @@
     "rejectedCount": "Rejected",
     "requestedAt": "Requested At",
     "reviewedAt": "Reviewed At",
-    "reviewedBy": "Reviewed By"
+    "reviewedBy": "Reviewed By",
+    "faceNotRegistered": "Face Not Registered",
+    "faceRegisteredDesc": "Your face is registered in the system.",
+    "faceNotRegisteredDesc": "Please register your face to use the system.",
+    "descriptorsRegistered": "descriptors registered",
+    "faceDescriptors": "Face Descriptors",
+    "requestFaceUpdate": "Request Face Update",
+    "noActiveRequest": "No active requests",
+    "viewHistory": "View History"
+  },
+  "faceRequests": {
+    "title": "Face Update Request History",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "requestDate": "Request Date",
+    "status": "Status",
+    "newImage": "New Image",
+    "rejectedReason": "Rejection Reason",
+    "noHistory": "No history found",
+    "viewHistory": "View History",
+    "reviewedAt": "Reviewed At"
   }
 }

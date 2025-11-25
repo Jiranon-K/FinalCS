@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faPhone, faBuilding, faCamera } from '@fortawesome/free-solid-svg-icons';
 import FaceUpdateRequestStatus from './FaceUpdateRequestStatus';
 import FaceUpdateRequestForm from './FaceUpdateRequestForm';
+import FaceRequestHistory from './FaceRequestHistory';
 import ProfileEditForm from './ProfileEditForm';
 import PasswordChangeForm from './PasswordChangeForm';
 import AccountInfoCard from './AccountInfoCard';
@@ -28,8 +29,9 @@ export default function ProfileView() {
   const { t } = useLocale();
   const { showToast } = useToast();
   
-  const [activeRequest, setActiveRequest] = useState<FaceUpdateRequest | null>(null);
+  const [pendingRequests, setPendingRequests] = useState<FaceUpdateRequest[]>([]);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [isLoadingRequest, setIsLoadingRequest] = useState(true);
   const [isUploadingProfilePicture, setIsUploadingProfilePicture] = useState(false);
   const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
@@ -39,21 +41,10 @@ export default function ProfileView() {
     try {
       const res = await fetch('/api/face-update-requests?status=pending');
       const data = await res.json();
-      if (data.success && data.data.length > 0) {
-        setActiveRequest(data.data[0]);
+      if (data.success) {
+        setPendingRequests(data.data);
       } else {
-        const resAll = await fetch('/api/face-update-requests');
-        const dataAll = await resAll.json();
-        if (dataAll.success && dataAll.data.length > 0) {
-           const latest = dataAll.data[0];
-           if (latest.status === 'pending' || latest.status === 'rejected') {
-             setActiveRequest(latest);
-           } else {
-             setActiveRequest(null);
-           }
-        } else {
-          setActiveRequest(null);
-        }
+        setPendingRequests([]);
       }
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -66,19 +57,17 @@ export default function ProfileView() {
     fetchActiveRequest();
   }, [fetchActiveRequest]);
 
-  const handleCancelRequest = async () => {
-    if (!activeRequest) return;
+    const handleCancelRequest = async (requestId: string) => {
     if (!confirm(t.register.confirmCancel)) return;
 
     try {
-      const res = await fetch(`/api/face-update-requests/${activeRequest._id}`, {
+      const res = await fetch(`/api/face-update-requests/${requestId}`, {
         method: 'DELETE',
       });
       const data = await res.json();
       if (data.success) {
         showToast({ message: t.profile.requestCancelled, type: 'success' });
-        setActiveRequest(null);
-        setShowUpdateForm(false);
+        fetchActiveRequest();
       } else {
         throw new Error(data.error);
       }
@@ -224,8 +213,9 @@ export default function ProfileView() {
           <FaceRecognitionStatusCard
             hasFaceRegistered={user.hasProfileRegistered}
             faceDescriptorCount={user.faceDescriptorCount || 1}
-            hasPendingRequest={activeRequest?.status === 'pending'}
+            hasPendingRequest={pendingRequests.length > 0}
             onRequestUpdate={() => setShowUpdateForm(true)}
+            onViewHistory={() => setShowHistory(true)}
           />
         </div>
 
@@ -301,23 +291,27 @@ export default function ProfileView() {
                 </div>
               ) : (
                 <>
-                  {activeRequest && (
-                    <FaceUpdateRequestStatus 
-                      request={activeRequest} 
-                      onCancel={handleCancelRequest}
-                    />
-                  )}
+                  {pendingRequests.map((request) => (
+                    <div key={request._id} className="mb-6">
+                      <FaceUpdateRequestStatus 
+                        request={request} 
+                        onCancel={() => handleCancelRequest(request._id)}
+                      />
+                    </div>
+                  ))}
 
-                  {showUpdateForm && !activeRequest && (
+                  {showUpdateForm && (
                     <FaceUpdateRequestForm 
                       onSuccess={handleRequestSuccess}
                       onCancel={() => setShowUpdateForm(false)}
                     />
                   )}
 
-                  {!activeRequest && !showUpdateForm && (
+                  {!showUpdateForm && (
                     <div className="text-center py-4">
-                      <p className="text-base-content/60 mb-4">{t.profile.noActiveRequest}</p>
+                      {pendingRequests.length === 0 && (
+                        <p className="text-base-content/60 mb-4">{t.profile.noActiveRequest}</p>
+                      )}
                       <button
                         onClick={() => setShowUpdateForm(true)}
                         className="btn btn-primary"
@@ -333,6 +327,11 @@ export default function ProfileView() {
           </div>
         </div>
       </div>
+
+      <FaceRequestHistory 
+        isOpen={showHistory} 
+        onClose={() => setShowHistory(false)} 
+      />
     </div>
   );
 }

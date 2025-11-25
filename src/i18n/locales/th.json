@@ -140,8 +140,10 @@
     "confirmDeleteMessage": "คุณแน่ใจหรือไม่ที่จะลบบุคคลนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
     "deleteSuccess": "ลบบุคคลสำเร็จ",
     "deleteError": "เกิดข้อผิดพลาดในการลบบุคคล",
-    "updateSuccess": "อัปเดตข้อมูลสำเร็จ",
-    "updateError": "เกิดข้อผิดพลาดในการอัปเดตข้อมูล"
+    "updateSuccess": "อัปเดตข้อมูลสำเร็จ"
+  },
+  "common": {
+    "close": "ปิด"
   },
   "attendance": {
     "title": "เช็คชื่อเข้าชั้นเรียน",
@@ -224,7 +226,7 @@
     "roleStudent": "นักศึกษา",
     "roleTeacher": "อาจารย์",
     "roleAdmin": "ผู้ดูแลระบบ",
-    "usernamePlaceholder": "อีเมล / รหัสนักศึกษา",
+    "usernamePlaceholder": "อีเมล",
     "usernamePlaceholderEmail": "user@example.com",
     "passwordLabel": "รหัสผ่าน",
     "passwordPlaceholder": "••••••••",
@@ -385,19 +387,6 @@
     "lastLogin": "เข้าสู่ระบบล่าสุด",
     "faceRecognitionStatus": "สถานะการจดจำใบหน้า",
     "faceRegistered": "ลงทะเบียนใบหน้าแล้ว",
-    "faceNotRegistered": "ยังไม่ได้ลงทะเบียนใบหน้า",
-    "faceRegisteredDesc": "ใบหน้าของคุณได้รับการลงทะเบียนสำหรับระบบจดจำแล้ว",
-    "faceNotRegisteredDesc": "กรุณาลงทะเบียนใบหน้าเพื่อใช้งานระบบ",
-    "faceDescriptors": "ข้อมูลใบหน้า",
-    "descriptorsRegistered": "ข้อมูลที่ลงทะเบียน",
-    "requestFaceUpdate": "ขออัปเดตใบหน้า",
-    "noActiveRequest": "ไม่มีคำขออัปเดตใบหน้าที่ใช้งานอยู่"
-  },
-  "faceRequests": {
-    "title": "คำขออนุมัติใบหน้า",
-    "subtitle": "จัดการคำขออัปเดตใบหน้าของนักศึกษา",
-    "pending": "รออนุมัติ",
-    "approved": "อนุมัติแล้ว",
     "rejected": "ปฏิเสธแล้ว",
     "all": "ทั้งหมด",
     "filterByStatus": "กรองตามสถานะ",
@@ -431,6 +420,27 @@
     "rejectedCount": "ปฏิเสธแล้ว",
     "requestedAt": "วันที่ส่งคำขอ",
     "reviewedAt": "วันที่ตรวจสอบ",
-    "reviewedBy": "ผู้ตรวจสอบ"
+    "reviewedBy": "ผู้ตรวจสอบ",
+    "faceNotRegistered": "ยังไม่ได้ลงทะเบียนใบหน้า",
+    "faceRegisteredDesc": "ใบหน้าของคุณได้รับการลงทะเบียนในระบบแล้ว",
+    "faceNotRegisteredDesc": "กรุณาลงทะเบียนใบหน้าเพื่อใช้งานระบบ",
+    "descriptorsRegistered": "ข้อมูลใบหน้าที่ลงทะเบียน",
+    "faceDescriptors": "ข้อมูลใบหน้า",
+    "requestFaceUpdate": "ขออัปเดตใบหน้า",
+    "noActiveRequest": "ไม่มีคำขอที่รอการดำเนินการ",
+    "viewHistory": "ดูประวัติ"
+  },
+  "faceRequests": {
+    "title": "ประวัติคำขออัปเดตใบหน้า",
+    "approved": "อนุมัติแล้ว",
+    "rejected": "ถูกปฏิเสธ",
+    "pending": "รอการอนุมัติ",
+    "requestDate": "วันที่ขอ",
+    "status": "สถานะ",
+    "newImage": "รูปใหม่",
+    "rejectedReason": "เหตุผลที่ปฏิเสธ",
+    "noHistory": "ไม่พบประวัติ",
+    "viewHistory": "ดูประวัติ",
+    "reviewedAt": "ตรวจสอบเมื่อ"
   }
 }

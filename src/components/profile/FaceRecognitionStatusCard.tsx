@@ -2,13 +2,14 @@
 
 import { useLocale } from '@/hooks/useLocale';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFaceSmile, faCheckCircle, faExclamationCircle, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { faFaceSmile, faCheckCircle, faExclamationCircle, faCamera, faHistory } from '@fortawesome/free-solid-svg-icons';
 
 interface FaceRecognitionStatusCardProps {
   hasFaceRegistered: boolean;
   faceDescriptorCount?: number;
   onRequestUpdate?: () => void;
   hasPendingRequest?: boolean;
+  onViewHistory?: () => void;
 }
 
 export default function FaceRecognitionStatusCard({
@@ -16,6 +17,7 @@ export default function FaceRecognitionStatusCard({
   faceDescriptorCount = 0,
   onRequestUpdate,
   hasPendingRequest,
+  onViewHistory,
 }: FaceRecognitionStatusCardProps) {
   const { t } = useLocale();
 
@@ -63,13 +65,23 @@ export default function FaceRecognitionStatusCard({
             </div>
           )}
 
-          {onRequestUpdate && !hasPendingRequest && (
+          {onRequestUpdate && (
             <button
               onClick={onRequestUpdate}
               className="btn btn-outline btn-primary btn-sm w-full mt-2"
             >
               <FontAwesomeIcon icon={faCamera} className="mr-2" />
               {t.profile.requestFaceUpdate}
+            </button>
+          )}
+
+          {onViewHistory && (
+            <button
+              onClick={onViewHistory}
+              className="btn btn-ghost btn-sm w-full mt-1 text-base-content/70"
+            >
+              <FontAwesomeIcon icon={faHistory} className="mr-2" />
+              {t.profile.viewHistory || 'View History'}
             </button>
           )}
         </div>

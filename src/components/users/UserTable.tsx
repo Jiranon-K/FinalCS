@@ -245,12 +245,12 @@ export default function UserTable({
                   <td>
                     <div className="flex justify-end gap-2">
                       <div className="tooltip" data-tip={t.users.view}>
-                        <button
+                        {/* <button
                           className="btn btn-ghost btn-sm btn-square text-primary"
                           onClick={() => onView(userItem)}
                         >
                           <ViewIcon />
-                        </button>
+                        </button> */}
                       </div>
                       <div className="tooltip" data-tip={t.users.edit}>
                         <button

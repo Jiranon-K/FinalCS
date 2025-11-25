@@ -68,7 +68,7 @@ export default function FaceUpdateRequestStatus({ request, onCancel }: FaceUpdat
             <div className="flex items-start gap-3">
               <FontAwesomeIcon icon={faCalendarAlt} className="mt-1 text-base-content/50" />
               <div>
-                <div className="text-sm font-semibold">{t.faceRequests.requestedAt}</div>
+                <div className="text-sm font-semibold">{t.faceRequests.requestDate}</div>
                 <div className="text-sm opacity-70">
                   {new Date(request.requestedAt).toLocaleString()}
                 </div>

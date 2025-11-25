@@ -34,17 +34,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingPending = await FaceUpdateRequest.findOne({
-      userId: user._id,
-      status: 'pending',
-    });
+    // Allow multiple pending requests
+    // const existingPending = await FaceUpdateRequest.findOne({
+    //   userId: user._id,
+    //   status: 'pending',
+    // });
 
-    if (existingPending) {
-      return NextResponse.json(
-        { success: false, error: 'You already have a pending request' },
-        { status: 409 }
-      );
-    }
+    // if (existingPending) {
+    //   return NextResponse.json(
+    //     { success: false, error: 'You already have a pending request' },
+    //     { status: 409 }
+    //   );
+    // }
 
     const body = await request.json();
     const { faceDescriptor, imageData } = body;
