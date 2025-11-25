@@ -7,49 +7,33 @@ import { useRouter } from 'next/navigation';
 import FaceRequestsTable from '@/components/face-requests/FaceRequestsTable';
 import FaceRequestStatsCards from '@/components/face-requests/FaceRequestStatsCards';
 
+interface FaceRequest {
+  _id: string;
+  userId: {
+    username: string;
+    fullName?: string;
+    studentId?: string;
+  };
+  studentId: {
+    name: string;
+    studentId: string;
+    email?: string;
+    department?: string;
+  };
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: string;
+  newImageUrl: string;
+  oldImageUrl?: string;
+  rejectionReason?: string;
+}
+
 export default function FaceRequestsPage() {
   const { user, isLoading } = useAuth();
   const { t } = useLocale();
   const router = useRouter();
-  const [requests, setRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState<FaceRequest[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [filterStatus, setFilterStatus] = useState('pending');
-
-  const fetchRequests = useCallback(async () => {
-    try {
-      setIsLoadingRequests(true);
-      const res = await fetch(`/api/face-update-requests?status=${filterStatus === 'all' ? '' : filterStatus}`);
-      const data = await res.json();
-      if (data.success) {
-        setRequests(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching requests:', error);
-    } finally {
-      setIsLoadingRequests(false);
-    }
-  }, [filterStatus]);
-
-  useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'admin')) {
-      router.push('/login');
-    }
-  }, [user, isLoading, router]);
-
-  useEffect(() => {
-    if (user?.role === 'admin') {
-      fetchRequests();
-    }
-  }, [user, fetchRequests]);
-
-  const stats = {
-    total: requests.length, 
-    pending: requests.filter((r: any) => r.status === 'pending').length,
-    approved: requests.filter((r: any) => r.status === 'approved').length,
-    rejected: requests.filter((r: any) => r.status === 'rejected').length,
-  };
-
-  const [allRequests, setAllRequests] = useState([]);
 
   const fetchAllRequests = useCallback(async () => {
     try {
@@ -67,6 +51,12 @@ export default function FaceRequestsPage() {
   }, []);
 
   useEffect(() => {
+    if (!isLoading && (!user || user.role !== 'admin')) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
+
+  useEffect(() => {
     if (user?.role === 'admin') {
       fetchAllRequests();
     }
@@ -74,13 +64,13 @@ export default function FaceRequestsPage() {
 
   const filteredRequests = filterStatus === 'all' 
     ? allRequests 
-    : allRequests.filter((r: any) => r.status === filterStatus);
+    : allRequests.filter((r) => r.status === filterStatus);
 
   const realStats = {
     total: allRequests.length,
-    pending: allRequests.filter((r: any) => r.status === 'pending').length,
-    approved: allRequests.filter((r: any) => r.status === 'approved').length,
-    rejected: allRequests.filter((r: any) => r.status === 'rejected').length,
+    pending: allRequests.filter((r) => r.status === 'pending').length,
+    approved: allRequests.filter((r) => r.status === 'approved').length,
+    rejected: allRequests.filter((r) => r.status === 'rejected').length,
   };
 
   if (isLoading) {

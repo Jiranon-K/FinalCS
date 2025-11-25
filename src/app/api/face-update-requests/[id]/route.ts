@@ -6,9 +6,10 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
 
     const token = request.cookies.get('auth-token')?.value;
@@ -45,7 +46,7 @@ export async function PUT(
       );
     }
 
-    const faceRequest = await FaceUpdateRequest.findById(params.id);
+    const faceRequest = await FaceUpdateRequest.findById(id);
     if (!faceRequest) {
       return NextResponse.json(
         { success: false, error: 'Request not found' },
@@ -118,9 +119,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await connectDB();
 
     const token = request.cookies.get('auth-token')?.value;
@@ -139,7 +141,7 @@ export async function DELETE(
       );
     }
 
-    const faceRequest = await FaceUpdateRequest.findById(params.id);
+    const faceRequest = await FaceUpdateRequest.findById(id);
     if (!faceRequest) {
       return NextResponse.json(
         { success: false, error: 'Request not found' },
@@ -172,7 +174,7 @@ export async function DELETE(
       );
     }
 
-    await FaceUpdateRequest.findByIdAndDelete(params.id);
+    await FaceUpdateRequest.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,

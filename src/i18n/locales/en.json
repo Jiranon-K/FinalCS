@@ -409,6 +409,7 @@
     "actions": "Actions",
     "approve": "Approve",
     "reject": "Reject",
+    "cancel": "Cancel",
     "view": "View",
     "noRequests": "No requests",
     "oldImage": "Old Image",

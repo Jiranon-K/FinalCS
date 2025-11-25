@@ -38,14 +38,26 @@ export default function FaceRequestsTable({ requests, onRefresh }: FaceRequestsT
   const { showToast } = useToast();
   const [selectedRequest, setSelectedRequest] = useState<FaceRequest | null>(null);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [requestToApprove, setRequestToApprove] = useState<FaceRequest | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleApprove = async (request: FaceRequest) => {
-    if (!confirm(t.faceRequests.approveMessage)) return;
+  const openApproveModal = (request: FaceRequest) => {
+    setRequestToApprove(request);
+    setIsApproveModalOpen(true);
+  };
+
+  const closeApproveModal = () => {
+    setIsApproveModalOpen(false);
+    setRequestToApprove(null);
+  };
+
+  const handleApprove = async () => {
+    if (!requestToApprove) return;
 
     setIsProcessing(true);
     try {
-      const res = await fetch(`/api/face-update-requests/${request._id}`, {
+      const res = await fetch(`/api/face-update-requests/${requestToApprove._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
@@ -53,11 +65,12 @@ export default function FaceRequestsTable({ requests, onRefresh }: FaceRequestsT
       const data = await res.json();
       if (data.success) {
         showToast({ message: t.faceRequests.approveSuccess, type: 'success' });
+        closeApproveModal();
         onRefresh();
       } else {
         throw new Error(data.error);
       }
-    } catch (error) {
+    } catch {
       showToast({ message: t.faceRequests.approveError, type: 'error' });
     } finally {
       setIsProcessing(false);
@@ -83,7 +96,7 @@ export default function FaceRequestsTable({ requests, onRefresh }: FaceRequestsT
       } else {
         throw new Error(data.error);
       }
-    } catch (error) {
+    } catch {
       showToast({ message: t.faceRequests.rejectError, type: 'error' });
     } finally {
       setIsProcessing(false);
@@ -161,7 +174,7 @@ export default function FaceRequestsTable({ requests, onRefresh }: FaceRequestsT
                       <div className="flex gap-2">
                         <button 
                           className="btn btn-success btn-xs"
-                          onClick={() => handleApprove(req)}
+                          onClick={() => openApproveModal(req)}
                           disabled={isProcessing}
                           title={t.faceRequests.approve}
                         >
@@ -191,6 +204,37 @@ export default function FaceRequestsTable({ requests, onRefresh }: FaceRequestsT
           </tbody>
         </table>
       </div>
+
+      {/* Approve Confirmation Modal */}
+      <dialog className={`modal ${isApproveModalOpen ? 'modal-open' : ''}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">{t.faceRequests.approve}</h3>
+          <p className="py-4">{t.faceRequests.approveMessage}</p>
+          <div className="modal-action">
+            <button 
+              className="btn btn-ghost" 
+              onClick={closeApproveModal}
+              disabled={isProcessing}
+            >
+              {t.faceRequests.cancel}
+            </button>
+            <button 
+              className="btn btn-success" 
+              onClick={handleApprove}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                t.faceRequests.approve
+              )}
+            </button>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={closeApproveModal}>close</button>
+        </form>
+      </dialog>
 
       <RejectModal
         isOpen={isRejectModalOpen}
