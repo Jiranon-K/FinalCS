@@ -290,6 +290,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "deleteError": "Failed to delete user",
+    "deleteSuccess": "User deleted successfully",
     "accessDenied": "Access denied. Admin only.",
     "totalUsers": "Total Users",
     "allRegisteredUsers": "All registered users",
