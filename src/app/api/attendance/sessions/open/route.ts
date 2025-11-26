@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { AttendanceSession, AttendanceRecord, Course } from '@/models';
 import User from '@/models/User';
+import Student from '@/models/Student';
 import { OpenSessionRequest } from '@/types/session';
 import { requireAuth, canAccessCourse, badRequestResponse, notFoundResponse, forbiddenResponse, serverErrorResponse } from '@/lib/auth-helpers';
 import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,16 +76,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const attendanceRecords = course.enrolledStudents.map((enrollment) => ({
-      id: uuidv4(),
-      sessionId: newSession._id,
-      courseId: course._id,
-      studentId: enrollment.studentId,
-      studentName: '',
-      status: 'absent',
-      checkInMethod: 'face_recognition',
-      detectionCount: 0,
-    }));
+    const studentIds = course.enrolledStudents.map((e: { studentId: mongoose.Types.ObjectId }) => e.studentId);
+    const students = await Student.find({ _id: { $in: studentIds } }).lean();
+    const studentMap = new Map(students.map((s: { _id: mongoose.Types.ObjectId; name: string; studentId?: string }) => [s._id.toString(), { name: s.name, studentNumber: s.studentId }]));
+
+    const attendanceRecords = course.enrolledStudents.map((enrollment: { studentId: mongoose.Types.ObjectId }) => {
+      const studentInfo = studentMap.get(enrollment.studentId.toString());
+      return {
+        id: uuidv4(),
+        sessionId: newSession._id,
+        courseId: course._id,
+        studentId: enrollment.studentId,
+        studentName: studentInfo?.name || 'Unknown',
+        studentNumber: studentInfo?.studentNumber || '',
+        status: 'absent',
+        checkInMethod: 'face_recognition',
+        detectionCount: 0,
+      };
+    });
 
     if (attendanceRecords.length > 0) {
       await AttendanceRecord.insertMany(attendanceRecords);

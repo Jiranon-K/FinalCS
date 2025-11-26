@@ -60,6 +60,7 @@ export interface UpdateCourseRequest {
   description?: string;
   schedule?: Omit<CourseScheduleSlot, 'graceMinutes'>[];
   status?: 'active' | 'archived' | 'draft';
+  enrolledStudentIds?: string[];
 }
 
 export interface EnrollStudentsRequest {

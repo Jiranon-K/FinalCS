@@ -18,7 +18,7 @@ export async function POST(
 
     const { id: sessionId } = await params;
 
-    const session = await AttendanceSession.findById(sessionId);
+    const session = await AttendanceSession.findOne({ id: sessionId });
 
     if (!session) {
       return notFoundResponse('Session not found');
@@ -28,9 +28,11 @@ export async function POST(
       return badRequestResponse('Session is already closed');
     }
 
-    const hasAccess = await canAccessCourse(session.courseId.toString(), user);
-    if (!hasAccess && user.role !== 'admin') {
-      return forbiddenResponse('You do not have access to this session');
+    if (user.role === 'teacher') {
+      const hasAccess = await canAccessCourse(session.courseId.toString(), user);
+      if (!hasAccess) {
+        return forbiddenResponse('You do not have access to this session');
+      }
     }
 
     session.status = 'closed';

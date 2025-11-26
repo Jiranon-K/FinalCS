@@ -245,6 +245,16 @@ export default function CourseDetailPage() {
               </button>
             </div>
           )}
+          {user?.role === 'teacher' && course?.teacherId?.toString() === user?.profileId && (
+            <div className="flex gap-2">
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => router.push(`/schedule/${courseId}/edit`)}
+              >
+                {t.users.edit}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between mb-2">

@@ -105,94 +105,143 @@ export default function CourseCard({ course, user, onView, onEdit, onDelete }: C
   };
 
   return (
-    <div className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <div className="card-body">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="badge badge-primary font-mono">{course.courseCode}</span>
-              <span className={`badge ${getStatusBadgeClass(course.status)}`}>
-                {getStatusText(course.status)}
+    <div className="card bg-base-100 shadow-md hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-primary/30">
+      {/* Header Section */}
+      <div className="card-body p-6 gap-4">
+        {/* Top: Course Code & Status */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="badge badge-primary badge-lg font-mono font-semibold px-4 py-3">
+              {course.courseCode}
+            </div>
+            <div className={`badge ${getStatusBadgeClass(course.status)} py-3`}>
+              {getStatusText(course.status)}
+            </div>
+          </div>
+          
+          {/* Action Buttons - Top Right */}
+          <div className="flex items-center gap-1">
+            <div className="tooltip tooltip-bottom" data-tip={t.course.viewDetails}>
+              <button
+                className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10"
+                onClick={() => onView(course)}
+              >
+                <ViewIcon />
+              </button>
+            </div>
+            {user?.role === 'admin' && (
+              <>
+                <div className="tooltip tooltip-bottom" data-tip={t.course.edit}>
+                  <button
+                    className="btn btn-ghost btn-sm btn-circle hover:bg-warning/10"
+                    onClick={() => onEdit(course)}
+                  >
+                    <EditIcon />
+                  </button>
+                </div>
+                <div className="tooltip tooltip-bottom" data-tip={t.course.delete}>
+                  <button
+                    className="btn btn-ghost btn-sm btn-circle hover:bg-error/10"
+                    onClick={() => onDelete(course.id)}
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Course Title */}
+        <h3 className="card-title text-xl font-bold text-base-content leading-tight">
+          {course.courseName}
+        </h3>
+
+        {/* Divider */}
+        <div className="divider my-0"></div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Teacher */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
+            <div className="text-primary">
+              <TeacherIcon />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-base-content/50 font-medium">ผู้สอน</span>
+              <span className="text-sm font-medium text-base-content">{course.teacherName}</span>
+            </div>
+          </div>
+
+          {/* Semester */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
+            <div className="text-secondary">
+              <CalendarIcon />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-base-content/50 font-medium">ภาคเรียน</span>
+              <span className="text-sm font-medium text-base-content">
+                {course.semester} / {course.academicYear}
               </span>
             </div>
-            <h3 className="card-title text-xl">{course.courseName}</h3>
-          </div>
-        </div>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-base-content/70">
-            <TeacherIcon />
-            <span>{course.teacherName}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-base-content/70">
-            <CalendarIcon />
-            <span>
-              {course.semester} / {course.academicYear}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-base-content/70">
-            <LocationIcon />
-            <span>{course.room}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-base-content/70">
-            <UsersIcon />
-            <span>
-              {course.enrolledStudents.length} {t.course.students}
-            </span>
-          </div>
-
-          {course.schedule && course.schedule.length > 0 && (
-            <div className="flex items-start gap-2 text-base-content/70">
-              <ClockIcon />
-              <div className="flex flex-col gap-1">
-                {course.schedule.map((slot, idx) => (
-                  <span key={idx}>
-                    {getDayName(slot.dayOfWeek)} {slot.startTime} - {slot.endTime}
-                  </span>
-                ))}
-              </div>
+          {/* Room */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
+            <div className="text-accent">
+              <LocationIcon />
             </div>
-          )}
+            <div className="flex flex-col">
+              <span className="text-xs text-base-content/50 font-medium">ห้องเรียน</span>
+              <span className="text-sm font-medium text-base-content">{course.room}</span>
+            </div>
+          </div>
+
+          {/* Students Count */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
+            <div className="text-info">
+              <UsersIcon />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-base-content/50 font-medium">{t.course.students}</span>
+              <span className="text-sm font-medium text-base-content">
+                {course.enrolledStudents.length} คน
+              </span>
+            </div>
+          </div>
         </div>
 
-        {course.description && (
-          <p className="text-sm text-base-content/60 mt-3 line-clamp-2">{course.description}</p>
+        {/* Schedule Section */}
+        {course.schedule && course.schedule.length > 0 && (
+          <div className="bg-linear-to-r from-primary/5 to-secondary/5 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="text-primary">
+                <ClockIcon />
+              </div>
+              <span className="text-sm font-semibold text-base-content">ตารางเรียน</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {course.schedule.map((slot, idx) => (
+                <div 
+                  key={idx} 
+                  className="badge badge-outline badge-lg gap-2 py-3 px-4"
+                >
+                  <span className="font-medium">{getDayName(slot.dayOfWeek)}</span>
+                  <span className="text-base-content/60">{slot.startTime} - {slot.endTime}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
-        <div className="card-actions justify-end mt-4 gap-2">
-          <div className="tooltip" data-tip={t.course.viewDetails}>
-            <button
-              className="btn btn-ghost btn-sm btn-square text-primary"
-              onClick={() => onView(course)}
-            >
-              <ViewIcon />
-            </button>
+        {/* Description */}
+        {course.description && (
+          <div className="bg-base-200/30 rounded-xl p-4">
+            <p className="text-sm text-base-content/70 leading-relaxed line-clamp-2">
+              {course.description}
+            </p>
           </div>
-
-          {user.role === 'admin' && (
-            <>
-              <div className="tooltip" data-tip={t.course.edit}>
-                <button
-                  className="btn btn-ghost btn-sm btn-square text-warning"
-                  onClick={() => onEdit(course)}
-                >
-                  <EditIcon />
-                </button>
-              </div>
-              <div className="tooltip" data-tip={t.course.delete}>
-                <button
-                  className="btn btn-ghost btn-sm btn-square text-error"
-                  onClick={() => onDelete(course.id)}
-                >
-                  <DeleteIcon />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

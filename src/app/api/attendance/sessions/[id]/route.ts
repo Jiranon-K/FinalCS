@@ -13,7 +13,7 @@ export async function GET(
     const user = await requireAuth(request);
     const { id: sessionId } = await params;
 
-    const session = await AttendanceSession.findById(sessionId).lean();
+    const session = await AttendanceSession.findOne({ id: sessionId }).lean();
 
     if (!session) {
       return notFoundResponse('Session not found');

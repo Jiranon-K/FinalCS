@@ -14,6 +14,17 @@ interface Teacher {
   fullName?: string;
 }
 
+interface Student {
+  _id: string;
+  name: string;
+  studentId?: string;
+}
+
+interface EnrolledStudent {
+  studentId: string;
+  enrolledAt: string;
+}
+
 const BackIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -29,6 +40,12 @@ const PlusIcon = () => (
 const TrashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
   </svg>
 );
 
@@ -51,11 +68,18 @@ export default function EditCoursePage() {
     { dayOfWeek: 1, startTime: '09:00', endTime: '12:00', room: '' },
   ]);
   const [status, setStatus] = useState('active');
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [studentSearch, setStudentSearch] = useState('');
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isTeacherOwner, setIsTeacherOwner] = useState(false);
+
+  const isAdmin = user?.role === 'admin';
 
   const fetchCourse = useCallback(async () => {
     try {
@@ -73,6 +97,14 @@ export default function EditCoursePage() {
         setDescription(course.description || '');
         setSchedule(course.schedule);
         setStatus(course.status);
+        
+        if (course.enrolledStudents) {
+          setSelectedStudents(course.enrolledStudents.map((s: EnrolledStudent) => s.studentId));
+        }
+
+        if (user?.role === 'teacher' && course.teacherId === user.profileId) {
+          setIsTeacherOwner(true);
+        }
       } else {
         throw new Error(result.error);
       }
@@ -84,7 +116,7 @@ export default function EditCoursePage() {
       });
       router.push('/schedule');
     }
-  }, [courseId, router, showToast, t]);
+  }, [courseId, router, showToast, t, user]);
 
   const fetchTeachers = async () => {
     try {
@@ -98,15 +130,36 @@ export default function EditCoursePage() {
     }
   };
 
+  const fetchStudents = async () => {
+    try {
+      setLoadingStudents(true);
+      const response = await fetch('/api/students');
+      const result = await response.json();
+      if (result.success) {
+        setStudents(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
   useEffect(() => {
     if (!authLoading && user) {
-      if (user.role !== 'admin') {
+      if (user.role !== 'admin' && user.role !== 'teacher') {
         router.push('/schedule');
         return;
       }
-      Promise.all([fetchCourse(), fetchTeachers()]).finally(() => setLoading(false));
+      Promise.all([fetchCourse(), fetchTeachers(), fetchStudents()]).finally(() => setLoading(false));
     }
   }, [authLoading, user, router, fetchCourse]);
+
+  useEffect(() => {
+    if (!loading && user?.role === 'teacher' && !isTeacherOwner) {
+      router.push('/schedule');
+    }
+  }, [loading, user, isTeacherOwner, router]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -152,6 +205,31 @@ export default function EditCoursePage() {
     setSchedule(newSchedule);
   };
 
+  const handleStudentToggle = (studentId: string) => {
+    setSelectedStudents((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const filtered = filteredStudents;
+    const allSelected = filtered.every((s) => selectedStudents.includes(s._id));
+    if (allSelected) {
+      setSelectedStudents((prev) => prev.filter((id) => !filtered.find((s) => s._id === id)));
+    } else {
+      const newIds = filtered.map((s) => s._id).filter((id) => !selectedStudents.includes(id));
+      setSelectedStudents((prev) => [...prev, ...newIds]);
+    }
+  };
+
+  const filteredStudents = students.filter(
+    (s) =>
+      s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      (s.studentId && s.studentId.toLowerCase().includes(studentSearch.toLowerCase()))
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -170,6 +248,7 @@ export default function EditCoursePage() {
         description,
         schedule,
         status: status as 'active' | 'archived' | 'draft',
+        enrolledStudentIds: isAdmin ? selectedStudents : undefined,
       };
 
       const response = await fetch(`/api/courses/${courseId}`, {
@@ -288,7 +367,7 @@ export default function EditCoursePage() {
                 value={teacherId}
                 onChange={(e) => setTeacherId(e.target.value)}
                 className={`select select-bordered ${errors.teacherId ? 'select-error' : ''}`}
-                disabled={saving}
+                disabled={saving || !isAdmin}
               >
                 <option value="">{t.course.selectTeacher}</option>
                 {teachers.map((teacher) => (
@@ -300,6 +379,11 @@ export default function EditCoursePage() {
               {errors.teacherId && (
                 <label className="label">
                   <span className="label-text-alt text-error">{errors.teacherId}</span>
+                </label>
+              )}
+              {!isAdmin && (
+                <label className="label">
+                  <span className="label-text-alt text-base-content/60">{t.course.teacherChangeAdminOnly || 'Only admin can change teacher'}</span>
                 </label>
               )}
             </div>
@@ -372,21 +456,23 @@ export default function EditCoursePage() {
               </div>
             </div>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">{t.course.statusActive}</span>
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="select select-bordered"
-                disabled={saving}
-              >
-                <option value="active">{t.course.statusActive}</option>
-                <option value="archived">{t.course.statusArchived}</option>
-                <option value="draft">{t.course.statusDraft}</option>
-              </select>
-            </div>
+            {isAdmin && (
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">{t.course.status || 'Status'}</span>
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="select select-bordered"
+                  disabled={saving}
+                >
+                  <option value="active">{t.course.statusActive}</option>
+                  <option value="archived">{t.course.statusArchived}</option>
+                  <option value="draft">{t.course.statusDraft}</option>
+                </select>
+              </div>
+            )}
 
             <div className="form-control">
               <label className="label">
@@ -480,6 +566,86 @@ export default function EditCoursePage() {
                 {t.course.addScheduleSlot}
               </button>
             </div>
+
+            {isAdmin && (
+              <>
+                <div className="divider">{t.course.enrolledStudents}</div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">
+                      {t.course.selectStudents || 'Select Students'} ({selectedStudents.length} {t.course.selected || 'selected'})
+                    </span>
+                  </label>
+                  <div className="relative mb-2">
+                    <input
+                      type="text"
+                      value={studentSearch}
+                      onChange={(e) => setStudentSearch(e.target.value)}
+                      placeholder={t.course.searchStudents || 'Search students...'}
+                      className="input input-bordered w-full pl-10"
+                      disabled={saving}
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
+                      <SearchIcon />
+                    </div>
+                  </div>
+
+                  {loadingStudents ? (
+                    <div className="flex justify-center py-4">
+                      <Loading variant="spinner" size="sm" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm text-base-content/60">
+                          {filteredStudents.length} {t.course.studentsFound || 'students found'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSelectAll}
+                          className="btn btn-ghost btn-xs"
+                          disabled={saving}
+                        >
+                          {filteredStudents.every((s) => selectedStudents.includes(s._id))
+                            ? (t.course.deselectAll || 'Deselect All')
+                            : (t.course.selectAll || 'Select All')}
+                        </button>
+                      </div>
+
+                      <div className="border border-base-300 rounded-lg max-h-60 overflow-y-auto">
+                        {filteredStudents.length === 0 ? (
+                          <div className="p-4 text-center text-base-content/50">
+                            {t.course.noStudentsFound || 'No students found'}
+                          </div>
+                        ) : (
+                          filteredStudents.map((student) => (
+                            <label
+                              key={student._id}
+                              className="flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-b-0"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedStudents.includes(student._id)}
+                                onChange={() => handleStudentToggle(student._id)}
+                                className="checkbox checkbox-primary checkbox-sm"
+                                disabled={saving}
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium">{student.name}</p>
+                                {student.studentId && (
+                                  <p className="text-sm text-base-content/60">{student.studentId}</p>
+                                )}
+                              </div>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
 
             <div className="modal-action pt-4 mt-6">
               <button

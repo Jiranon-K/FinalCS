@@ -46,7 +46,15 @@ export async function canAccessCourse(
     return true;
   }
 
-  const course = await Course.findById(courseId);
+  let course = null;
+  try {
+    course = await Course.findById(courseId);
+  } catch {
+    course = null;
+  }
+  if (!course) {
+    course = await Course.findOne({ id: courseId });
+  }
 
   if (!course) {
     return false;

@@ -15,7 +15,7 @@ export async function GET(
     const user = await requireAuth(request);
     const { id: courseId } = await params;
 
-    const course = await Course.findById(courseId).lean();
+    const course = await Course.findOne({ id: courseId }).lean();
 
     if (!course) {
       return notFoundResponse('Course not found');
@@ -50,20 +50,32 @@ export async function PUT(
   try {
     await connectDB();
 
-    const user = await requireRole(request, ['admin']);
+    const user = await requireAuth(request);
     const { id: courseId } = await params;
 
-    const body: UpdateCourseRequest = await request.json();
-
-    const course = await Course.findById(courseId);
+    const course = await Course.findOne({ id: courseId });
 
     if (!course) {
       return notFoundResponse('Course not found');
     }
 
-    const { teacherId, schedule, ...updateFields } = body;
+    const isAdmin = user.role === 'admin';
+    let isTeacherOwner = false;
 
-    if (teacherId) {
+    if (user.role === 'teacher') {
+      const userDoc = await User.findOne({ username: user.username });
+      isTeacherOwner = course.teacherId.toString() === userDoc?._id.toString();
+    }
+
+    if (!isAdmin && !isTeacherOwner) {
+      return forbiddenResponse('You do not have permission to edit this course');
+    }
+
+    const body: UpdateCourseRequest = await request.json();
+
+    const { teacherId, schedule, enrolledStudentIds, ...updateFields } = body;
+
+    if (teacherId && isAdmin) {
       const teacher = await User.findById(teacherId);
       if (!teacher || teacher.role !== 'teacher') {
         return badRequestResponse('Invalid teacher ID');
@@ -79,7 +91,21 @@ export async function PUT(
       }));
     }
 
-    Object.assign(course, updateFields);
+    if (enrolledStudentIds !== undefined && isAdmin) {
+      const Student = (await import('@/models/Student')).default;
+      const validStudents = await Student.find({ _id: { $in: enrolledStudentIds } });
+      course.enrolledStudents = validStudents.map((s: any) => ({
+        studentId: s._id,
+        enrolledAt: new Date(),
+      }));
+    }
+
+    if (isAdmin) {
+      Object.assign(course, updateFields);
+    } else {
+      const { status, ...teacherAllowedFields } = updateFields;
+      Object.assign(course, teacherAllowedFields);
+    }
 
     await course.save();
 
@@ -113,7 +139,7 @@ export async function DELETE(
     await requireRole(request, ['admin']);
     const { id: courseId } = await params;
 
-    const result = await Course.deleteOne({ _id: courseId });
+    const result = await Course.deleteOne({ id: courseId });
 
     if (result.deletedCount === 0) {
       return notFoundResponse('Course not found');
