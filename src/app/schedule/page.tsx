@@ -13,6 +13,9 @@ import DeleteConfirmModal from '@/components/common/DeleteConfirmModal';
 import OpenSessionModal from '@/components/course/OpenSessionModal';
 import SessionTable from '@/components/course/SessionTable';
 import Loading from '@/components/ui/Loading';
+import ScheduleGrid from '@/components/schedule/ScheduleGrid';
+
+type ViewMode = 'card' | 'grid';
 
 export default function SchedulePage() {
   const { t } = useLocale();
@@ -25,6 +28,17 @@ export default function SchedulePage() {
   const [search, setSearch] = useState('');
   const [semesterFilter, setSemesterFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -281,6 +295,27 @@ export default function SchedulePage() {
             {t.users.clearFilters}
           </button>
         )}
+
+        <div className="hidden md:flex items-center gap-1 ml-auto bg-base-200 rounded-lg p-1">
+          <button
+            className={`btn btn-sm gap-2 ${viewMode === 'grid' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setViewMode('grid')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+            </svg>
+            {t.schedule.gridView}
+          </button>
+          <button
+            className={`btn btn-sm gap-2 ${viewMode === 'card' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setViewMode('card')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+            </svg>
+            {t.schedule.cardView}
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -288,45 +323,73 @@ export default function SchedulePage() {
         <div className="flex justify-center items-center py-20">
           <Loading variant="spinner" size="lg" />
         </div>
-      ) : courses.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-base-300 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-8 h-8 text-base-content/30">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-            </svg>
-          </div>
-          <p className="text-base-content/50 mb-4">{t.course.noCourses}</p>
-          {hasFilters ? (
-            <button
-              className="btn btn-sm btn-ghost"
-              onClick={handleClearFilters}
-            >
-              {t.users.clearFilters}
-            </button>
-          ) : user?.role === 'admin' && (
-            <button
-              className="btn btn-primary btn-sm gap-2"
-              onClick={() => setCreateModalOpen(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              {t.course.createCourse}
-            </button>
-          )}
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              user={user!}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <>
+          {(viewMode === 'grid' && !isMobile) ? (
+            <>
+              <div className="flex items-center gap-2 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-primary">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                </svg>
+                <h2 className="text-lg font-semibold">{t.schedule.weeklySchedule}</h2>
+                {courses.length > 0 && (
+                  <span className="text-sm text-base-content/60 ml-2">
+                    ({t.schedule.clickToViewDetails})
+                  </span>
+                )}
+              </div>
+              <div className="w-full mb-8">
+                <ScheduleGrid courses={courses} />
+              </div>
+            </>
+          ) : (
+            <>
+              {courses.length === 0 ? (
+                <div className="bg-base-200/30 rounded-2xl p-8 mb-8">
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-20 h-20 rounded-full bg-base-300 flex items-center justify-center mb-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-10 h-10 text-base-content/30">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{t.schedule.noCoursesYet}</h3>
+                    <p className="text-base-content/50 mb-6 max-w-sm">{t.schedule.addFirstCourse}</p>
+                    {hasFilters ? (
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        onClick={handleClearFilters}
+                      >
+                        {t.users.clearFilters}
+                      </button>
+                    ) : user?.role === 'admin' && (
+                      <button
+                        className="btn btn-primary gap-2"
+                        onClick={() => setCreateModalOpen(true)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        {t.course.createCourse}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                  {courses.map((course) => (
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      user={user!}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
 
       {(user?.role === 'admin' || user?.role === 'teacher') && (

@@ -101,9 +101,8 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             </Link>
           </li>
         )}
-
-        {/* Register */}
-        {(!user || user.role !== 'student' || !user.hasProfileRegistered) && (
+        {/* Register - Only for Admin and Students who HAVEN'T registered */}
+        {(user?.role === 'admin' || (user?.role === 'student' && !user.hasProfileRegistered)) && (
            <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.register : undefined}>
             <Link href="/register" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
               <Image

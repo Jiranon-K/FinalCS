@@ -488,7 +488,16 @@
     "friday": "Friday",
     "saturday": "Saturday",
     "sunday": "Sunday",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "viewMode": "View Mode",
+    "gridView": "Grid View",
+    "cardView": "Card View",
+    "weeklySchedule": "Weekly Schedule",
+    "studentsEnrolled": "Students enrolled in this course",
+    "allSchedules": "All Schedules",
+    "clickToViewDetails": "Click to view details",
+    "noCoursesYet": "No courses added yet",
+    "addFirstCourse": "Add your first course to see it here"
   },
   "course": {
     "title": "Courses",

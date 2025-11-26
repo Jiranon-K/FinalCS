@@ -32,7 +32,7 @@ const Drawer = ({ children }: { children: React.ReactNode }) => {
         checked={isOpen}
         onChange={(e) => setIsOpen(e.target.checked)}
       />
-      <div className="drawer-content flex flex-col items-center">
+      <div className="drawer-content flex flex-col w-full">
         {/* Page content */}
         <label
           htmlFor="my-drawer-2"

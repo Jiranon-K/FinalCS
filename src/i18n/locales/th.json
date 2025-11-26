@@ -487,7 +487,16 @@
     "friday": "ศุกร์",
     "saturday": "เสาร์",
     "sunday": "อาทิตย์",
-    "comingSoon": "เร็วๆ นี้"
+    "comingSoon": "เร็วๆ นี้",
+    "viewMode": "โหมดแสดงผล",
+    "gridView": "มุมมองตาราง",
+    "cardView": "มุมมองการ์ด",
+    "weeklySchedule": "ตารางรายสัปดาห์",
+    "studentsEnrolled": "นักศึกษาที่ลงทะเบียนในรายวิชานี้",
+    "allSchedules": "ตารางทั้งหมด",
+    "clickToViewDetails": "คลิกเพื่อดูรายละเอียด",
+    "noCoursesYet": "ยังไม่มีรายวิชา",
+    "addFirstCourse": "เพิ่มรายวิชาแรกของคุณเพื่อดูที่นี่"
   },
   "course": {
     "title": "รายวิชา",
@@ -619,7 +628,7 @@
     "manual": "กรอกเอง",
     "markedAsLeave": "ทำเครื่องหมายว่าลา",
     "statusActive": "กำลังเปิด",
-    "statusClosed": "ปิดแล้ว",
+    "statusClosed": "ปิด",
     "statusCancelled": "ยกเลิก",
     "present": "เข้าเรียน",
     "expected": "คาดว่าจะมา",
