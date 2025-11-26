@@ -11,7 +11,6 @@ type PersonRole = 'student' | 'teacher';
 interface FormData {
   name: string;
   studentId: string;
-  email: string;
   phone: string;
   role: PersonRole;
   department: string;
@@ -29,7 +28,6 @@ export default function RegisterForm() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     studentId: '',
-    email: '',
     phone: '',
     role: 'student',
     department: '',
@@ -98,7 +96,6 @@ export default function RegisterForm() {
           ? { studentId: formData.studentId, grade: formData.grade, class: formData.class }
           : { teacherId: formData.studentId }
         ),
-        email: formData.email,
         phone: formData.phone,
         department: formData.department,
         faceDescriptor,
@@ -121,17 +118,8 @@ export default function RegisterForm() {
 
       showToast({ message: t.register.success, type: 'success' });
 
-      setFormData({
-        name: '',
-        studentId: '',
-        email: '',
-        phone: '',
-        role: 'student',
-        department: '',
-        grade: '',
-        class: '',
-      });
-      handleImageRemove();
+      // Redirect to home page and reload to update user session
+      window.location.href = '/';
 
     } catch (error) {
       console.error('Registration error:', error);
@@ -149,7 +137,6 @@ export default function RegisterForm() {
       setFormData({
         name: '',
         studentId: '',
-        email: '',
         phone: '',
         role: 'student',
         department: '',
@@ -161,12 +148,11 @@ export default function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="card bg-base-200">
-        <div className="card-body">
-          <h2 className="card-title text-xl mb-4">{t.register.personalInfo}</h2>
+    <form onSubmit={handleSubmit} className="space-y-10">
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold">{t.register.personalInfo}</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="form-control">
               <label className="label">
                 <span className="label-text">{t.register.name}</span>
@@ -179,7 +165,7 @@ export default function RegisterForm() {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder={t.register.namePlaceholder}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full input-lg"
                 required
                 disabled={user?.role === 'student' && !!user.fullName}
               />
@@ -197,7 +183,7 @@ export default function RegisterForm() {
                 value={formData.studentId}
                 onChange={handleInputChange}
                 placeholder={t.register.studentIdPlaceholder}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full input-lg"
                 required
                 disabled={user?.role === 'student' && !!user.studentId}
               />
@@ -205,25 +191,7 @@ export default function RegisterForm() {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text">{t.register.email}</span>
-                <span className="label-text-alt text-error">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                maxLength={100}
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder={t.register.emailPlaceholder}
-                className="input input-bordered w-full"
-                required
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label">
                 <span className="label-text">{t.register.phone}</span>
-                <span className="label-text-alt text-error">*</span>
               </label>
               <input
                 type="tel"
@@ -232,8 +200,7 @@ export default function RegisterForm() {
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder={t.register.phonePlaceholder}
-                className="input input-bordered w-full"
-                required
+                className="input input-bordered w-full input-lg"
               />
             </div>
 
@@ -245,7 +212,7 @@ export default function RegisterForm() {
                 name="role"
                 value={formData.role}
                 onChange={handleInputChange}
-                className="select select-bordered w-full"
+                className="select select-bordered w-full select-lg"
                 disabled
               >
                 <option value="student">{t.register.roleStudent}</option>
@@ -257,16 +224,30 @@ export default function RegisterForm() {
                 <span className="label-text">{t.register.department}</span>
                 <span className="label-text-alt text-error">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 name="department"
-                maxLength={100}
                 value={formData.department}
                 onChange={handleInputChange}
-                placeholder={t.register.departmentPlaceholder}
-                className="input input-bordered w-full"
+                className="select select-bordered w-full select-lg"
                 required
-              />
+              >
+                <option value="">{t.register.departmentPlaceholder}</option>
+                <option value="Engineering">{t.register.deptEngineering}</option>
+                <option value="Science">{t.register.deptScience}</option>
+                <option value="Business Administration">{t.register.deptBusiness}</option>
+                <option value="Education">{t.register.deptEducation}</option>
+                <option value="Law">{t.register.deptLaw}</option>
+                <option value="Medicine">{t.register.deptMedicine}</option>
+                <option value="Nursing">{t.register.deptNursing}</option>
+                <option value="Information Technology">{t.register.deptIT}</option>
+                <option value="Computer Science">{t.register.deptComputerScience}</option>
+                <option value="Architecture">{t.register.deptArchitecture}</option>
+                <option value="Liberal Arts">{t.register.deptArts}</option>
+                <option value="Communication Arts">{t.register.deptCommunication}</option>
+                <option value="Economics">{t.register.deptEconomics}</option>
+                <option value="Accounting">{t.register.deptAccounting}</option>
+                <option value="Other">{t.register.deptOther}</option>
+              </select>
             </div>
 
             {formData.role === 'student' && (
@@ -280,7 +261,7 @@ export default function RegisterForm() {
                     name="grade"
                     value={formData.grade}
                     onChange={handleInputChange}
-                    className="select select-bordered w-full"
+                    className="select select-bordered w-full select-lg"
                     required
                   >
                     <option value="">{t.register.gradePlaceholder}</option>
@@ -296,50 +277,52 @@ export default function RegisterForm() {
                     <span className="label-text">{t.register.class}</span>
                     <span className="label-text-alt text-error">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="class"
-                    maxLength={20}
                     value={formData.class}
                     onChange={handleInputChange}
-                    placeholder={t.register.classPlaceholder}
-                    className="input input-bordered w-full"
+                    className="select select-bordered w-full select-lg"
                     required
-                  />
+                  >
+                    <option value="">{t.register.classPlaceholder}</option>
+                    <option value="1">{t.register.class1}</option>
+                    <option value="2">{t.register.class2}</option>
+                    <option value="3">{t.register.class3}</option>
+                    <option value="4">{t.register.class4}</option>
+                  </select>
                 </div>
               </>
             )}
           </div>
         </div>
+
+      <div className="divider"></div>
+
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold">
+          {t.register.faceImage}
+          <span className="text-error ml-2">*</span>
+        </h2>
+
+        <FaceUpload
+          onFaceDetected={handleFaceDetected}
+          onImageRemove={handleImageRemove}
+          currentImage={faceImagePreview}
+        />
       </div>
 
-      <div className="card bg-base-200">
-        <div className="card-body">
-          <h2 className="card-title text-xl mb-4">
-            {t.register.faceImage}
-            <span className="text-error ml-2">*</span>
-          </h2>
-
-          <FaceUpload
-            onFaceDetected={handleFaceDetected}
-            onImageRemove={handleImageRemove}
-            currentImage={faceImagePreview}
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-4 justify-end">
+      <div className="flex gap-4 justify-end pt-6">
         <button
           type="button"
           onClick={handleCancel}
-          className="btn btn-outline"
+          className="btn btn-outline btn-lg px-8"
           disabled={isSubmitting}
         >
           {t.register.cancel}
         </button>
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-primary btn-lg px-8"
           disabled={isSubmitting || !formData.name.trim() || !faceDescriptor}
         >
           {isSubmitting ? (

@@ -11,7 +11,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       const isLoginPage = pathname === '/login' || pathname === '/admin/login';
-      
+      const isRegisterPage = pathname === '/register';
+
       if (isLoginPage) {
         setIsChecking(false);
         return;
@@ -19,10 +20,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
       try {
         const res = await fetch('/api/auth/session');
-        
+
         if (!res.ok) {
           router.push('/login');
         } else {
+          const data = await res.json();
+
+          if (!isRegisterPage && data.user && data.user.role === 'student' && !data.user.hasProfileRegistered) {
+            router.push('/register');
+            return;
+          }
+
           setIsChecking(false);
         }
       } catch (error) {

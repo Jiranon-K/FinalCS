@@ -11,6 +11,7 @@ import CourseCard from '@/components/course/CourseCard';
 import CreateCourseModal from '@/components/course/CreateCourseModal';
 import DeleteConfirmModal from '@/components/common/DeleteConfirmModal';
 import OpenSessionModal from '@/components/course/OpenSessionModal';
+import SessionTable from '@/components/course/SessionTable';
 import Loading from '@/components/ui/Loading';
 
 export default function SchedulePage() {
@@ -33,7 +34,6 @@ export default function SchedulePage() {
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [openModalCourse, setOpenModalCourse] = useState<Course | null>(null);
-  const [closingSession, setClosingSession] = useState<string | null>(null);
 
   const fetchCourses = useCallback(async () => {
     try {
@@ -87,33 +87,6 @@ export default function SchedulePage() {
     }
   }, [search, semesterFilter, statusFilter, authLoading, user, fetchCourses, fetchSessions]);
 
-  const handleCloseSession = async (sessionId: string) => {
-    try {
-      setClosingSession(sessionId);
-      const response = await fetch(`/api/attendance/sessions/${sessionId}/close`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        showToast({ message: t.attendanceManagement.closeSessionSuccess, type: 'success' });
-        fetchSessions();
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      console.error('Error closing session:', error);
-      showToast({
-        message: error instanceof Error ? error.message : t.attendanceManagement.closeSessionError,
-        type: 'error',
-      });
-    } finally {
-      setClosingSession(null);
-    }
-  };
-
   const handleOpenSessionModal = (course: Course) => {
     setOpenModalCourse(course);
   };
@@ -121,28 +94,6 @@ export default function SchedulePage() {
   const handleSessionOpened = () => {
     fetchSessions();
     setOpenModalCourse(null);
-  };
-
-  const formatSessionDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const getSessionDuration = (openedAt: Date | string) => {
-    const start = new Date(openedAt);
-    const now = new Date();
-    const diffMs = now.getTime() - start.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const hours = Math.floor(diffMins / 60);
-    const mins = diffMins % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins}m`;
   };
 
   const handleEdit = (course: Course) => {
@@ -410,92 +361,12 @@ export default function SchedulePage() {
             )}
           </div>
 
-          {sessionsLoading ? (
-            <div className="flex justify-center py-8">
-              <span className="loading loading-spinner loading-md"></span>
-            </div>
-          ) : sessions.length === 0 ? (
-            <div className="bg-base-200 rounded-xl p-8 text-center">
-              <div className="w-12 h-12 rounded-full bg-base-300 flex items-center justify-center mx-auto mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-base-content/40">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-              </div>
-              <p className="text-base-content/60">{t.attendanceManagement.noRecords}</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table table-zebra">
-                <thead>
-                  <tr>
-                    <th>{t.course.courseCode}</th>
-                    <th>{t.course.courseName}</th>
-                    <th>{t.attendanceManagement.sessionDate}</th>
-                    <th>{t.course.scheduleSlots}</th>
-                    <th>{t.course.room}</th>
-                    <th>{t.attendanceManagement.status}</th>
-                    <th>{t.attendanceManagement.present}/{t.attendanceManagement.expected}</th>
-                    <th>{t.attendanceManagement.actions}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sessions.map((session) => (
-                    <tr key={session.id}>
-                      <td className="font-medium">{session.courseCode}</td>
-                      <td>{session.courseName}</td>
-                      <td>{formatSessionDate(session.sessionDate)}</td>
-                      <td>{session.startTime} - {session.endTime}</td>
-                      <td>{session.room}</td>
-                      <td>
-                        {session.status === 'active' ? (
-                          <div className="flex items-center gap-2">
-                            <span className="badge badge-success gap-1">
-                              <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                              {t.attendanceManagement.statusActive}
-                            </span>
-                            {session.openedAt && (
-                              <span className="text-xs text-base-content/50">
-                                {getSessionDuration(session.openedAt)}
-                              </span>
-                            )}
-                          </div>
-                        ) : session.status === 'closed' ? (
-                          <span className="badge badge-neutral">{t.attendanceManagement.statusClosed}</span>
-                        ) : (
-                          <span className="badge badge-warning">{t.attendanceManagement.statusCancelled}</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className="font-medium text-success">{session.stats.presentCount}</span>
-                        <span className="text-base-content/40"> / </span>
-                        <span>{session.stats.expectedCount}</span>
-                      </td>
-                      <td>
-                        {session.status === 'active' ? (
-                          <button
-                            className="btn btn-error btn-xs gap-1"
-                            onClick={() => handleCloseSession(session.id)}
-                            disabled={closingSession === session.id}
-                          >
-                            {closingSession === session.id ? (
-                              <span className="loading loading-spinner loading-xs"></span>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />
-                              </svg>
-                            )}
-                            {t.attendanceManagement.statusClosed}
-                          </button>
-                        ) : (
-                          <span className="text-base-content/40">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <SessionTable
+            sessions={sessions}
+            loading={sessionsLoading}
+            onSessionClosed={fetchSessions}
+            onSessionDeleted={fetchSessions}
+          />
         </div>
       )}
 

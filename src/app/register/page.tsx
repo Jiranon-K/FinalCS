@@ -7,13 +7,15 @@ export default function RegisterPage() {
   const { t } = useLocale();
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t.register.title}</h1>
-        <p className="text-base-content/70">{t.register.subtitle}</p>
-      </div>
+    <div className="min-h-screen w-full px-8 py-12">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold tracking-tight">{t.register.title}</h1>
+          <p className="text-lg text-base-content/60">{t.register.subtitle}</p>
+        </div>
 
-      <RegisterForm />
+        <RegisterForm />
+      </div>
     </div>
   );
 }
