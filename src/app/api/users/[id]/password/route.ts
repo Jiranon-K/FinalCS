@@ -6,10 +6,10 @@ import { getTokenFromCookies, verifyToken } from '@/lib/jwt';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. JWT Authentication Check
+    const { id } = await params;
     const token = await getTokenFromCookies();
     if (!token) {
       return NextResponse.json(
@@ -26,8 +26,7 @@ export async function PUT(
       );
     }
 
-    // 2. Authorization Check - User can only change their own password
-    const username = decodeURIComponent(params.id);
+    const username = decodeURIComponent(id);
     if (payload.username !== username) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: You can only change your own password' },
@@ -35,19 +34,16 @@ export async function PUT(
       );
     }
 
-    // 3. Parse request body
     const body = await request.json();
     const { currentPassword, newPassword } = body;
 
-    // 4. Validate required fields
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
         { success: false, error: 'Current password and new password are required' },
         { status: 400 }
       );
     }
-
-    // 5. Validate new password policy
+    
     if (newPassword.length < 6) {
       return NextResponse.json(
         { success: false, error: 'New password must be at least 6 characters' },
@@ -55,7 +51,7 @@ export async function PUT(
       );
     }
 
-    // 6. Check if new password is different from current
+   
     if (currentPassword === newPassword) {
       return NextResponse.json(
         { success: false, error: 'New password must be different from current password' },
@@ -63,10 +59,9 @@ export async function PUT(
       );
     }
 
-    // 7. Connect to database
     await connectDB();
 
-    // 8. Find user
+  
     const user = await User.findOne({ username });
     if (!user) {
       return NextResponse.json(
@@ -75,7 +70,7 @@ export async function PUT(
       );
     }
 
-    // 9. Verify current password
+ 
     const isPasswordValid = await verifyPassword(currentPassword, user.password || '');
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -83,17 +78,13 @@ export async function PUT(
         { status: 401 }
       );
     }
-
-    // 10. Hash new password
     const hashedPassword = await hashPassword(newPassword);
 
-    // 11. Update password in database
     await User.findOneAndUpdate(
       { username },
       { $set: { password: hashedPassword } }
     );
 
-    // 12. Return success response
     return NextResponse.json({
       success: true,
       message: 'Password changed successfully',
