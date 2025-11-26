@@ -287,6 +287,8 @@
     "roleAdmin": "ผู้ดูแลระบบ",
     "username": "ชื่อผู้ใช้",
     "role": "บทบาท",
+    "edit": "แก้ไข",
+    "delete": "ลบ",
     "deleteError": "เกิดข้อผิดพลาดในการลบผู้ใช้",
     "accessDenied": "ไม่มีสิทธิ์เข้าถึง เฉพาะผู้ดูแลระบบเท่านั้น",
     "totalUsers": "ผู้ใช้ทั้งหมด",
@@ -558,6 +560,7 @@
     "descriptionPlaceholder": "คำอธิบายรายวิชา (ถ้ามี)",
     "selectSemester": "เลือกภาคเรียน",
     "room": "ห้องเรียน",
+    "defaultRoom": "ห้องเรียนประจำ",
     "dayOfWeek": "วัน",
     "students": "นักเรียน",
     "selected": "เลือกแล้ว",
@@ -708,6 +711,7 @@
     "customRange": "กำหนดเอง",
     "noStudentsEnrolled": "ไม่มีนักเรียนลงทะเบียน",
     "pleaseSelectCourse": "กรุณาเลือกรายวิชา",
-    "pleaseSelectSession": "กรุณาเลือกเซสชัน"
+    "pleaseSelectSession": "กรุณาเลือกเซสชัน",
+    "viewDetails": "ดูรายละเอียด"
   }
 }

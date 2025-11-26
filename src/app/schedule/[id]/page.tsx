@@ -16,6 +16,7 @@ import AttendanceTable from '@/components/course/AttendanceTable';
 import SessionHistory from '@/components/course/SessionHistory';
 import DeleteConfirmModal from '@/components/common/DeleteConfirmModal';
 
+// Icons
 const BackIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -31,6 +32,18 @@ const PlayIcon = () => (
 const StopIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />
+  </svg>
+);
+
+const EditIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
 );
 
@@ -218,142 +231,119 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-6">
-        <div className="flex justify-between items-start">
-          <button
-            onClick={() => router.push('/schedule')}
-            className="btn btn-ghost btn-sm gap-2 mb-4"
-          >
-            <BackIcon />
-            {t.attendanceManagement.back}
-          </button>
-          
-          {user?.role === 'admin' && (
-            <div className="flex gap-2">
-              <button
-                className="btn btn-ghost btn-sm text-error"
-                onClick={() => setDeleteModalOpen(true)}
-              >
-                {t.users.delete}
-              </button>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => router.push(`/schedule/${courseId}/edit`)}
-              >
-                {t.users.edit}
-              </button>
-            </div>
-          )}
-          {user?.role === 'teacher' && course?.teacherId?.toString() === user?.profileId && (
-            <div className="flex gap-2">
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => router.push(`/schedule/${courseId}/edit`)}
-              >
-                {t.users.edit}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between mb-2">
+    <div className="container mx-auto p-4 lg:p-8 max-w-7xl space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div className="text-sm breadcrumbs mb-2">
+            <ul>
+              <li><a onClick={() => router.push('/schedule')}>{t.schedule.title}</a></li>
+              <li>{course.courseCode}</li>
+            </ul>
+          </div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Image
-              src="/menu-icon/document.png"
-              alt="Course Icon"
-              width={40}
-              height={40}
-              className="w-10 h-10 object-contain"
-            />
             {course.courseName}
+            <div className="badge badge-primary badge-lg">{course.courseCode}</div>
           </h1>
+          <p className="text-base-content/70 mt-1">
+            {t.course.semester} {course.semester} / {course.academicYear} • {course.teacherName}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="badge badge-primary font-mono">{course.courseCode}</span>
-          <span className="text-base-content/70">
-            {course.semester} / {course.academicYear}
-          </span>
+
+        <div className="flex gap-2">
+          {canManageCourse && (
+            <>
+              {user?.role === 'admin' && (
+                 <button
+                 className="btn btn-ghost btn-sm text-error gap-2"
+                 onClick={() => setDeleteModalOpen(true)}
+               >
+                 <TrashIcon />
+                 {t.users.delete}
+               </button>
+              )}
+             
+              <button
+                className="btn btn-ghost btn-sm gap-2"
+                onClick={() => router.push(`/schedule/${courseId}/edit`)}
+              >
+                <EditIcon />
+                {t.users.edit}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <h3 className="card-title text-lg">{t.course.teacher}</h3>
-            <p className="text-xl font-semibold">{course.teacherName}</p>
+      {/* Stats Row */}
+      <div className="stats shadow w-full bg-base-100">
+        <div className="stat">
+          <div className="stat-figure text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
           </div>
+          <div className="stat-title">{t.course.enrolledStudents}</div>
+          <div className="stat-value text-primary">{course.enrolledStudents.length}</div>
+          <div className="stat-desc">{t.course.students}</div>
+        </div>
+        
+        <div className="stat">
+          <div className="stat-figure text-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div className="stat-title">{t.course.scheduleSlots}</div>
+          <div className="stat-value text-secondary">{course.schedule.length}</div>
+          <div className="stat-desc">{t.schedule.weeklySchedule}</div>
         </div>
 
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <h3 className="card-title text-lg">{t.course.room}</h3>
-            <p className="text-xl font-semibold">{course.room}</p>
+        <div className="stat">
+          <div className="stat-figure text-accent">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
           </div>
-        </div>
-
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <h3 className="card-title text-lg">{t.course.enrolledStudents}</h3>
-            <p className="text-xl font-semibold">{course.enrolledStudents.length}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="card bg-base-100 shadow-lg mb-6">
-        <div className="card-body">
-          <h3 className="card-title">{t.course.schedule}</h3>
-          <div className="space-y-2">
-            {course.schedule.map((slot, idx) => (
-              <div key={idx} className="flex items-center gap-4 p-3 bg-base-200 rounded-lg">
-                <span className="font-semibold">{getDayName(slot.dayOfWeek)}</span>
-                <span className="badge">{slot.startTime} - {slot.endTime}</span>
-                <span className="text-sm text-base-content/60">
-                  {t.course.graceMinutes}: {slot.graceMinutes} {t.attendanceManagement.minutes}
-                </span>
-              </div>
-            ))}
-          </div>
+          <div className="stat-title">{t.course.room}</div>
+          <div className="stat-value text-accent text-2xl">{course.room}</div>
+          <div className="stat-desc">{t.course.defaultRoom}</div>
         </div>
       </div>
 
-      {canManageCourse && (
-        <>
-          <div className="card bg-base-100 shadow-lg mb-6">
-            <div className="card-body">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="card-title">
-                    {activeSession ? t.course.activeSession : t.course.sessionControl}
-                  </h3>
-                  {activeSession && (
-                    <p className="text-sm text-base-content/60 mt-1">
-                      {getDayName(activeSession.dayOfWeek)} - {new Date(activeSession.sessionDate).toLocaleDateString('th-TH')} • {activeSession.startTime} - {activeSession.endTime}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column (Main Content) */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* Active Session Control */}
+          {canManageCourse && (
+            <div className="card bg-base-100 shadow-lg border border-base-200">
+              <div className="card-body">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="card-title text-xl">
+                    {activeSession ? (
+                      <span className="flex items-center gap-2 text-success">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+                        </span>
+                        {t.course.activeSession}
+                      </span>
+                    ) : (
+                      t.course.sessionControl
+                    )}
+                  </h2>
+                  
                   {activeSession ? (
                     <button
-                      className="btn btn-error gap-2"
+                      className="btn btn-error btn-sm gap-2"
                       onClick={handleCloseSession}
                       disabled={closingSession}
                     >
                       {closingSession ? (
-                        <>
-                          <span className="loading loading-spinner loading-sm"></span>
-                          {t.attendanceManagement.closing}
-                        </>
+                        <span className="loading loading-spinner loading-xs"></span>
                       ) : (
-                        <>
-                          <StopIcon />
-                          {t.course.closeSession}
-                        </>
+                        <StopIcon />
                       )}
+                      {t.course.closeSession}
                     </button>
                   ) : (
                     <button
-                      className="btn btn-success gap-2"
+                      className="btn btn-primary btn-sm gap-2"
                       onClick={() => {
                         fetchSessions();
                         setOpenSessionModalOpen(true);
@@ -364,62 +354,95 @@ export default function CourseDetailPage() {
                     </button>
                   )}
                 </div>
+
+                {activeSession ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="flex flex-col p-3 bg-base-200 rounded-box text-center">
+                        <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.expected}</span>
+                        <span className="text-2xl font-bold">{activeSession.stats.expectedCount}</span>
+                      </div>
+                      <div className="flex flex-col p-3 bg-success/10 text-success rounded-box text-center">
+                         <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.present}</span>
+                        <span className="text-2xl font-bold">{activeSession.stats.presentCount}</span>
+                      </div>
+                      <div className="flex flex-col p-3 bg-warning/10 text-warning rounded-box text-center">
+                         <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.statusLate}</span>
+                        <span className="text-2xl font-bold">{activeSession.stats.lateCount}</span>
+                      </div>
+                      <div className="flex flex-col p-3 bg-error/10 text-error rounded-box text-center">
+                         <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.statusAbsent}</span>
+                        <span className="text-2xl font-bold">{activeSession.stats.absentCount}</span>
+                      </div>
+                    </div>
+
+                    <div className="divider"></div>
+                    
+                    <div>
+                      <h3 className="font-bold mb-4">{t.attendanceManagement.attendanceRecords}</h3>
+                      <AttendanceTable
+                        records={attendanceRecords}
+                        user={user!}
+                        onRefresh={handleRefreshAttendance}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-base-content/50">
+                    <p>{t.course.noActiveSessions}</p>
+                    <p className="text-sm mt-2">{t.course.openSession} {t.attendanceManagement.checkIn}</p>
+                  </div>
+                )}
               </div>
-
-              {activeSession && (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
-                  <div className="stat p-3 bg-base-200 rounded-lg">
-                    <div className="stat-title text-xs">{t.attendanceManagement.expected}</div>
-                    <div className="stat-value text-xl">{activeSession.stats.expectedCount}</div>
-                  </div>
-                  <div className="stat p-3 bg-success/10 rounded-lg">
-                    <div className="stat-title text-xs text-success">{t.attendanceManagement.present}</div>
-                    <div className="stat-value text-xl text-success">{activeSession.stats.presentCount}</div>
-                  </div>
-                  <div className="stat p-3 bg-base-200 rounded-lg">
-                    <div className="stat-title text-xs">{t.attendanceManagement.statusNormal}</div>
-                    <div className="stat-value text-xl">{activeSession.stats.normalCount}</div>
-                  </div>
-                  <div className="stat p-3 bg-warning/10 rounded-lg">
-                    <div className="stat-title text-xs text-warning">{t.attendanceManagement.statusLate}</div>
-                    <div className="stat-value text-xl text-warning">{activeSession.stats.lateCount}</div>
-                  </div>
-                  <div className="stat p-3 bg-error/10 rounded-lg">
-                    <div className="stat-title text-xs text-error">{t.attendanceManagement.statusAbsent}</div>
-                    <div className="stat-value text-xl text-error">{activeSession.stats.absentCount}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {activeSession && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-4">{t.attendanceManagement.attendanceRecords}</h2>
-              <AttendanceTable
-                records={attendanceRecords}
-                user={user!}
-                onRefresh={handleRefreshAttendance}
-              />
             </div>
           )}
-        </>
-      )}
 
+          {/* Session History */}
+          <div className="card bg-base-100 shadow-lg border border-base-200">
+            <div className="card-body">
+              <h2 className="card-title text-xl mb-4">{t.course.sessionHistory}</h2>
+              <SessionHistory
+                sessions={sessions.filter((s) => s.status !== 'active')}
+                courseId={courseId}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column (Sidebar) */}
+        <div className="space-y-8">
+          
+          {/* Schedule Info */}
+          <div className="card bg-base-100 shadow-lg border border-base-200">
+            <div className="card-body">
+              <h3 className="card-title text-lg mb-4">{t.course.schedule}</h3>
+              <div className="space-y-3">
+                {course.schedule.map((slot, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                    <div className="flex flex-col">
+                      <span className="font-bold">{getDayName(slot.dayOfWeek)}</span>
+                      <span className="text-xs opacity-70">{t.course.graceMinutes}: {slot.graceMinutes}m</span>
+                    </div>
+                    <div className="badge badge-neutral">{slot.startTime} - {slot.endTime}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enrollment Manager (Admin Only) - Full Width Section */}
       {user?.role === 'admin' && (
-        <div className="mb-6">
-          <EnrollmentManager course={course} onUpdate={fetchCourseDetails} />
+        <div className="card bg-base-100 shadow-lg border border-base-200">
+          <div className="card-body">
+            <h3 className="card-title text-lg mb-4">{t.course.manageEnrollment}</h3>
+            <EnrollmentManager course={course} onUpdate={fetchCourseDetails} />
+          </div>
         </div>
       )}
 
-      <div>
-        <h2 className="text-2xl font-bold mb-4">{t.course.sessionHistory}</h2>
-        <SessionHistory
-          sessions={sessions.filter((s) => s.status !== 'active')}
-          courseId={courseId}
-        />
-      </div>
-
+      {/* Modals */}
       {canManageCourse && course && (
         <OpenSessionModal
           isOpen={openSessionModalOpen}

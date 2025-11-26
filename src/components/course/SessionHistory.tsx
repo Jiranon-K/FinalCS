@@ -113,7 +113,7 @@ export default function SessionHistory({ sessions, courseId }: SessionHistoryPro
       {sessions.map((session) => (
         <div
           key={session._id?.toString() || session.id}
-          className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow"
+          className="card bg-base-100"
         >
           <div className="card-body">
             <div className="flex justify-between items-start mb-4">
@@ -137,13 +137,6 @@ export default function SessionHistory({ sessions, courseId }: SessionHistoryPro
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => handleViewSession(session.id)}
-                className="btn btn-ghost btn-sm gap-2"
-              >
-                <ViewIcon />
-                {t.attendanceManagement.viewDetails}
-              </button>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

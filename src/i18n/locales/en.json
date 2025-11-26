@@ -287,6 +287,8 @@
     "roleAdmin": "Administrator",
     "username": "Username",
     "role": "Role",
+    "edit": "Edit",
+    "delete": "Delete",
     "deleteError": "Failed to delete user",
     "accessDenied": "Access denied. Admin only.",
     "totalUsers": "Total Users",
@@ -559,6 +561,7 @@
     "descriptionPlaceholder": "Course description (optional)",
     "selectSemester": "Select Semester",
     "room": "Room",
+    "defaultRoom": "Default Room",
     "dayOfWeek": "Day",
     "students": "Students",
     "selected": "selected",
@@ -709,6 +712,7 @@
     "customRange": "Custom Range",
     "noStudentsEnrolled": "No Students Enrolled",
     "pleaseSelectCourse": "Please Select Course",
-    "pleaseSelectSession": "Please Select Session"
+    "pleaseSelectSession": "Please Select Session",
+    "viewDetails": "View Details"
   }
 }

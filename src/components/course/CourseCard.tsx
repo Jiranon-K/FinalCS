@@ -52,9 +52,10 @@ interface CourseCardProps {
   user: UserProfile;
   onEdit: (course: Course) => void;
   onDelete: (courseId: string) => void;
+  onView?: (course: Course) => void;
 }
 
-export default function CourseCard({ course, user, onEdit, onDelete }: CourseCardProps) {
+export default function CourseCard({ course, user, onEdit, onDelete, onView }: CourseCardProps) {
   const { t } = useLocale();
 
   const getDayName = (dayOfWeek: number) => {
@@ -142,7 +143,10 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
           </div>
         </div>
 
-        <h3 className="card-title text-xl font-bold text-base-content leading-tight">
+        <h3 
+          className={`card-title text-xl font-bold text-base-content leading-tight ${onView ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+          onClick={() => onView?.(course)}
+        >
           {course.courseName}
         </h3>
 

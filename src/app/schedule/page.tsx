@@ -186,6 +186,10 @@ export default function SchedulePage() {
     );
   }
 
+  const handleView = (course: Course) => {
+    router.push(`/schedule/${course.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-base-100 p-6">
       {/* Header with Stats */}
@@ -383,6 +387,7 @@ export default function SchedulePage() {
                       user={user!}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
+                      onView={handleView}
                     />
                   ))}
                 </div>

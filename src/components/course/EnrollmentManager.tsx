@@ -54,6 +54,10 @@ export default function EnrollmentManager({ course, onUpdate }: EnrollmentManage
   const [unenrolling, setUnenrolling] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchAllStudents();
+  }, []);
+
+  useEffect(() => {
     if (showAddModal) {
       fetchAllStudents();
     }
@@ -174,7 +178,7 @@ export default function EnrollmentManager({ course, onUpdate }: EnrollmentManage
   };
 
   return (
-    <div className="card bg-base-100 shadow-lg">
+    <div className="card bg-base-100">
       <div className="card-body">
         <div className="flex justify-between items-center mb-4">
           <h3 className="card-title">
