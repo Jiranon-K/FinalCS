@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "Person Tracking & Facial Recognition",
   description:
     "A Person Tracking System in a Classroom Using Facial Recognition",
+  icons: {
+    icon: "/menu-icon/face-recognition.png",
+  },
 };
 
 export default function RootLayout({

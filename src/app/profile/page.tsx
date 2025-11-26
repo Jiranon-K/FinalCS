@@ -1,14 +1,13 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocale } from '@/hooks/useLocale';
 import ProfileView from '@/components/profile/ProfileView';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
-  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,7 +18,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center">
         <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
@@ -28,13 +27,9 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-base-100 py-8">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-base-content">{t.profile.title}</h1>
-          <p className="text-base-content/60 mt-2">{t.profile.subtitle}</p>
-        </div>
-        
+    <div className="w-full h-full flex flex-col bg-base-100/30">
+      <ProfileHeader />
+      <div className="flex-1 overflow-auto p-4 lg:p-6">
         <ProfileView />
       </div>
     </div>
