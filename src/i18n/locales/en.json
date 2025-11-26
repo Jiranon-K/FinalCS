@@ -469,7 +469,11 @@
     "approveSuccess": "Approved successfully",
     "rejectSuccess": "Rejected successfully",
     "approveError": "Failed to approve",
-    "rejectError": "Failed to reject"
+    "rejectError": "Failed to reject",
+    "totalRequests": "Total Requests",
+    "pendingCount": "Pending",
+    "approvedCount": "Approved",
+    "rejectedCount": "Rejected"
   },
   "schedule": {
     "title": "Teaching Schedule",

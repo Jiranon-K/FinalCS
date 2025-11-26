@@ -468,7 +468,11 @@
     "approveSuccess": "อนุมัติสำเร็จ",
     "rejectSuccess": "ปฏิเสธสำเร็จ",
     "approveError": "อนุมัติไม่สำเร็จ",
-    "rejectError": "ปฏิเสธไม่สำเร็จ"
+    "rejectError": "ปฏิเสธไม่สำเร็จ",
+    "totalRequests": "คำขอทั้งหมด",
+    "pendingCount": "รออนุมัติ",
+    "approvedCount": "อนุมัติแล้ว",
+    "rejectedCount": "ปฏิเสธแล้ว"
   },
   "schedule": {
     "title": "ตารางสอน",
