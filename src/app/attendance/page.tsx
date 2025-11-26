@@ -29,10 +29,10 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (user && user.role !== 'admin' && user.role !== 'teacher') {
-      showToast({ type: 'error', message: 'Access denied. Teachers and admins only.' });
+      showToast({ type: 'error', message: t.common?.accessDenied || 'Access denied' });
       router.push('/');
     }
-  }, [user, router, showToast]);
+  }, [user, router, showToast, t]);
 
   const handleCourseSelect = (courseId: string, course: Course) => {
     setSelectedCourseId(courseId);
@@ -95,40 +95,33 @@ export default function AttendancePage() {
           className={`tab ${activeTab === 'manual' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('manual')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-          </svg>
           {t.attendanceManagement.manual}
-        </button>
-        <button
-          className={`tab ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-          </svg>
-          {t.attendanceManagement.dashboard}
         </button>
         <button
           className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
           {t.attendanceManagement.history}
+        </button>
+        <button
+          className={`tab ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          {t.attendanceManagement.dashboard}
         </button>
       </div>
 
-      {activeTab === 'manual' && (
-        <div className="space-y-6">
-          <CourseSessionSelector
-            onCourseSelect={handleCourseSelect}
-            onSessionSelect={handleSessionSelect}
-            selectedCourseId={selectedCourseId}
-            selectedSessionId={selectedSessionId || ''}
-          />
+      {activeTab !== 'dashboard' && (
+        <CourseSessionSelector
+          onCourseSelect={handleCourseSelect}
+          onSessionSelect={handleSessionSelect}
+          selectedCourseId={selectedCourseId}
+          selectedSessionId={selectedSessionId || ''}
+        />
+      )}
 
+      {activeTab === 'manual' && (
+        <div className="space-y-6 mt-6">
           {selectedSessionId && selectedCourse && selectedSession && (
             <StudentListManager
               course={selectedCourse}
@@ -142,9 +135,6 @@ export default function AttendancePage() {
             <div className="card bg-base-100 shadow-lg">
               <div className="card-body">
                 <div className="text-center py-12">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-24 h-24 mx-auto text-base-content/20 mb-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                  </svg>
                   <p className="text-base-content/60 text-lg">
                     {t.attendanceManagement.pleaseSelectCourse}
                   </p>
@@ -159,26 +149,25 @@ export default function AttendancePage() {
         <AttendanceDashboard />
       )}
 
-      {activeTab === 'history' && selectedSessionId && user && (
-        <AttendanceTable
-          records={attendanceRecords}
-          user={user}
-          onRefresh={refreshRecords}
-        />
-      )}
-
-      {activeTab === 'history' && !selectedSessionId && (
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <div className="text-center py-12">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-24 h-24 mx-auto text-base-content/20 mb-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-              <p className="text-base-content/60 text-lg">
-                {t.attendanceManagement.pleaseSelectSession}
-              </p>
+      {activeTab === 'history' && (
+        <div className="mt-6">
+          {selectedSessionId && user ? (
+            <AttendanceTable
+              records={attendanceRecords}
+              user={user}
+              onRefresh={refreshRecords}
+            />
+          ) : (
+            <div className="card bg-base-100 shadow-lg">
+              <div className="card-body">
+                <div className="text-center py-12">
+                  <p className="text-base-content/60 text-lg">
+                    {t.attendanceManagement.pleaseSelectSession}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

@@ -166,7 +166,8 @@
   "common": {
     "close": "ปิด",
     "cancel": "ยกเลิก",
-    "saving": "กำลังบันทึก..."
+    "saving": "กำลังบันทึก...",
+    "accessDenied": "ปฏิเสธการเข้าถึง"
   },
   "attendance": {
     "title": "เช็คชื่อเข้าชั้นเรียน",
@@ -646,6 +647,11 @@
     "allSlotsUsed": "ช่วงเวลาทั้งหมดถูกใช้งานแล้วในวันที่เลือก",
     "sessionExpired": "ไม่สามารถเปิดเซสชันที่หมดเวลาแล้วได้",
     "sessionExpiredDetail": "เซสชันสิ้นสุดเวลา {endTime} ในวันที่ {date} ผ่านไปแล้ว",
+    "confirmMarkAllPresent": "ทำเครื่องหมายว่านักเรียนทุกคนเข้าเรียน?",
+    "confirmMarkRemainingAbsent": "ทำเครื่องหมายว่านักเรียนที่เหลือขาดเรียน?",
+    "trendGood": "ดี",
+    "trendAverage": "ปานกลาง",
+    "trendPoor": "ต้องปรับปรุง",
     "deleteSession": "ลบประวัติ Session",
     "deleteSessionSuccess": "ลบประวัติ Session สำเร็จ",
     "deleteSessionError": "เกิดข้อผิดพลาดในการลบประวัติ Session",

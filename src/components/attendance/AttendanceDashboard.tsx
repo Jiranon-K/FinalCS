@@ -205,7 +205,7 @@ export default function AttendanceDashboard() {
               <table className="table table-zebra">
                 <thead>
                   <tr>
-                    <th>{t.attendanceManagement.sessionStats.expected}</th>
+                    <th>{t.course.courseName}</th>
                     <th>{t.attendanceManagement.totalSessions}</th>
                     <th>{t.attendanceManagement.presentRate}</th>
                     <th>{t.attendanceManagement.attendanceTrend}</th>
@@ -237,11 +237,11 @@ export default function AttendanceDashboard() {
                       </td>
                       <td>
                         {course.attendanceRate >= 80 ? (
-                          <span className="badge badge-success badge-sm">Good</span>
+                          <span className="badge badge-success badge-sm">{t.attendanceManagement.trendGood}</span>
                         ) : course.attendanceRate >= 60 ? (
-                          <span className="badge badge-warning badge-sm">Average</span>
+                          <span className="badge badge-warning badge-sm">{t.attendanceManagement.trendAverage}</span>
                         ) : (
-                          <span className="badge badge-error badge-sm">Needs Attention</span>
+                          <span className="badge badge-error badge-sm">{t.attendanceManagement.trendPoor}</span>
                         )}
                       </td>
                     </tr>

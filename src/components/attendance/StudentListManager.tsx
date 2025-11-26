@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
 import type { Course } from '@/types/course';
@@ -20,52 +21,90 @@ interface EnrolledStudentInfo {
   studentNumber?: string;
   record?: AttendanceRecord;
   hasFaceData: boolean;
+  imageUrl?: string;
 }
 
 export default function StudentListManager({
-  course: _course,
+  course,
   session,
   records,
   onRecordUpdated,
 }: StudentListManagerProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
-  
-  void _course;
+  const router = useRouter();
   
   const [filter, setFilter] = useState<'all' | 'checked-in' | 'not-checked-in'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [, setIsRecording] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<'normal' | 'late' | 'absent' | 'leave'>('normal');
-  const [adjustmentNote, setAdjustmentNote] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
-  const [students] = useState<EnrolledStudentInfo[]>(() => {
+  useEffect(() => {
+    const fetchEnrolledStudents = async () => {
+      if (!course.id && !course._id) return;
+      
+      setLoadingStudents(true);
+      try {
+        const courseId = course.id || course._id?.toString();
+        const response = await fetch(`/api/courses/${courseId}/students`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setEnrolledStudents(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching enrolled students:', error);
+        showToast({ type: 'error', message: 'Failed to load student list' });
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+
+    fetchEnrolledStudents();
+  }, [course, showToast]);
+
+  const students = useMemo(() => {
     const studentMap = new Map<string, EnrolledStudentInfo>();
     
-    records.forEach(record => {
-      studentMap.set(record.studentId.toString(), {
-        studentId: record.studentId.toString(),
-        studentName: record.studentName,
-        studentNumber: record.studentNumber,
-        record,
-        hasFaceData: record.checkInMethod === 'face_recognition',
+    enrolledStudents.forEach(student => {
+      studentMap.set(student._id.toString(), {
+        studentId: student._id.toString(),
+        studentName: student.name,
+        studentNumber: student.studentId,
+        hasFaceData: !!student.imageKey || !!student.imageUrl,
+        imageUrl: student.imageUrl,
       });
+    });
+    
+    records.forEach(record => {
+      const existing = studentMap.get(record.studentId.toString());
+      if (existing) {
+        existing.record = record;
+      } else {
+        studentMap.set(record.studentId.toString(), {
+          studentId: record.studentId.toString(),
+          studentName: record.studentName,
+          studentNumber: record.studentNumber,
+          record,
+          hasFaceData: record.checkInMethod === 'face_recognition',
+        });
+      }
     });
 
     return Array.from(studentMap.values());
-  });
+  }, [enrolledStudents, records]);
+
 
   const filteredStudents = useMemo(() => {
     let filtered = students;
 
-    // Apply filter
     if (filter === 'checked-in') {
       filtered = filtered.filter(s => s.record && s.record.status !== 'absent');
     } else if (filter === 'not-checked-in') {
       filtered = filtered.filter(s => !s.record || s.record.status === 'absent');
     }
 
-    // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(s => 
@@ -77,7 +116,7 @@ export default function StudentListManager({
     return filtered;
   }, [students, filter, searchQuery]);
 
-  const handleRecordAttendance = async (studentId: string) => {
+  const handleRecordAttendance = async (studentId: string, status: string) => {
     setIsRecording(true);
     try {
       const response = await fetch('/api/attendance/records', {
@@ -86,9 +125,8 @@ export default function StudentListManager({
         body: JSON.stringify({
           studentId,
           sessionId: session.id || session._id?.toString(),
-          status: selectedStatus,
+          status,
           method: 'manual',
-          note: adjustmentNote || undefined,
         }),
       });
 
@@ -97,7 +135,6 @@ export default function StudentListManager({
       if (data.success) {
         showToast({ type: 'success', message: t.attendanceManagement.recordSuccess });
         onRecordUpdated();
-        setAdjustmentNote('');
       } else {
         throw new Error(data.error);
       }
@@ -109,29 +146,73 @@ export default function StudentListManager({
     }
   };
 
-  const handleAdjustStatus = async (recordId: string, newStatus: string) => {
+  const handleMarkAllPresent = async () => {
+    if (!confirm(t.attendanceManagement.confirmMarkAllPresent || 'Mark all students as present?')) return;
+    
+    setIsRecording(true);
     try {
-      const response = await fetch(`/api/attendance/records/${recordId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          note: adjustmentNote || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        showToast({ type: 'success', message: t.attendanceManagement.adjustSuccess });
-        onRecordUpdated();
-        setAdjustmentNote('');
-      } else {
-        throw new Error(data.error);
+      const studentsToMark = students.filter(s => !s.record);
+      
+      const batchSize = 5;
+      for (let i = 0; i < studentsToMark.length; i += batchSize) {
+        const batch = studentsToMark.slice(i, i + batchSize);
+        await Promise.all(batch.map(student => 
+          fetch('/api/attendance/records', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              studentId: student.studentId,
+              sessionId: session.id || session._id?.toString(),
+              status: 'normal',
+              method: 'manual',
+              note: 'Bulk action: Mark All Present',
+            }),
+          })
+        ));
       }
+
+      showToast({ type: 'success', message: t.attendanceManagement.recordSuccess });
+      onRecordUpdated();
     } catch (error) {
-      console.error('Error adjusting status:', error);
-      showToast({ type: 'error', message: t.attendanceManagement.adjustError });
+      console.error('Error marking all present:', error);
+      showToast({ type: 'error', message: t.attendanceManagement.recordError });
+    } finally {
+      setIsRecording(false);
+    }
+  };
+
+  const handleMarkRemainingAbsent = async () => {
+    if (!confirm(t.attendanceManagement.confirmMarkRemainingAbsent || 'Mark remaining students as absent?')) return;
+
+    setIsRecording(true);
+    try {
+      const studentsToMark = students.filter(s => !s.record);
+      
+      const batchSize = 5;
+      for (let i = 0; i < studentsToMark.length; i += batchSize) {
+        const batch = studentsToMark.slice(i, i + batchSize);
+        await Promise.all(batch.map(student => 
+          fetch('/api/attendance/records', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              studentId: student.studentId,
+              sessionId: session.id || session._id?.toString(),
+              status: 'absent',
+              method: 'manual',
+              note: 'Bulk action: Mark Remaining Absent',
+            }),
+          })
+        ));
+      }
+
+      showToast({ type: 'success', message: t.attendanceManagement.recordSuccess });
+      onRecordUpdated();
+    } catch (error) {
+      console.error('Error marking remaining absent:', error);
+      showToast({ type: 'error', message: t.attendanceManagement.recordError });
+    } finally {
+      setIsRecording(false);
     }
   };
 
@@ -171,22 +252,49 @@ export default function StudentListManager({
   return (
     <div className="card bg-base-100 shadow-lg">
       <div className="card-body">
-        {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <h2 className="card-title">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
             </svg>
             {t.attendanceManagement.enrolledStudents}
+            {loadingStudents && <span className="loading loading-spinner loading-sm ml-2"></span>}
           </h2>
-          <div className="badge badge-lg">
-            {checkedInCount}/{totalCount} {t.attendanceManagement.checkedIn}
+          <div className="flex gap-2">
+             <button 
+              className="btn btn-primary btn-sm"
+              onClick={() => router.push(`/camera?sessionId=${session.id || session._id?.toString()}&courseId=${course.id || course._id?.toString()}`)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+              </svg>
+              Open Camera
+            </button>
+            <div className="badge badge-lg">
+              {checkedInCount}/{totalCount} {t.attendanceManagement.checkedIn}
+            </div>
           </div>
         </div>
 
-        {/* Filters */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button 
+            className="btn btn-success btn-sm text-white"
+            onClick={handleMarkAllPresent}
+            disabled={isRecording || students.every(s => s.record)}
+          >
+            Mark All Present
+          </button>
+          <button 
+            className="btn btn-error btn-sm text-white"
+            onClick={handleMarkRemainingAbsent}
+            disabled={isRecording || students.every(s => s.record)}
+          >
+            Mark Remaining Absent
+          </button>
+        </div>
+
         <div className="flex flex-wrap gap-4 mb-4">
-          {/* Search */}
           <div className="form-control flex-1 min-w-[200px]">
             <div className="input-group">
               <input
@@ -204,7 +312,6 @@ export default function StudentListManager({
             </div>
           </div>
 
-          {/* Filter Buttons */}
           <div className="btn-group">
             <button
               className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-ghost'}`}
@@ -227,7 +334,6 @@ export default function StudentListManager({
           </div>
         </div>
 
-        {/* Student List */}
         {filteredStudents.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="table table-zebra">
@@ -279,76 +385,19 @@ export default function StudentListManager({
                         : '-'
                       }
                     </td>
-                    <td className="text-right">
-                      <div className="dropdown dropdown-end">
-                        <label tabIndex={0} className="btn btn-ghost btn-sm">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                          </svg>
-                        </label>
-                        <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow bg-base-100 rounded-box w-52">
-                          {!student.record ? (
-                            <>
-                              <li>
-                                <a onClick={() => {
-                                  setSelectedStatus('normal');
-                                  handleRecordAttendance(student.studentId);
-                                }}>
-                                  <span className="badge badge-success badge-xs"></span>
-                                  {t.attendanceManagement.statusNormal}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={() => {
-                                  setSelectedStatus('late');
-                                  handleRecordAttendance(student.studentId);
-                                }}>
-                                  <span className="badge badge-warning badge-xs"></span>
-                                  {t.attendanceManagement.statusLate}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={() => {
-                                  setSelectedStatus('leave');
-                                  handleRecordAttendance(student.studentId);
-                                }}>
-                                  <span className="badge badge-info badge-xs"></span>
-                                  {t.attendanceManagement.statusLeave}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={() => {
-                                  setSelectedStatus('absent');
-                                  handleRecordAttendance(student.studentId);
-                                }}>
-                                  <span className="badge badge-error badge-xs"></span>
-                                  {t.attendanceManagement.statusAbsent}
-                                </a>
-                              </li>
-                            </>
-                          ) : (
-                            <>
-                              <li className="menu-title">
-                                <span>{t.attendanceManagement.adjustStatus}</span>
-                              </li>
-                              {['normal', 'late', 'leave', 'absent'].map((status) => (
-                                <li key={status}>
-                                  <a 
-                                    className={student.record?.status === status ? 'active' : ''}
-                                    onClick={() => handleAdjustStatus(
-                                      student.record?.id || student.record?._id?.toString() || '',
-                                      status
-                                    )}
-                                  >
-                                    <span className={`badge badge-xs ${getStatusBadgeClass(status)}`}></span>
-                                    {getStatusText(status)}
-                                  </a>
-                                </li>
-                              ))}
-                            </>
-                          )}
-                        </ul>
-                      </div>
+                    <td>
+                      <select 
+                        className="select select-bordered select-xs w-full max-w-xs"
+                        value={student.record?.status || ''}
+                        onChange={(e) => handleRecordAttendance(student.studentId, e.target.value)}
+                        disabled={isRecording}
+                      >
+                        <option value="" disabled>{t.attendanceManagement.recordAttendance}</option>
+                        <option value="normal">{t.attendanceManagement.statusNormal}</option>
+                        <option value="late">{t.attendanceManagement.statusLate}</option>
+                        <option value="absent">{t.attendanceManagement.statusAbsent}</option>
+                        <option value="leave">{t.attendanceManagement.statusLeave}</option>
+                      </select>
                     </td>
                   </tr>
                 ))}
