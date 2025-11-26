@@ -645,6 +645,8 @@
     "sessionsOnDate": "session(s) already exist on this date",
     "sessionAlreadyExists": "Session already exists for this time slot",
     "allSlotsUsed": "All time slots are already in use for this date",
+    "sessionExpired": "Cannot open a session that has already ended",
+    "sessionExpiredDetail": "The session end time ({endTime}) on {date} has passed",
     "deleteSession": "Delete Session History",
     "deleteSessionSuccess": "Session deleted successfully",
     "deleteSessionError": "Failed to delete session",

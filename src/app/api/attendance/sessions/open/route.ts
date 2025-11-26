@@ -5,12 +5,15 @@ import User from '@/models/User';
 import Student from '@/models/Student';
 import { OpenSessionRequest } from '@/types/session';
 import { requireAuth, canAccessCourse, badRequestResponse, notFoundResponse, forbiddenResponse, serverErrorResponse } from '@/lib/auth-helpers';
+import { createServerTranslator } from '@/lib/i18n-server';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+
+    const { translate, locale } = createServerTranslator(request);
 
     const user = await requireAuth(request);
 
@@ -39,20 +42,24 @@ export async function POST(request: NextRequest) {
     const parsedDate = new Date(sessionDate);
     parsedDate.setUTCHours(0, 0, 0, 0);
 
-    /*
-    // Check if session is in the past
     const now = new Date();
-    const expiration = new Date();
-    expiration.setFullYear(parsedDate.getUTCFullYear());
-    expiration.setMonth(parsedDate.getUTCMonth());
-    expiration.setDate(parsedDate.getUTCDate());
+    const sessionEndDateTime = new Date(sessionDate);
     const [endHour, endMinute] = endTime.split(':').map(Number);
-    expiration.setHours(endHour, endMinute, 0, 0);
+    sessionEndDateTime.setHours(endHour, endMinute, 0, 0);
 
-    if (now > expiration) {
-      return badRequestResponse('Cannot open a session that has already ended.');
+    if (now > sessionEndDateTime) {
+      const formattedDate = new Date(sessionDate).toLocaleDateString(
+        locale === 'th' ? 'th-TH' : 'en-US',
+        { year: 'numeric', month: 'long', day: 'numeric' }
+      );
+
+      const errorMessage = translate('attendanceManagement.sessionExpiredDetail', {
+        endTime,
+        date: formattedDate,
+      });
+
+      return badRequestResponse(errorMessage);
     }
-    */
 
     const existingSession = await AttendanceSession.findOne({
       courseId: course._id,

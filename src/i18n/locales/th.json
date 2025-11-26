@@ -644,6 +644,8 @@
     "sessionsOnDate": "เซสชันที่มีอยู่ในวันนี้",
     "sessionAlreadyExists": "มีเซสชันอยู่แล้วในช่วงเวลานี้",
     "allSlotsUsed": "ช่วงเวลาทั้งหมดถูกใช้งานแล้วในวันที่เลือก",
+    "sessionExpired": "ไม่สามารถเปิดเซสชันที่หมดเวลาแล้วได้",
+    "sessionExpiredDetail": "เซสชันสิ้นสุดเวลา {endTime} ในวันที่ {date} ผ่านไปแล้ว",
     "deleteSession": "ลบประวัติ Session",
     "deleteSessionSuccess": "ลบประวัติ Session สำเร็จ",
     "deleteSessionError": "เกิดข้อผิดพลาดในการลบประวัติ Session",

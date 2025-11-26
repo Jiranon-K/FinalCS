@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       return notFoundResponse('Course not found');
     }
 
-    const student = await Student.findById(studentId);
+    const student = await Student.findOne({ id: studentId }).lean();
 
     if (!student) {
       return notFoundResponse('Student not found');

@@ -121,6 +121,8 @@ export default function CameraView() {
     pendingRecordsRef.current.add(personId);
     lastRecordTimeRef.current.set(personId, now);
 
+    setLastAttendanceRecord(prev => new Map(prev).set(personId, new Date(now)));
+
     let recorded = false;
 
     for (const session of activeSessions) {
@@ -162,7 +164,7 @@ export default function CameraView() {
     pendingRecordsRef.current.delete(personId);
 
     if (recorded) {
-      setLastAttendanceRecord(prev => new Map(prev).set(personId, new Date(now)));
+      // Status already updated optimistically above
       fetchRecentRecords();
     }
   };
