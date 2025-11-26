@@ -30,7 +30,6 @@ export interface Course {
 
   enrolledStudents: EnrolledStudent[];
 
-  description?: string;
   status: 'active' | 'archived' | 'draft';
   createdBy: Types.ObjectId;
 
@@ -45,7 +44,6 @@ export interface CreateCourseRequest {
   semester: string;
   academicYear: string;
   room: string;
-  description?: string;
   schedule: Omit<CourseScheduleSlot, 'graceMinutes'>[];
   enrolledStudentIds?: string[];
 }
@@ -57,7 +55,6 @@ export interface UpdateCourseRequest {
   semester?: string;
   academicYear?: string;
   room?: string;
-  description?: string;
   schedule?: Omit<CourseScheduleSlot, 'graceMinutes'>[];
   status?: 'active' | 'archived' | 'draft';
   enrolledStudentIds?: string[];

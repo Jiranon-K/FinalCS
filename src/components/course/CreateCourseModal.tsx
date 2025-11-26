@@ -37,7 +37,6 @@ export default function CreateCourseModal({
   const [semester, setSemester] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [room, setRoom] = useState('');
-  const [description, setDescription] = useState('');
   const [schedule, setSchedule] = useState<Omit<CourseScheduleSlot, 'graceMinutes'>[]>([
     { dayOfWeek: 1, startTime: '09:00', endTime: '12:00', room: '' },
   ]);
@@ -95,7 +94,6 @@ export default function CreateCourseModal({
     setSemester('');
     setAcademicYear('');
     setRoom('');
-    setDescription('');
     setSchedule([{ dayOfWeek: 1, startTime: '09:00', endTime: '12:00', room: '' }]);
     setSelectedStudents([]);
     setErrors({});
@@ -185,7 +183,6 @@ export default function CreateCourseModal({
         semester,
         academicYear,
         room,
-        description,
         schedule,
         enrolledStudentIds: selectedStudents.length > 0 ? selectedStudents : undefined,
       };
@@ -368,19 +365,6 @@ export default function CreateCourseModal({
                   />
                   {errors.room && <span className="text-error text-xs mt-1">{errors.room}</span>}
                 </div>
-              </div>
-
-              <div className="form-control">
-                <label className="label py-1 mr-2">
-                  <span className="label-text text-sm">{t.course.description}</span>
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="textarea textarea-bordered textarea-sm h-20"
-                  placeholder={t.course.descriptionPlaceholder}
-                  disabled={saving}
-                />
               </div>
             </div>
           )}

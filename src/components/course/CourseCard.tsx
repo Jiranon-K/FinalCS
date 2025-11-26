@@ -47,23 +47,15 @@ const DeleteIcon = () => (
   </svg>
 );
 
-const ViewIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-  </svg>
-);
-
 interface CourseCardProps {
   course: Course;
   user: UserProfile;
-  onView: (course: Course) => void;
   onEdit: (course: Course) => void;
   onDelete: (courseId: string) => void;
 }
 
-export default function CourseCard({ course, user, onView, onEdit, onDelete }: CourseCardProps) {
-  const { t, locale } = useLocale();
+export default function CourseCard({ course, user, onEdit, onDelete }: CourseCardProps) {
+  const { t } = useLocale();
 
   const getDayName = (dayOfWeek: number) => {
     const days = [
@@ -121,14 +113,6 @@ export default function CourseCard({ course, user, onView, onEdit, onDelete }: C
           
           {/* Action Buttons - Top Right */}
           <div className="flex items-center gap-1">
-            <div className="tooltip tooltip-bottom" data-tip={t.course.viewDetails}>
-              <button
-                className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10"
-                onClick={() => onView(course)}
-              >
-                <ViewIcon />
-              </button>
-            </div>
             {user?.role === 'admin' && (
               <>
                 <div className="tooltip tooltip-bottom" data-tip={t.course.edit}>
@@ -224,7 +208,7 @@ export default function CourseCard({ course, user, onView, onEdit, onDelete }: C
               {course.schedule.map((slot, idx) => (
                 <div 
                   key={idx} 
-                  className="badge badge-outline badge-lg gap-2 py-3 px-4"
+                  className="badge badge-lg gap-2 py-3 px-4"
                 >
                   <span className="font-medium">{getDayName(slot.dayOfWeek)}</span>
                   <span className="text-base-content/60">{slot.startTime} - {slot.endTime}</span>
@@ -234,14 +218,6 @@ export default function CourseCard({ course, user, onView, onEdit, onDelete }: C
           </div>
         )}
 
-        {/* Description */}
-        {course.description && (
-          <div className="bg-base-200/30 rounded-xl p-4">
-            <p className="text-sm text-base-content/70 leading-relaxed line-clamp-2">
-              {course.description}
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

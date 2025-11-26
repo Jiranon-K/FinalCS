@@ -1,15 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(test:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run build:*)",
-      "Bash(echo:*)",
-      "Bash(\"src/hooks/useTheme.ts\")",
-      "Bash(cat:*)",
-      "WebSearch",
-      "Bash(cmd /c \"if not exist C:\\Users\\stell\\.claude\\plans mkdir C:\\Users\\stell\\.claude\\plans\")",
-      "Bash(ls -la \"D:\\Work\\face-recognition\\src\\types\"\" 2>nul || echo \"Types directory check \")"
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

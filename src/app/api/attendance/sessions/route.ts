@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongoose';
 import { AttendanceSession, Course } from '@/models';
 import User from '@/models/User';
 import { requireAuth, serverErrorResponse } from '@/lib/auth-helpers';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +28,20 @@ export async function GET(request: NextRequest) {
     const query: SessionQuery = {};
 
     if (courseId) {
-      query.courseId = courseId;
+      if (mongoose.Types.ObjectId.isValid(courseId)) {
+        query.courseId = new mongoose.Types.ObjectId(courseId);
+      } else {
+        const course = await Course.findOne({ id: courseId }).select('_id');
+        if (course) {
+          query.courseId = course._id;
+        } else {
+          return NextResponse.json({
+            success: true,
+            data: [],
+            pagination: { total: 0, limit, skip, hasMore: false },
+          });
+        }
+      }
     }
 
     if (status) {

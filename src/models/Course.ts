@@ -100,10 +100,6 @@ const courseSchema = new Schema<CourseDocument>(
       required: true,
       default: [],
     },
-    description: {
-      type: String,
-      required: false,
-    },
     status: {
       type: String,
       enum: ['active', 'archived', 'draft'],

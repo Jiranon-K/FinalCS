@@ -354,7 +354,10 @@ export default function CourseDetailPage() {
                   ) : (
                     <button
                       className="btn btn-success gap-2"
-                      onClick={() => setOpenSessionModalOpen(true)}
+                      onClick={() => {
+                        fetchSessions();
+                        setOpenSessionModalOpen(true);
+                      }}
                     >
                       <PlayIcon />
                       {t.course.openSession}
@@ -423,6 +426,7 @@ export default function CourseDetailPage() {
           course={course}
           onClose={() => setOpenSessionModalOpen(false)}
           onSuccess={handleOpenSessionSuccess}
+          existingSessions={sessions}
         />
       )}
 

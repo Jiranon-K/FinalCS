@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
       semester,
       academicYear,
       room,
-      description,
       schedule,
       enrolledStudentIds,
     } = body;
@@ -71,7 +70,6 @@ export async function POST(request: NextRequest) {
       semester,
       academicYear,
       room,
-      description: description || '',
       schedule: scheduleWithDefaults,
       enrolledStudents,
       status: 'active',

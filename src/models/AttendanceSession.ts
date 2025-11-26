@@ -134,7 +134,7 @@ const attendanceSessionSchema = new Schema<AttendanceSessionDocument>(
   }
 );
 
-attendanceSessionSchema.index({ courseId: 1, sessionDate: 1 }, { unique: true });
+attendanceSessionSchema.index({ courseId: 1, sessionDate: 1, startTime: 1 }, { unique: true });
 
 const AttendanceSession: Model<AttendanceSessionDocument> =
   mongoose.models.AttendanceSession ||

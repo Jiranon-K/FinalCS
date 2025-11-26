@@ -6,9 +6,11 @@ import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Course } from '@/types/course';
+import { AttendanceSession } from '@/types/session';
 import CourseCard from '@/components/course/CourseCard';
 import CreateCourseModal from '@/components/course/CreateCourseModal';
 import DeleteConfirmModal from '@/components/common/DeleteConfirmModal';
+import OpenSessionModal from '@/components/course/OpenSessionModal';
 import Loading from '@/components/ui/Loading';
 
 export default function SchedulePage() {
@@ -27,6 +29,11 @@ export default function SchedulePage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [sessions, setSessions] = useState<AttendanceSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [openModalCourse, setOpenModalCourse] = useState<Course | null>(null);
+  const [closingSession, setClosingSession] = useState<string | null>(null);
 
   const fetchCourses = useCallback(async () => {
     try {
@@ -55,14 +62,87 @@ export default function SchedulePage() {
     }
   }, [search, semesterFilter, statusFilter, showToast, t]);
 
+  const fetchSessions = useCallback(async () => {
+    try {
+      setSessionsLoading(true);
+      const response = await fetch('/api/attendance/sessions?limit=50');
+      const result = await response.json();
+      
+      if (result.success) {
+        setSessions(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!authLoading && user) {
       fetchCourses();
+      if (user.role === 'admin' || user.role === 'teacher') {
+        fetchSessions();
+      }
     }
-  }, [search, semesterFilter, statusFilter, authLoading, user, fetchCourses]);
+  }, [search, semesterFilter, statusFilter, authLoading, user, fetchCourses, fetchSessions]);
 
-  const handleView = (course: Course) => {
-    router.push(`/schedule/${course.id}`);
+  const handleCloseSession = async (sessionId: string) => {
+    try {
+      setClosingSession(sessionId);
+      const response = await fetch(`/api/attendance/sessions/${sessionId}/close`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast({ message: t.attendanceManagement.closeSessionSuccess, type: 'success' });
+        fetchSessions();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error closing session:', error);
+      showToast({
+        message: error instanceof Error ? error.message : t.attendanceManagement.closeSessionError,
+        type: 'error',
+      });
+    } finally {
+      setClosingSession(null);
+    }
+  };
+
+  const handleOpenSessionModal = (course: Course) => {
+    setOpenModalCourse(course);
+  };
+
+  const handleSessionOpened = () => {
+    fetchSessions();
+    setOpenModalCourse(null);
+  };
+
+  const formatSessionDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString('th-TH', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const getSessionDuration = (openedAt: Date | string) => {
+    const start = new Date(openedAt);
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
   };
 
   const handleEdit = (course: Course) => {
@@ -204,7 +284,6 @@ export default function SchedulePage() {
         )}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="relative flex-1 max-w-xs">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-base-content/40 absolute left-3 top-1/2 -translate-y-1/2">
@@ -292,11 +371,131 @@ export default function SchedulePage() {
               key={course.id}
               course={course}
               user={user!}
-              onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
           ))}
+        </div>
+      )}
+
+      {(user?.role === 'admin' || user?.role === 'teacher') && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              {t.attendanceManagement.title}
+            </h2>
+            
+            {courses.length > 0 && (
+              <div className="dropdown dropdown-end">
+                <div tabIndex={0} role="button" className="btn btn-primary btn-sm gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                  </svg>
+                  {t.course.openSession}
+                </div>
+                <ul tabIndex={0} className="dropdown-content z-10 menu p-2 shadow-lg bg-base-100 rounded-box w-64 max-h-60 overflow-y-auto mt-1">
+                  {courses.map((course) => (
+                    <li key={course.id}>
+                      <button onClick={() => handleOpenSessionModal(course)} className="flex flex-col items-start">
+                        <span className="font-medium">{course.courseCode}</span>
+                        <span className="text-xs text-base-content/60">{course.courseName}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {sessionsLoading ? (
+            <div className="flex justify-center py-8">
+              <span className="loading loading-spinner loading-md"></span>
+            </div>
+          ) : sessions.length === 0 ? (
+            <div className="bg-base-200 rounded-xl p-8 text-center">
+              <div className="w-12 h-12 rounded-full bg-base-300 flex items-center justify-center mx-auto mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-base-content/40">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </div>
+              <p className="text-base-content/60">{t.attendanceManagement.noRecords}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>{t.course.courseCode}</th>
+                    <th>{t.course.courseName}</th>
+                    <th>{t.attendanceManagement.sessionDate}</th>
+                    <th>{t.course.scheduleSlots}</th>
+                    <th>{t.course.room}</th>
+                    <th>{t.attendanceManagement.status}</th>
+                    <th>{t.attendanceManagement.present}/{t.attendanceManagement.expected}</th>
+                    <th>{t.attendanceManagement.actions}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sessions.map((session) => (
+                    <tr key={session.id}>
+                      <td className="font-medium">{session.courseCode}</td>
+                      <td>{session.courseName}</td>
+                      <td>{formatSessionDate(session.sessionDate)}</td>
+                      <td>{session.startTime} - {session.endTime}</td>
+                      <td>{session.room}</td>
+                      <td>
+                        {session.status === 'active' ? (
+                          <div className="flex items-center gap-2">
+                            <span className="badge badge-success gap-1">
+                              <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                              {t.attendanceManagement.statusActive}
+                            </span>
+                            {session.openedAt && (
+                              <span className="text-xs text-base-content/50">
+                                {getSessionDuration(session.openedAt)}
+                              </span>
+                            )}
+                          </div>
+                        ) : session.status === 'closed' ? (
+                          <span className="badge badge-neutral">{t.attendanceManagement.statusClosed}</span>
+                        ) : (
+                          <span className="badge badge-warning">{t.attendanceManagement.statusCancelled}</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="font-medium text-success">{session.stats.presentCount}</span>
+                        <span className="text-base-content/40"> / </span>
+                        <span>{session.stats.expectedCount}</span>
+                      </td>
+                      <td>
+                        {session.status === 'active' ? (
+                          <button
+                            className="btn btn-error btn-xs gap-1"
+                            onClick={() => handleCloseSession(session.id)}
+                            disabled={closingSession === session.id}
+                          >
+                            {closingSession === session.id ? (
+                              <span className="loading loading-spinner loading-xs"></span>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z" />
+                              </svg>
+                            )}
+                            {t.attendanceManagement.statusClosed}
+                          </button>
+                        ) : (
+                          <span className="text-base-content/40">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -316,6 +515,18 @@ export default function SchedulePage() {
         onCancel={cancelDelete}
         loading={deleting}
       />
+
+      {openModalCourse && (
+        <OpenSessionModal
+          isOpen={!!openModalCourse}
+          course={openModalCourse}
+          onClose={() => setOpenModalCourse(null)}
+          onSuccess={handleSessionOpened}
+          existingSessions={sessions.filter(s => 
+            s.courseCode === openModalCourse.courseCode
+          )}
+        />
+      )}
     </div>
   );
 }

@@ -37,13 +37,18 @@ export async function POST(request: NextRequest) {
     }
 
     const parsedDate = new Date(sessionDate);
+    parsedDate.setUTCHours(0, 0, 0, 0);
+
     const existingSession = await AttendanceSession.findOne({
       courseId: course._id,
       sessionDate: parsedDate,
+      startTime,
     });
 
     if (existingSession) {
-      return badRequestResponse('Session already exists for this course on this date');
+      return badRequestResponse(
+        `Session already exists for this course on ${parsedDate.toLocaleDateString()} at ${startTime}. Please choose a different date or time slot.`
+      );
     }
 
     const scheduleSlot = course.schedule.find((slot) => slot.dayOfWeek === dayOfWeek);
@@ -108,6 +113,8 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
+    console.error('Error opening session:', error);
+
     if (error.message === 'Authentication required' || error.message === 'Invalid token') {
       return NextResponse.json(
         { success: false, error: error.message },
@@ -117,7 +124,11 @@ export async function POST(request: NextRequest) {
     if (error.message === 'Insufficient permissions') {
       return forbiddenResponse();
     }
-    console.error('Error opening session:', error);
-    return serverErrorResponse('Failed to open session');
+    if (error.code === 11000) {
+      return badRequestResponse(
+        'Session already exists for this course, date, and time slot. Please choose a different date or time.'
+      );
+    }
+    return serverErrorResponse(`Failed to open session: ${error.message}`);
   }
 }

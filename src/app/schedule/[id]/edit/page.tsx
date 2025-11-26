@@ -49,6 +49,30 @@ const SearchIcon = () => (
   </svg>
 );
 
+const DocumentIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+  </svg>
+);
+
+const UsersIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+  </svg>
+);
+
+const InformationIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+  </svg>
+);
+
 export default function EditCoursePage() {
   const params = useParams();
   const router = useRouter();
@@ -63,7 +87,6 @@ export default function EditCoursePage() {
   const [semester, setSemester] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [room, setRoom] = useState('');
-  const [description, setDescription] = useState('');
   const [schedule, setSchedule] = useState<Omit<CourseScheduleSlot, 'graceMinutes'>[]>([
     { dayOfWeek: 1, startTime: '09:00', endTime: '12:00', room: '' },
   ]);
@@ -94,7 +117,6 @@ export default function EditCoursePage() {
         setSemester(course.semester);
         setAcademicYear(course.academicYear);
         setRoom(course.room);
-        setDescription(course.description || '');
         setSchedule(course.schedule);
         setStatus(course.status);
         
@@ -245,7 +267,6 @@ export default function EditCoursePage() {
         semester,
         academicYear,
         room,
-        description,
         schedule,
         status: status as 'active' | 'archived' | 'draft',
         enrolledStudentIds: isAdmin ? selectedStudents : undefined,
@@ -298,7 +319,7 @@ export default function EditCoursePage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-6 max-w-5xl">
       <div className="mb-6">
         <button
           onClick={() => router.push(`/schedule/${courseId}`)}
@@ -310,256 +331,182 @@ export default function EditCoursePage() {
         <h1 className="text-3xl font-bold">{t.users.edit} {t.course.title}</h1>
       </div>
 
-      <div className="card bg-base-100 shadow-lg">
-        <div className="card-body">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information Card */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body gap-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-2.5 rounded-lg">
+                <DocumentIcon />
+              </div>
+              <div>
+                <h2 className="card-title text-xl">ข้อมูลพื้นฐาน</h2>
+                <p className="text-sm text-base-content/60">กรอกข้อมูลรายวิชาที่ต้องการแก้ไข</p>
+              </div>
+            </div>
+
+            <div className="divider my-0"></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-medium">
                     {t.course.courseCode} <span className="text-error">*</span>
                   </span>
-                </label>
+                </div>
                 <input
                   type="text"
                   value={courseCode}
                   onChange={(e) => setCourseCode(e.target.value)}
-                  className={`input input-bordered ${errors.courseCode ? 'input-error' : ''}`}
-                  placeholder="CS101"
+                  className={`input input-bordered w-full ${errors.courseCode ? 'input-error' : ''}`}
+                  placeholder="เช่น CS101"
                   disabled={saving}
                 />
                 {errors.courseCode && (
-                  <label className="label">
+                  <div className="label">
                     <span className="label-text-alt text-error">{errors.courseCode}</span>
-                  </label>
+                  </div>
                 )}
-              </div>
+              </label>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-medium">
                     {t.course.courseName} <span className="text-error">*</span>
                   </span>
-                </label>
+                </div>
                 <input
                   type="text"
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
-                  className={`input input-bordered ${errors.courseName ? 'input-error' : ''}`}
+                  className={`input input-bordered w-full ${errors.courseName ? 'input-error' : ''}`}
                   placeholder={t.course.courseNamePlaceholder}
                   disabled={saving}
                 />
                 {errors.courseName && (
-                  <label className="label">
+                  <div className="label">
                     <span className="label-text-alt text-error">{errors.courseName}</span>
-                  </label>
+                  </div>
                 )}
-              </div>
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">
-                  {t.course.teacher} <span className="text-error">*</span>
-                </span>
               </label>
-              <select
-                value={teacherId}
-                onChange={(e) => setTeacherId(e.target.value)}
-                className={`select select-bordered ${errors.teacherId ? 'select-error' : ''}`}
-                disabled={saving || !isAdmin}
-              >
-                <option value="">{t.course.selectTeacher}</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher._id} value={teacher._id}>
-                    {teacher.fullName || teacher.username}
-                  </option>
-                ))}
-              </select>
-              {errors.teacherId && (
-                <label className="label">
-                  <span className="label-text-alt text-error">{errors.teacherId}</span>
-                </label>
-              )}
-              {!isAdmin && (
-                <label className="label">
-                  <span className="label-text-alt text-base-content/60">{t.course.teacherChangeAdminOnly || 'Only admin can change teacher'}</span>
-                </label>
-              )}
+
+              <label className="form-control w-full md:col-span-2">
+                <div className="label">
+                  <span className="label-text font-medium">
+                    {t.course.teacher} <span className="text-error">*</span>
+                  </span>
+                  {!isAdmin && (
+                    <span className="label-text-alt text-warning">
+                      {t.course.teacherChangeAdminOnly || 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเปลี่ยนได้'}
+                    </span>
+                  )}
+                </div>
+                <select
+                  value={teacherId}
+                  onChange={(e) => setTeacherId(e.target.value)}
+                  className={`select select-bordered w-full ${errors.teacherId ? 'select-error' : ''}`}
+                  disabled={saving || !isAdmin}
+                >
+                  <option value="">{t.course.selectTeacher}</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher._id} value={teacher._id}>
+                      {teacher.fullName || teacher.username}
+                    </option>
+                  ))}
+                </select>
+                {errors.teacherId && (
+                  <div className="label">
+                    <span className="label-text-alt text-error">{errors.teacherId}</span>
+                  </div>
+                )}
+              </label>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">
+            <div className="divider my-0"></div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-medium">
                     {t.course.semester} <span className="text-error">*</span>
                   </span>
-                </label>
+                </div>
                 <select
                   value={semester}
                   onChange={(e) => setSemester(e.target.value)}
-                  className={`select select-bordered ${errors.semester ? 'select-error' : ''}`}
+                  className={`select select-bordered w-full ${errors.semester ? 'select-error' : ''}`}
                   disabled={saving}
                 >
                   <option value="">{t.course.selectSemester}</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
+                  <option value="1">ภาคเรียนที่ 1</option>
+                  <option value="2">ภาคเรียนที่ 2</option>
                 </select>
                 {errors.semester && (
-                  <label className="label">
+                  <div className="label">
                     <span className="label-text-alt text-error">{errors.semester}</span>
-                  </label>
+                  </div>
                 )}
-              </div>
+              </label>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-medium">
                     {t.course.academicYear} <span className="text-error">*</span>
                   </span>
-                </label>
+                </div>
                 <input
                   type="text"
                   value={academicYear}
                   onChange={(e) => setAcademicYear(e.target.value)}
-                  className={`input input-bordered ${errors.academicYear ? 'input-error' : ''}`}
-                  placeholder="2567"
+                  className={`input input-bordered w-full ${errors.academicYear ? 'input-error' : ''}`}
+                  placeholder="เช่น 2567"
                   disabled={saving}
                 />
                 {errors.academicYear && (
-                  <label className="label">
+                  <div className="label">
                     <span className="label-text-alt text-error">{errors.academicYear}</span>
-                  </label>
+                  </div>
                 )}
-              </div>
+              </label>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">
+              <label className="form-control w-full">
+                <div className="label">
+                  <span className="label-text font-medium">
                     {t.course.room} <span className="text-error">*</span>
                   </span>
-                </label>
+                </div>
                 <input
                   type="text"
                   value={room}
                   onChange={(e) => setRoom(e.target.value)}
-                  className={`input input-bordered ${errors.room ? 'input-error' : ''}`}
-                  placeholder="B101"
+                  className={`input input-bordered w-full ${errors.room ? 'input-error' : ''}`}
+                  placeholder="เช่น B101"
                   disabled={saving}
                 />
                 {errors.room && (
-                  <label className="label">
+                  <div className="label">
                     <span className="label-text-alt text-error">{errors.room}</span>
-                  </label>
-                )}
-              </div>
-            </div>
-
-            {isAdmin && (
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">{t.course.status || 'Status'}</span>
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="select select-bordered"
-                  disabled={saving}
-                >
-                  <option value="active">{t.course.statusActive}</option>
-                  <option value="archived">{t.course.statusArchived}</option>
-                  <option value="draft">{t.course.statusDraft}</option>
-                </select>
-              </div>
-            )}
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">{t.course.description}</span>
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="textarea textarea-bordered h-20"
-                placeholder={t.course.descriptionPlaceholder}
-                disabled={saving}
-              />
-            </div>
-
-            <div className="divider">{t.course.schedule}</div>
-
-            <div className="space-y-3">
-              {schedule.map((slot, idx) => (
-                <div key={idx} className="card bg-base-200 p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">{t.course.dayOfWeek}</span>
-                      </label>
-                      <select
-                        value={slot.dayOfWeek}
-                        onChange={(e) =>
-                          handleScheduleChange(idx, 'dayOfWeek', parseInt(e.target.value))
-                        }
-                        className="select select-bordered select-sm"
-                        disabled={saving}
-                      >
-                        {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-                          <option key={day} value={day}>
-                            {getDayName(day)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">{t.course.startTime}</span>
-                      </label>
-                      <input
-                        type="time"
-                        value={slot.startTime}
-                        onChange={(e) => handleScheduleChange(idx, 'startTime', e.target.value)}
-                        className="input input-bordered input-sm"
-                        disabled={saving}
-                      />
-                    </div>
-
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">{t.course.endTime}</span>
-                      </label>
-                      <input
-                        type="time"
-                        value={slot.endTime}
-                        onChange={(e) => handleScheduleChange(idx, 'endTime', e.target.value)}
-                        className="input input-bordered input-sm"
-                        disabled={saving}
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveScheduleSlot(idx)}
-                        className="btn btn-error btn-sm btn-square"
-                        disabled={saving || schedule.length === 1}
-                      >
-                        <TrashIcon />
-                      </button>
-                    </div>
                   </div>
-                  {errors[`schedule_${idx}`] && (
-                    <p className="text-error text-sm mt-2">{errors[`schedule_${idx}`]}</p>
-                  )}
-                </div>
-              ))}
+                )}
+              </label>
+            </div>
+          </div>
+        </div>
 
+        {/* Schedule Card */}
+        <div className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow duration-200">
+          <div className="card-body p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="text-secondary">
+                  <ClockIcon />
+                </div>
+                <h2 className="card-title text-lg">{t.course.schedule}</h2>
+              </div>
               <button
                 type="button"
                 onClick={handleAddScheduleSlot}
-                className="btn btn-outline btn-sm gap-2"
+                className="btn btn-primary btn-sm gap-2"
                 disabled={saving}
               >
                 <PlusIcon />
@@ -567,87 +514,251 @@ export default function EditCoursePage() {
               </button>
             </div>
 
-            {isAdmin && (
-              <>
-                <div className="divider">{t.course.enrolledStudents}</div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">
-                      {t.course.selectStudents || 'Select Students'} ({selectedStudents.length} {t.course.selected || 'selected'})
-                    </span>
-                  </label>
-                  <div className="relative mb-2">
-                    <input
-                      type="text"
-                      value={studentSearch}
-                      onChange={(e) => setStudentSearch(e.target.value)}
-                      placeholder={t.course.searchStudents || 'Search students...'}
-                      className="input input-bordered w-full pl-10"
-                      disabled={saving}
-                    />
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
-                      <SearchIcon />
+            <div className="space-y-3">
+              {schedule.map((slot, idx) => (
+                <div key={idx} className="card bg-base-200/50 shadow-sm hover:shadow-md transition-all duration-200">
+                  <div className="card-body p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="badge badge-primary badge-sm">#{idx + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveScheduleSlot(idx)}
+                        className="btn btn-ghost btn-xs text-error hover:bg-error/10"
+                        disabled={saving || schedule.length === 1}
+                      >
+                        <TrashIcon />
+                      </button>
                     </div>
-                  </div>
 
-                  {loadingStudents ? (
-                    <div className="flex justify-center py-4">
-                      <Loading variant="spinner" size="sm" />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-base-content/60">
-                          {filteredStudents.length} {t.course.studentsFound || 'students found'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleSelectAll}
-                          className="btn btn-ghost btn-xs"
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="form-control">
+                        <label className="label py-0">
+                          <span className="label-text text-xs">{t.course.dayOfWeek}</span>
+                        </label>
+                        <select
+                          value={slot.dayOfWeek}
+                          onChange={(e) =>
+                            handleScheduleChange(idx, 'dayOfWeek', parseInt(e.target.value))
+                          }
+                          className="select select-bordered select-sm"
                           disabled={saving}
                         >
-                          {filteredStudents.every((s) => selectedStudents.includes(s._id))
-                            ? (t.course.deselectAll || 'Deselect All')
-                            : (t.course.selectAll || 'Select All')}
-                        </button>
+                          {[0, 1, 2, 3, 4, 5, 6].map((day) => (
+                            <option key={day} value={day}>
+                              {getDayName(day)}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
-                      <div className="border border-base-300 rounded-lg max-h-60 overflow-y-auto">
-                        {filteredStudents.length === 0 ? (
-                          <div className="p-4 text-center text-base-content/50">
-                            {t.course.noStudentsFound || 'No students found'}
-                          </div>
-                        ) : (
-                          filteredStudents.map((student) => (
-                            <label
-                              key={student._id}
-                              className="flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-b-0"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedStudents.includes(student._id)}
-                                onChange={() => handleStudentToggle(student._id)}
-                                className="checkbox checkbox-primary checkbox-sm"
-                                disabled={saving}
-                              />
-                              <div className="flex-1">
-                                <p className="font-medium">{student.name}</p>
-                                {student.studentId && (
-                                  <p className="text-sm text-base-content/60">{student.studentId}</p>
-                                )}
-                              </div>
-                            </label>
-                          ))
-                        )}
+                      <div className="form-control">
+                        <label className="label py-0">
+                          <span className="label-text text-xs">{t.course.startTime}</span>
+                        </label>
+                        <input
+                          type="time"
+                          value={slot.startTime}
+                          onChange={(e) => handleScheduleChange(idx, 'startTime', e.target.value)}
+                          className="input input-bordered input-sm"
+                          disabled={saving}
+                        />
                       </div>
-                    </>
-                  )}
+
+                      <div className="form-control">
+                        <label className="label py-0">
+                          <span className="label-text text-xs">{t.course.endTime}</span>
+                        </label>
+                        <input
+                          type="time"
+                          value={slot.endTime}
+                          onChange={(e) => handleScheduleChange(idx, 'endTime', e.target.value)}
+                          className="input input-bordered input-sm"
+                          disabled={saving}
+                        />
+                      </div>
+                    </div>
+
+                    {errors[`schedule_${idx}`] && (
+                      <p className="text-error text-xs mt-2">{errors[`schedule_${idx}`]}</p>
+                    )}
+                  </div>
                 </div>
-              </>
-            )}
+              ))}
+            </div>
+          </div>
+        </div>
 
-            <div className="modal-action pt-4 mt-6">
+        {/* Enrolled Students Card - Admin Only */}
+        {isAdmin && (
+          <div className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow duration-200">
+            <div className="card-body p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="text-info">
+                  <UsersIcon />
+                </div>
+                <h2 className="card-title text-lg">
+                  {t.course.enrolledStudents}
+                  <span className="badge badge-primary badge-sm ml-2">
+                    {selectedStudents.length}
+                  </span>
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    placeholder={t.course.searchStudents || 'Search students...'}
+                    className="input input-bordered input-sm w-full pl-10"
+                    disabled={saving}
+                  />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">
+                    <SearchIcon />
+                  </div>
+                </div>
+
+                {loadingStudents ? (
+                  <div className="flex justify-center py-6">
+                    <Loading variant="spinner" size="sm" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-base-content/60">
+                        {filteredStudents.length} {t.course.studentsFound || 'students found'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleSelectAll}
+                        className="btn btn-ghost btn-xs"
+                        disabled={saving}
+                      >
+                        {filteredStudents.every((s) => selectedStudents.includes(s._id))
+                          ? (t.course.deselectAll || 'Deselect All')
+                          : (t.course.selectAll || 'Select All')}
+                      </button>
+                    </div>
+
+                    <div className="border border-base-300 rounded-lg max-h-64 overflow-y-auto">
+                      {filteredStudents.length === 0 ? (
+                        <div className="p-6 text-center text-base-content/50 text-sm">
+                          {t.course.noStudentsFound || 'No students found'}
+                        </div>
+                      ) : (
+                        filteredStudents.map((student) => (
+                          <label
+                            key={student._id}
+                            className={`flex items-center gap-3 p-3 hover:bg-base-200 cursor-pointer border-b border-base-200 last:border-b-0 transition-colors ${
+                              selectedStudents.includes(student._id) ? 'bg-primary/5' : ''
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedStudents.includes(student._id)}
+                              onChange={() => handleStudentToggle(student._id)}
+                              className="checkbox checkbox-primary checkbox-sm"
+                              disabled={saving}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{student.name}</p>
+                              {student.studentId && (
+                                <p className="text-xs text-base-content/60">{student.studentId}</p>
+                              )}
+                            </div>
+                            {selectedStudents.includes(student._id) && (
+                              <span className="badge badge-primary badge-xs">✓</span>
+                            )}
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Additional Details Card */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body gap-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-accent/10 p-2.5 rounded-lg">
+                <InformationIcon />
+              </div>
+              <div>
+                <h2 className="card-title text-xl">รายละเอียดเพิ่มเติม</h2>
+                <p className="text-sm text-base-content/60">ข้อมูลเสริมและสถานะของรายวิชา</p>
+              </div>
+            </div>
+
+            <div className="divider my-0"></div>
+
+            <div className="grid grid-cols-1 gap-5">
+              {isAdmin && (
+                <label className="form-control w-full max-w-md">
+                  <div className="label">
+                    <span className="label-text font-medium">{t.course.status || 'สถานะรายวิชา'}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <label className="label cursor-pointer gap-2 p-3 rounded-lg border border-base-300 hover:bg-base-200 transition-colors">
+                      <input
+                        type="radio"
+                        name="status"
+                        className="radio radio-success radio-sm"
+                        checked={status === 'active'}
+                        onChange={() => setStatus('active')}
+                        disabled={saving}
+                      />
+                      <span className="label-text flex items-center gap-2">
+                        <span className="badge badge-success badge-xs"></span>
+                        {t.course.statusActive}
+                      </span>
+                    </label>
+                    <label className="label cursor-pointer gap-2 p-3 rounded-lg border border-base-300 hover:bg-base-200 transition-colors">
+                      <input
+                        type="radio"
+                        name="status"
+                        className="radio radio-warning radio-sm"
+                        checked={status === 'draft'}
+                        onChange={() => setStatus('draft')}
+                        disabled={saving}
+                      />
+                      <span className="label-text flex items-center gap-2">
+                        <span className="badge badge-warning badge-xs"></span>
+                        {t.course.statusDraft}
+                      </span>
+                    </label>
+                    <label className="label cursor-pointer gap-2 p-3 rounded-lg border border-base-300 hover:bg-base-200 transition-colors">
+                      <input
+                        type="radio"
+                        name="status"
+                        className="radio radio-ghost radio-sm"
+                        checked={status === 'archived'}
+                        onChange={() => setStatus('archived')}
+                        disabled={saving}
+                      />
+                      <span className="label-text flex items-center gap-2">
+                        <span className="badge badge-ghost badge-xs"></span>
+                        {t.course.statusArchived}
+                      </span>
+                    </label>
+                  </div>
+                </label>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="card bg-base-200/50 shadow">
+          <div className="card-body p-4 flex-row justify-between items-center">
+            <p className="text-sm text-base-content/60 hidden sm:block">
+              กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนบันทึก
+            </p>
+            <div className="flex gap-3 ml-auto">
               <button
                 type="button"
                 onClick={() => router.push(`/schedule/${courseId}`)}
@@ -656,20 +767,25 @@ export default function EditCoursePage() {
               >
                 {t.common.cancel}
               </button>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
+              <button type="submit" className="btn btn-primary gap-2" disabled={saving}>
                 {saving ? (
                   <>
                     <span className="loading loading-spinner loading-sm"></span>
                     {t.common.saving}
                   </>
                 ) : (
-                  t.users.save
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    {t.users.save}
+                  </>
                 )}
               </button>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

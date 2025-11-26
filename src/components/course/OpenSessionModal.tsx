@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
 import { Course, CourseScheduleSlot } from '@/types/course';
-import { OpenSessionRequest } from '@/types/session';
+import { OpenSessionRequest, AttendanceSession } from '@/types/session';
 
 interface OpenSessionModalProps {
   isOpen: boolean;
   course: Course;
   onClose: () => void;
   onSuccess: () => void;
+  existingSessions?: AttendanceSession[];
 }
 
 const CloseIcon = () => (
@@ -25,11 +26,30 @@ const CalendarIcon = () => (
   </svg>
 );
 
+const ClockIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+  </svg>
+);
+
+const CheckCircleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+  </svg>
+);
+
+const UsersIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+  </svg>
+);
+
 export default function OpenSessionModal({
   isOpen,
   course,
   onClose,
   onSuccess,
+  existingSessions = [],
 }: OpenSessionModalProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
@@ -56,6 +76,20 @@ export default function OpenSessionModal({
     return days[dayOfWeek] || '';
   };
 
+  const sessionsOnSelectedDate = useMemo(() => {
+    return existingSessions.filter(s => {
+      const sessionDateStr = new Date(s.sessionDate).toDateString();
+      const selectedDateStr = new Date(sessionDate).toDateString();
+      return sessionDateStr === selectedDateStr;
+    });
+  }, [existingSessions, sessionDate]);
+
+  const isSlotUsed = (slot: CourseScheduleSlot) => {
+    return sessionsOnSelectedDate.some(s => s.startTime === slot.startTime);
+  };
+
+  const isSelectedSlotAvailable = selectedSlot && !isSlotUsed(selectedSlot);
+
   const resetForm = () => {
     setSessionDate(new Date().toISOString().split('T')[0]);
     setSelectedSlot(course.schedule[0] || null);
@@ -75,6 +109,14 @@ export default function OpenSessionModal({
       return;
     }
 
+    if (isSlotUsed(selectedSlot)) {
+      showToast({ 
+        message: t.attendanceManagement.sessionAlreadyExists || 'Session already exists for this time slot', 
+        type: 'error' 
+      });
+      return;
+    }
+
     try {
       setOpening(true);
 
@@ -91,6 +133,7 @@ export default function OpenSessionModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData),
+        credentials: 'include',
       });
 
       const result = await response.json();
@@ -118,9 +161,9 @@ export default function OpenSessionModal({
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-2xl flex items-center gap-2">
+      <div className="modal-box max-w-md">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-xl flex items-center gap-2">
             <CalendarIcon />
             {t.course.openSession}
           </h3>
@@ -133,104 +176,129 @@ export default function OpenSessionModal({
           </button>
         </div>
 
-        <div className="alert alert-info mb-4">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="stroke-current shrink-0 w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-          <div className="text-sm">
-            <p className="font-bold">{course.courseCode} - {course.courseName}</p>
-            <p>{course.enrolledStudents.length} {t.course.students}</p>
+        <div className="bg-base-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="bg-primary/10 rounded-lg p-2">
+              <CalendarIcon />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-base truncate">{course.courseName}</p>
+              <p className="text-sm text-base-content/70">{course.courseCode}</p>
+              <div className="flex items-center gap-2 mt-2 text-sm text-base-content/60">
+                <UsersIcon />
+                <span>{course.enrolledStudents.length} {t.course.students}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">
-                {t.attendanceManagement.sessionDate} <span className="text-error">*</span>
+            <label className="label pb-1">
+              <span className="label-text font-medium">
+                {t.attendanceManagement.sessionDate}
               </span>
             </label>
             <input
               type="date"
               value={sessionDate}
               onChange={(e) => setSessionDate(e.target.value)}
-              className="input input-bordered"
+              className="input input-bordered w-full"
               required
               disabled={opening}
             />
           </div>
 
           <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">
-                {t.course.scheduleSlots} <span className="text-error">*</span>
+            <label className="label pb-1">
+              <span className="label-text font-medium">
+                {t.course.scheduleSlots}
               </span>
             </label>
             <div className="space-y-2">
-              {course.schedule.map((slot, idx) => (
-                <label
-                  key={idx}
-                  className="flex items-center gap-3 p-3 border border-base-300 rounded-lg hover:bg-base-200 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="schedule-slot"
-                    className="radio radio-primary"
-                    checked={selectedSlot === slot}
-                    onChange={() => setSelectedSlot(slot)}
-                    disabled={opening}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{getDayName(slot.dayOfWeek)}</span>
-                      <span className="badge badge-sm">{slot.startTime} - {slot.endTime}</span>
+              {course.schedule.map((slot, idx) => {
+                const slotUsed = isSlotUsed(slot);
+                const isSelected = selectedSlot === slot;
+                
+                return (
+                  <label
+                    key={idx}
+                    className={`flex items-center gap-3 p-3 border-2 rounded-xl transition-all cursor-pointer
+                      ${slotUsed 
+                        ? 'border-base-300 bg-base-200/50 opacity-60 cursor-not-allowed' 
+                        : isSelected 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-base-300 hover:border-primary/50 hover:bg-base-100'
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="schedule-slot"
+                      className="radio radio-primary radio-sm"
+                      checked={isSelected}
+                      onChange={() => !slotUsed && setSelectedSlot(slot)}
+                      disabled={opening || slotUsed}
+                    />
+                    <div className="flex-1 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{getDayName(slot.dayOfWeek)}</span>
+                        <div className="flex items-center gap-1 text-sm text-base-content/70">
+                          <ClockIcon />
+                          <span>{slot.startTime} - {slot.endTime}</span>
+                        </div>
+                      </div>
+                      {slotUsed && (
+                        <span className="badge badge-success badge-sm gap-1">
+                          <CheckCircleIcon />
+                          {t.attendanceManagement.statusActive || 'Active'}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-base-content/60">
-                      {t.course.graceMinutes}: {slot.graceMinutes} {t.attendanceManagement.minutes}
-                    </p>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                );
+              })}
             </div>
+            
+            {course.schedule.every(slot => isSlotUsed(slot)) && (
+              <div className="alert alert-warning mt-3 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-sm">{t.attendanceManagement.allSlotsUsed || 'All time slots are already in use for this date'}</span>
+              </div>
+            )}
           </div>
 
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">{t.course.room}</span>
-              <span className="label-text-alt text-base-content/60">
-                {t.attendanceManagement.defaultRoom}: {course.room}
-              </span>
-            </label>
-            <input
-              type="text"
-              value={customRoom}
-              onChange={(e) => setCustomRoom(e.target.value)}
-              className="input input-bordered"
-              placeholder={course.room}
-              disabled={opening}
-            />
-          </div>
+          <details className="collapse collapse-arrow border border-base-300 rounded-xl">
+            <summary className="collapse-title py-3 min-h-0 text-sm font-medium">
+              {t.course.room} ({t.attendanceManagement.defaultRoom}: {course.room})
+            </summary>
+            <div className="collapse-content pt-0">
+              <input
+                type="text"
+                value={customRoom}
+                onChange={(e) => setCustomRoom(e.target.value)}
+                className="input input-bordered input-sm w-full"
+                placeholder={course.room}
+                disabled={opening}
+              />
+            </div>
+          </details>
 
-          <div className="modal-action">
+          <div className="flex gap-2 pt-2">
             <button
               type="button"
               onClick={handleClose}
-              className="btn btn-ghost"
+              className="btn btn-ghost flex-1"
               disabled={opening}
             >
               {t.common.cancel}
             </button>
-            <button type="submit" className="btn btn-primary" disabled={opening}>
+            <button 
+              type="submit" 
+              className="btn btn-primary flex-1" 
+              disabled={opening || !isSelectedSlotAvailable}
+            >
               {opening ? (
                 <>
                   <span className="loading loading-spinner loading-sm"></span>
@@ -243,7 +311,7 @@ export default function OpenSessionModal({
           </div>
         </form>
       </div>
-      <div className="modal-backdrop" onClick={handleClose}></div>
+      <div className="modal-backdrop bg-black/50" onClick={handleClose}></div>
     </div>
   );
 }
