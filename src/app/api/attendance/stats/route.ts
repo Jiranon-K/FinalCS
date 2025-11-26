@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { AttendanceRecord, AttendanceSession, Course } from '@/models';
+import User from '@/models/User';
 import { requireAuth, serverErrorResponse } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
@@ -30,12 +31,15 @@ export async function GET(request: NextRequest) {
     }
 
     const sessionQuery: any = {
-      startTime: { $gte: startDate, $lte: endDate }
+      sessionDate: { $gte: startDate, $lte: endDate }
     };
 
     if (user.role === 'teacher') {
-      const teacherCourses = await Course.find({ teacherId: user._id }).select('_id');
-      sessionQuery.courseId = { $in: teacherCourses.map(c => c._id) };
+      const userDoc = await User.findOne({ username: user.username });
+      if (userDoc) {
+        const teacherCourses = await Course.find({ teacherId: userDoc._id }).select('_id');
+        sessionQuery.courseId = { $in: teacherCourses.map(c => c._id) };
+      }
     }
 
     const sessions = await AttendanceSession.find(sessionQuery);
@@ -62,12 +66,12 @@ export async function GET(request: NextRequest) {
     for (const session of sessions) {
       const courseId = session.courseId.toString();
       if (!courseStatsMap.has(courseId)) {
-        const course = await Course.findById(courseId).select('name code');
+        const course = await Course.findById(courseId).select('courseName courseCode');
         if (course) {
           courseStatsMap.set(courseId, {
             courseId,
-            courseName: course.name,
-            courseCode: course.code,
+            courseName: course.courseName,
+            courseCode: course.courseCode,
             totalSessions: 0,
             presentCount: 0,
             totalExpected: 0

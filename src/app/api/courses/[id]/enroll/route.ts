@@ -3,16 +3,17 @@ import { connectDB } from '@/lib/mongoose';
 import { Course, Student } from '@/models';
 import { EnrollStudentsRequest } from '@/types/course';
 import { requireRole, notFoundResponse, badRequestResponse, serverErrorResponse, forbiddenResponse } from '@/lib/auth-helpers';
+import mongoose from 'mongoose';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
     await requireRole(request, ['admin']);
-    const courseId = params.id;
+    const { id: courseId } = await params;
 
     const body: EnrollStudentsRequest = await request.json();
     const { studentIds } = body;
@@ -21,7 +22,13 @@ export async function POST(
       return badRequestResponse('Student IDs are required');
     }
 
-    const course = await Course.findById(courseId);
+    let course;
+    if (mongoose.Types.ObjectId.isValid(courseId)) {
+      course = await Course.findById(courseId);
+    }
+    if (!course) {
+      course = await Course.findOne({ id: courseId });
+    }
 
     if (!course) {
       return notFoundResponse('Course not found');

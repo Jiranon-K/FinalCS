@@ -4,6 +4,7 @@ import { AttendanceRecord, Course, AttendanceSession, Student } from '@/models';
 import User from '@/models/User';
 import { requireAuth, serverErrorResponse } from '@/lib/auth-helpers';
 import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,15 +33,42 @@ export async function GET(request: NextRequest) {
     const query: RecordQuery = {};
 
     if (sessionId) {
-      query.sessionId = sessionId;
+      if (mongoose.Types.ObjectId.isValid(sessionId)) {
+        query.sessionId = new mongoose.Types.ObjectId(sessionId);
+      } else {
+        const session = await AttendanceSession.findOne({ id: sessionId }).select('_id');
+        if (session) {
+          query.sessionId = session._id;
+        } else {
+          return NextResponse.json({
+            success: true,
+            data: [],
+            pagination: { total: 0, limit, skip, hasMore: false },
+          });
+        }
+      }
     }
 
     if (courseId) {
-      query.courseId = courseId;
+      if (mongoose.Types.ObjectId.isValid(courseId)) {
+        query.courseId = new mongoose.Types.ObjectId(courseId);
+      } else {
+        const course = await Course.findOne({ id: courseId }).select('_id');
+        if (course) {
+          query.courseId = course._id;
+        }
+      }
     }
 
     if (studentId) {
-      query.studentId = studentId;
+      if (mongoose.Types.ObjectId.isValid(studentId)) {
+        query.studentId = new mongoose.Types.ObjectId(studentId);
+      } else {
+        const student = await Student.findOne({ id: studentId }).select('_id');
+        if (student) {
+          query.studentId = student._id;
+        }
+      }
     }
 
     if (status) {
@@ -140,16 +168,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await AttendanceSession.findById(sessionId);
-    if (!session) {
+    let sessionDoc;
+    if (mongoose.Types.ObjectId.isValid(sessionId)) {
+      sessionDoc = await AttendanceSession.findById(sessionId);
+    } else {
+      sessionDoc = await AttendanceSession.findOne({ id: sessionId });
+    }
+    if (!sessionDoc) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
 
-    const student = await Student.findById(studentId);
-    if (!student) {
+    let studentDoc;
+    if (mongoose.Types.ObjectId.isValid(studentId)) {
+      studentDoc = await Student.findById(studentId);
+    } else {
+      studentDoc = await Student.findOne({ id: studentId });
+    }
+    if (!studentDoc) {
       return NextResponse.json(
         { success: false, error: 'Student not found' },
         { status: 404 }
@@ -157,8 +195,8 @@ export async function POST(request: NextRequest) {
     }
 
     let record = await AttendanceRecord.findOne({
-      sessionId,
-      studentId
+      sessionId: sessionDoc._id,
+      studentId: studentDoc._id
     });
 
     if (record) {
@@ -172,11 +210,11 @@ export async function POST(request: NextRequest) {
     } else {
       record = await AttendanceRecord.create({
         id: uuidv4(),
-        sessionId,
-        studentId,
-        courseId: session.courseId,
-        studentName: student.name,
-        studentNumber: student.studentId,
+        sessionId: sessionDoc._id,
+        studentId: studentDoc._id,
+        courseId: sessionDoc.courseId,
+        studentName: studentDoc.name,
+        studentNumber: studentDoc.studentId,
         status,
         checkInTime: new Date(),
         checkInMethod: method,

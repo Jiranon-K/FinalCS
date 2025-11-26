@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         <li className={`text-xl font-bold p-4 ${!isOpen ? 'hidden' : ''}`}>
           <Link href="/" className="flex items-center gap-3">
             <Image
-              src="/menu-icon/face-recognition.png"
+              src="/menu-icon/logo.png"
               alt="Face Recognition"
               width={40}
               height={40}

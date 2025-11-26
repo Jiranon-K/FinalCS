@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { Course, Student } from '@/models';
 import { requireAuth, canAccessCourse, notFoundResponse, forbiddenResponse, serverErrorResponse } from '@/lib/auth-helpers';
+import mongoose from 'mongoose';
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +14,13 @@ export async function GET(
     const user = await requireAuth(request);
     const { id: courseId } = await params;
 
-    const course = await Course.findOne({ id: courseId });
+    let course;
+    if (mongoose.Types.ObjectId.isValid(courseId)) {
+      course = await Course.findById(courseId);
+    }
+    if (!course) {
+      course = await Course.findOne({ id: courseId });
+    }
 
     if (!course) {
       return notFoundResponse('Course not found');
