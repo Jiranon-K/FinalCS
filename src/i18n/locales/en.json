@@ -465,7 +465,11 @@
     "noHistory": "No history found",
     "viewHistory": "View History",
     "reviewedAt": "Reviewed At",
-    "all": "All"
+    "all": "All",
+    "approveSuccess": "Approved successfully",
+    "rejectSuccess": "Rejected successfully",
+    "approveError": "Failed to approve",
+    "rejectError": "Failed to reject"
   },
   "schedule": {
     "title": "Teaching Schedule",
@@ -643,6 +647,7 @@
     "minutes": "minutes",
     "defaultRoom": "Default Room",
     "status": "Status",
+    "sessionDate": "Session Date",
     "sessionsOnDate": "session(s) already exist on this date",
     "sessionAlreadyExists": "Session already exists for this time slot",
     "allSlotsUsed": "All time slots are already in use for this date",

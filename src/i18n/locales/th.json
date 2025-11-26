@@ -464,7 +464,11 @@
     "noHistory": "ไม่พบประวัติ",
     "viewHistory": "ดูประวัติ",
     "reviewedAt": "ตรวจสอบเมื่อ",
-    "all": "ทั้งหมด"
+    "all": "ทั้งหมด",
+    "approveSuccess": "อนุมัติสำเร็จ",
+    "rejectSuccess": "ปฏิเสธสำเร็จ",
+    "approveError": "อนุมัติไม่สำเร็จ",
+    "rejectError": "ปฏิเสธไม่สำเร็จ"
   },
   "schedule": {
     "title": "ตารางสอน",
@@ -642,6 +646,7 @@
     "minutes": "นาที",
     "defaultRoom": "ห้องเริ่มต้น",
     "status": "สถานะ",
+    "sessionDate": "วันที่เรียน",
     "sessionsOnDate": "เซสชันที่มีอยู่ในวันนี้",
     "sessionAlreadyExists": "มีเซสชันอยู่แล้วในช่วงเวลานี้",
     "allSlotsUsed": "ช่วงเวลาทั้งหมดถูกใช้งานแล้วในวันที่เลือก",
