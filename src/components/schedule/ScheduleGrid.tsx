@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Course, CourseScheduleSlot } from '@/types/course';
 import { useLocale } from '@/hooks/useLocale';
+import { useAuth } from '@/contexts/AuthContext';
 import CourseDetailModal from './CourseDetailModal';
 
 interface ScheduleGridProps {
@@ -63,8 +65,14 @@ function formatTimeSlot(minutes: number): string {
 
 export default function ScheduleGrid({ courses }: ScheduleGridProps) {
   const { t } = useLocale();
+  const { user } = useAuth();
+  const router = useRouter();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<CourseScheduleSlot | null>(null);
+
+  const handleEditSchedule = (course: Course) => {
+    router.push(`/schedule/${course.id}/edit`);
+  };
 
   const dayNames = useMemo(() => [
     { short: t.schedule.monday?.slice(0, 3) || 'Mon', full: t.schedule.monday },
@@ -253,6 +261,8 @@ export default function ScheduleGrid({ courses }: ScheduleGridProps) {
           setSelectedCourse(null);
           setSelectedSlot(null);
         }}
+        user={user}
+        onEditSchedule={handleEditSchedule}
       />
     </>
   );

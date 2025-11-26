@@ -43,7 +43,7 @@ export default function ProfileSidebar({
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl font-bold text-primary">
+                  <div className="w-full h-full bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl font-bold text-primary">
                     {user.username.substring(0, 2).toUpperCase()}
                   </div>
                 )}

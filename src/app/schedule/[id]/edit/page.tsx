@@ -124,7 +124,7 @@ export default function EditCoursePage() {
           setSelectedStudents(course.enrolledStudents.map((s: EnrolledStudent) => s.studentId));
         }
 
-        if (user?.role === 'teacher' && course.teacherId === user.profileId) {
+        if (user?.role === 'teacher' && String(course.teacherId) === String(user.id)) {
           setIsTeacherOwner(true);
         }
       } else {
@@ -332,7 +332,30 @@ export default function EditCoursePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information Card */}
+        {!isAdmin && (
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <div className="flex items-center gap-4">
+                <div className="badge badge-primary badge-lg font-mono font-bold px-4 py-3">
+                  {courseCode}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{courseName}</h2>
+                  <p className="text-sm text-base-content/60">ภาคเรียน {semester} / ปีการศึกษา {academicYear} • ห้อง {room}</p>
+                </div>
+              </div>
+              <div className="divider my-2"></div>
+              <div className="flex items-center gap-2 text-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+                <span className="text-sm">คุณสามารถแก้ไขได้เฉพาะ <strong>ตารางเรียน</strong> และ <strong>รายชื่อนักศึกษา</strong> เท่านั้น</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isAdmin && (
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body gap-6">
             <div className="flex items-center gap-3">
@@ -492,8 +515,8 @@ export default function EditCoursePage() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Schedule Card */}
         <div className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow duration-200">
           <div className="card-body p-5">
             <div className="flex items-center justify-between mb-4">
@@ -588,21 +611,19 @@ export default function EditCoursePage() {
           </div>
         </div>
 
-        {/* Enrolled Students Card - Admin Only */}
-        {isAdmin && (
-          <div className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow duration-200">
-            <div className="card-body p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="text-info">
-                  <UsersIcon />
-                </div>
-                <h2 className="card-title text-lg">
-                  {t.course.enrolledStudents}
-                  <span className="badge badge-primary badge-sm ml-2">
-                    {selectedStudents.length}
-                  </span>
-                </h2>
+        <div className="card bg-base-100 shadow-md border border-base-200 hover:shadow-lg transition-shadow duration-200">
+          <div className="card-body p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-info">
+                <UsersIcon />
               </div>
+              <h2 className="card-title text-lg">
+                {t.course.enrolledStudents}
+                <span className="badge badge-primary badge-sm ml-2">
+                  {selectedStudents.length}
+                </span>
+              </h2>
+            </div>
 
               <div className="space-y-3">
                 <div className="relative">
@@ -677,11 +698,10 @@ export default function EditCoursePage() {
                   </>
                 )}
               </div>
-            </div>
           </div>
-        )}
+        </div>
 
-        {/* Additional Details Card */}
+        {isAdmin && (
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body gap-6">
             <div className="flex items-center gap-3">
@@ -751,8 +771,8 @@ export default function EditCoursePage() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Action Buttons */}
         <div className="card bg-base-200/50 shadow">
           <div className="card-body p-4 flex-row justify-between items-center">
             <p className="text-sm text-base-content/60 hidden sm:block">

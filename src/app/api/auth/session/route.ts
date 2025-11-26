@@ -45,6 +45,7 @@ export async function GET() {
 
     return NextResponse.json({
       user: {
+        id: user._id,
         username: payload.username,
         role: payload.role,
         studentId: user.studentId,

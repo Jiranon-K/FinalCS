@@ -244,7 +244,7 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
                           </button>
                           <ul
                             tabIndex={0}
-                            className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300"
+                            className="dropdown-content z-1 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300"
                           >
                             <li>
                               <button

@@ -6,9 +6,11 @@ import { useCameraContext } from '@/contexts/CameraContext';
 import { useFaceAPI } from '@/hooks/useFaceAPI';
 import { useToast } from '@/hooks/useToast';
 import Loading from '@/components/ui/Loading';
+import RecentAttendance from '@/components/camera/RecentAttendance';
 import type { FaceDetectionResult } from '@/types/face';
 import type { PersonForRecognition } from '@/types/person';
 import type { AttendanceSession } from '@/types/session';
+import type { AttendanceRecord } from '@/types/attendance';
 
 export default function CameraView() {
   const { t } = useLocale();
@@ -16,14 +18,18 @@ export default function CameraView() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const detectionIntervalRef = useRef<number | null>(null);
+  const pendingRecordsRef = useRef<Set<string>>(new Set());
+  const lastRecordTimeRef = useRef<Map<string, number>>(new Map());
 
   const [detectedFaces, setDetectedFaces] = useState<FaceDetectionResult[]>([]);
   const faceDetectionEnabled = true;
   const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number; id?: string }>>(new Map());
   const [knownPersons, setKnownPersons] = useState<PersonForRecognition[]>([]);
-  
+
   const [activeSessions, setActiveSessions] = useState<AttendanceSession[]>([]);
   const [lastAttendanceRecord, setLastAttendanceRecord] = useState<Map<string, Date>>(new Map());
+  const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
+  const [loadingRecords, setLoadingRecords] = useState(false);
 
   const {
     stream,
@@ -45,6 +51,21 @@ export default function CameraView() {
     }
   }, [stream]);
 
+  const fetchRecentRecords = async () => {
+    try {
+      setLoadingRecords(true);
+      const response = await fetch('/api/attendance/records?limit=3&skip=0');
+      const data = await response.json();
+      if (data.success) {
+        setRecentRecords(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching recent records:', err);
+    } finally {
+      setLoadingRecords(false);
+    }
+  };
+
   useEffect(() => {
     const fetchActiveSessions = async () => {
       try {
@@ -59,6 +80,7 @@ export default function CameraView() {
     };
 
     fetchActiveSessions();
+    fetchRecentRecords();
     const interval = setInterval(fetchActiveSessions, 10000); // Poll every 10 seconds
 
     return () => clearInterval(interval);
@@ -86,11 +108,18 @@ export default function CameraView() {
   const recordAttendance = async (personId: string, personName: string) => {
     if (activeSessions.length === 0) return;
 
-    const lastRecord = lastAttendanceRecord.get(personId);
-    const now = new Date();
-    if (lastRecord && (now.getTime() - lastRecord.getTime()) < 5 * 60 * 1000) {
+    if (pendingRecordsRef.current.has(personId)) {
       return;
     }
+
+    const now = Date.now();
+    const lastTime = lastRecordTimeRef.current.get(personId);
+    if (lastTime && (now - lastTime) < 30 * 1000) {
+      return;
+    }
+
+    pendingRecordsRef.current.add(personId);
+    lastRecordTimeRef.current.set(personId, now);
 
     let recorded = false;
 
@@ -104,28 +133,37 @@ export default function CameraView() {
           body: JSON.stringify({
             studentId: personId,
             sessionId: session._id || session.id,
-            timestamp: now.toISOString(),
-            confidence: 0.9, // We can pass actual confidence if needed, but recognizedPersons map structure needs update to pass it here easily
+            timestamp: new Date(now).toISOString(),
+            confidence: 0.9,
             method: 'face_recognition',
           }),
         });
 
+        if (!response.ok) {
+          console.warn(`API returned ${response.status} for ${personName}`);
+          continue;
+        }
+
         const data = await response.json();
 
         if (data.success) {
-          recorded = true;
-          showToast({ type: 'success', message: `${t.attendanceManagement?.recordSuccess || 'Attendance recorded successfully'}: ${personName}` });
-        } else if (data.error !== 'Student is not enrolled in this course') {
-           // Ignore not enrolled errors if there are multiple sessions, but log others
-           console.warn(`Failed to record attendance for ${personName} in session ${session.courseName}:`, data.error);
+          if (data.isNewCheckIn) {
+            recorded = true;
+            showToast({ type: 'success', message: `✅ ${t.attendanceManagement?.recordSuccess || 'บันทึกการเข้าเรียนสำเร็จ'}: ${personName}` });
+          }
+        } else if (data.error === 'Student is not enrolled in this course') {
+          continue;
         }
       } catch (err) {
         console.error('Error recording attendance:', err);
       }
     }
 
+    pendingRecordsRef.current.delete(personId);
+
     if (recorded) {
-      setLastAttendanceRecord(prev => new Map(prev).set(personId, now));
+      setLastAttendanceRecord(prev => new Map(prev).set(personId, new Date(now)));
+      fetchRecentRecords();
     }
   };
 
@@ -293,7 +331,7 @@ export default function CameraView() {
               <div 
                 tabIndex={0} 
                 role="button" 
-                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-[240px] h-auto py-1 justify-between font-normal ${isStreaming ? 'btn-disabled opacity-50' : ''}`}
+                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-60 h-auto py-1 justify-between font-normal ${isStreaming ? 'btn-disabled opacity-50' : ''}`}
               >
                 <div className="flex flex-col items-start text-left overflow-hidden w-full mr-2">
                   <span className="font-bold text-xs truncate w-full">
@@ -311,7 +349,7 @@ export default function CameraView() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
               </div>
-              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-64 mt-1 border border-base-content/10">
+              <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-lg bg-base-100 rounded-box w-64 mt-1 border border-base-content/10">
                 <li>
                   <button 
                     onClick={() => {
@@ -358,7 +396,7 @@ export default function CameraView() {
               <div 
                 tabIndex={0} 
                 role="button" 
-                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-[240px] h-auto py-1 justify-between font-normal ${devices.length === 0 || isStreaming ? 'btn-disabled opacity-50' : ''}`}
+                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-60 h-auto py-1 justify-between font-normal ${devices.length === 0 || isStreaming ? 'btn-disabled opacity-50' : ''}`}
               >
                 <div className="flex flex-col items-start text-left overflow-hidden w-full mr-2">
                   <span className="font-bold text-xs truncate w-full">
@@ -372,7 +410,7 @@ export default function CameraView() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                 </svg>
               </div>
-              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-64 mt-1 border border-base-content/10">
+              <ul tabIndex={0} className="dropdown-content z-1 menu p-2 shadow-lg bg-base-100 rounded-box w-64 mt-1 border border-base-content/10">
                 {devices.map((device, index) => (
                   <li key={device.deviceId}>
                     <button 
@@ -551,6 +589,9 @@ export default function CameraView() {
           </>
         )}
       </div>
+
+      {/* Recent Attendance Records */}
+      <RecentAttendance records={recentRecords} loading={loadingRecords} />
     </div>
   );
 }

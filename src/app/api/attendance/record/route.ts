@@ -47,15 +47,53 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Student is not enrolled in this course');
     }
 
-    const record = await AttendanceRecord.findOne({
+    const checkInTime = new Date(timestamp);
+
+    let record = await AttendanceRecord.findOne({
       sessionId: session._id,
       studentId: student._id,
     });
 
-    const checkInTime = new Date(timestamp);
-
     if (!record) {
-      return notFoundResponse('Attendance record not found');
+      const status = calculateAttendanceStatus(
+        checkInTime,
+        session.startTime,
+        session.sessionDate,
+        session.graceMinutes
+      );
+
+      record = new AttendanceRecord({
+        id: `${session._id}-${student._id}-${Date.now()}`,
+        sessionId: session._id,
+        courseId: session.courseId,
+        studentId: student._id,
+        studentName: student.name,
+        studentNumber: student.studentId || '',
+        checkInTime: checkInTime,
+        status: status,
+        confidence: confidence,
+        checkInMethod: method,
+        detectionCount: 1,
+        lastDetectedAt: checkInTime,
+      });
+
+      await record.save();
+
+      session.stats.absentCount = Math.max(0, session.stats.absentCount - 1);
+      session.stats.presentCount++;
+      if (status === 'normal') {
+        session.stats.normalCount++;
+      } else {
+        session.stats.lateCount++;
+      }
+      await session.save();
+
+      return NextResponse.json({
+        success: true,
+        data: record.toObject(),
+        message: 'Attendance recorded successfully',
+        isNewCheckIn: true,
+      });
     }
 
     if (!record.checkInTime) {
@@ -73,6 +111,8 @@ export async function POST(request: NextRequest) {
       record.detectionCount = 1;
       record.lastDetectedAt = checkInTime;
 
+      await record.save();
+
       session.stats.absentCount = Math.max(0, session.stats.absentCount - 1);
       session.stats.presentCount++;
       if (status === 'normal') {
@@ -80,24 +120,32 @@ export async function POST(request: NextRequest) {
       } else {
         session.stats.lateCount++;
       }
-    } else {
-      const minutesSinceCheckIn = (checkInTime.getTime() - record.checkInTime.getTime()) / 60000;
+      await session.save();
 
-      if (minutesSinceCheckIn >= 5) {
-        record.checkOutTime = checkInTime;
-      }
-
-      record.detectionCount++;
-      record.lastDetectedAt = checkInTime;
+      return NextResponse.json({
+        success: true,
+        data: record.toObject(),
+        message: 'Attendance recorded successfully',
+        isNewCheckIn: true,
+      });
     }
 
+    const minutesSinceCheckIn = (checkInTime.getTime() - record.checkInTime.getTime()) / 60000;
+
+    if (minutesSinceCheckIn >= 5) {
+      record.checkOutTime = checkInTime;
+    }
+
+    record.detectionCount = (record.detectionCount || 0) + 1;
+    record.lastDetectedAt = checkInTime;
+
     await record.save();
-    await session.save();
 
     return NextResponse.json({
       success: true,
       data: record.toObject(),
-      message: 'Attendance recorded successfully',
+      message: 'Detection updated',
+      isNewCheckIn: false,
     });
   } catch (error) {
     console.error('Error recording attendance:', error);

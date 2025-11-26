@@ -99,7 +99,7 @@ export default function FaceRequestHistory({ isOpen, onClose }: FaceRequestHisto
               {requests.map((request) => (
                 <div key={request._id} className="p-4 hover:bg-base-200/50 transition-colors">
                   <div className="flex gap-4">
-                    <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-base-300 flex-shrink-0">
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-base-300 shrink-0">
                       <Image
                         src={request.newImageUrl}
                         alt="Request"

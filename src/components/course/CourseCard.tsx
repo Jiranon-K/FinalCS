@@ -98,9 +98,7 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
 
   return (
     <div className="card bg-base-100 shadow-md hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-primary/30">
-      {/* Header Section */}
       <div className="card-body p-6 gap-4">
-        {/* Top: Course Code & Status */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="badge badge-primary badge-lg font-mono font-semibold px-4 py-3">
@@ -111,8 +109,16 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
             </div>
           </div>
           
-          {/* Action Buttons - Top Right */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {user?.role === 'teacher' && String(course.teacherId) === String(user.id) && (
+              <button
+                className="btn btn-warning btn-sm gap-1.5 shadow-sm"
+                onClick={() => onEdit(course)}
+              >
+                <EditIcon />
+                <span className="hidden sm:inline">{t.schedule.editSchedule}</span>
+              </button>
+            )}
             {user?.role === 'admin' && (
               <>
                 <div className="tooltip tooltip-bottom" data-tip={t.course.edit}>
@@ -136,17 +142,13 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
           </div>
         </div>
 
-        {/* Course Title */}
         <h3 className="card-title text-xl font-bold text-base-content leading-tight">
           {course.courseName}
         </h3>
 
-        {/* Divider */}
         <div className="divider my-0"></div>
 
-        {/* Info Grid */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Teacher */}
           <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
             <div className="text-primary">
               <TeacherIcon />
@@ -157,7 +159,6 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
             </div>
           </div>
 
-          {/* Semester */}
           <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
             <div className="text-secondary">
               <CalendarIcon />
@@ -170,7 +171,6 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
             </div>
           </div>
 
-          {/* Room */}
           <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
             <div className="text-accent">
               <LocationIcon />
@@ -181,7 +181,6 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
             </div>
           </div>
 
-          {/* Students Count */}
           <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/50">
             <div className="text-info">
               <UsersIcon />
@@ -195,7 +194,6 @@ export default function CourseCard({ course, user, onEdit, onDelete }: CourseCar
           </div>
         </div>
 
-        {/* Schedule Section */}
         {course.schedule && course.schedule.length > 0 && (
           <div className="bg-linear-to-r from-primary/5 to-secondary/5 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">

@@ -70,7 +70,6 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           </Link>
         </li>
 
-        {/* Home - Hidden if student hasn't registered profile */}
         {(!user || user.role !== 'student' || user.hasProfileRegistered) && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.home : undefined}>
             <Link href="/" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
@@ -86,7 +85,6 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           </li>
         )}
 
-        {/* Camera - Only visible to Admin and Teacher */}
         {(!user || user.role !== 'student') && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
             <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
@@ -179,6 +177,23 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             </Link>
           </li>
         )}
+
+        {/* Attendance Management - Only for Admin and Teacher */}
+        {(!user || user.role !== 'student') && (
+          <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.attendanceManagement : undefined}>
+            <Link href="/attendance" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+              <Image
+                src="/menu-icon/document.png"
+                alt="Attendance Management"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.nav.attendanceManagement}</span>
+            </Link>
+          </li>
+        )}
+
         <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.settings : undefined}>
           <Link href="/settings" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
             <Image
