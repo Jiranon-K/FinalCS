@@ -1,0 +1,79 @@
+import { AttendanceSession } from '@/types/session';
+
+export function calculateAttendanceStatus(
+  checkInTime: Date,
+  sessionStartTime: string,
+  sessionDate: Date,
+  graceMinutes: number
+): 'normal' | 'late' {
+  const [hour, minute] = sessionStartTime.split(':').map(Number);
+  const sessionStart = new Date(sessionDate);
+  sessionStart.setHours(hour, minute, 0, 0);
+
+  const graceEnd = new Date(sessionStart.getTime() + graceMinutes * 60000);
+
+  return checkInTime <= graceEnd ? 'normal' : 'late';
+}
+
+export function findMatchingActiveSession(
+  activeSessions: AttendanceSession[],
+  now: Date,
+  studentEnrolledCourseIds: string[]
+): AttendanceSession | null {
+  const dayOfWeek = now.getDay();
+  const currentTime = now.toTimeString().slice(0, 5);
+
+  return (
+    activeSessions.find((session) => {
+      if (!studentEnrolledCourseIds.includes(session.courseId.toString())) {
+        return false;
+      }
+
+      if (session.dayOfWeek !== dayOfWeek) {
+        return false;
+      }
+
+      return currentTime >= session.startTime && currentTime <= session.endTime;
+    }) || null
+  );
+}
+
+export function canRecordAttendance(
+  studentId: string,
+  sessionId: string,
+  lastDetectionMap: Map<string, { time: Date; sessionId: string }>,
+  now: Date
+): boolean {
+  const lastDetection = lastDetectionMap.get(studentId);
+
+  if (!lastDetection) {
+    return true;
+  }
+
+  const minutesSinceLastDetection =
+    (now.getTime() - lastDetection.time.getTime()) / 60000;
+
+  return (
+    minutesSinceLastDetection >= 5 ||
+    lastDetection.sessionId !== sessionId
+  );
+}
+
+export function formatTime(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+export function parseTime(timeString: string): { hour: number; minute: number } {
+  const [hour, minute] = timeString.split(':').map(Number);
+  return { hour, minute };
+}
+
+export function isWithinTimeRange(
+  currentTime: string,
+  startTime: string,
+  endTime: string
+): boolean {
+  return currentTime >= startTime && currentTime <= endTime;
+}

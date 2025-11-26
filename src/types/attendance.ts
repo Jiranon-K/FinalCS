@@ -1,41 +1,56 @@
+import { Types } from 'mongoose';
+
 export interface AttendanceRecord {
-  _id?: string;
+  _id?: Types.ObjectId;
   id: string;
-  personId: string;
-  personName: string;
+
+  sessionId: Types.ObjectId;
+  courseId: Types.ObjectId;
+  studentId: Types.ObjectId;
+
+  studentName: string;
+  studentNumber?: string;
+
+  status: 'normal' | 'late' | 'absent' | 'leave';
+
+  checkInTime?: Date;
+  checkInMethod: 'face_recognition' | 'manual';
+  confidence?: number;
+
+  checkOutTime?: Date;
+
+  adjustedBy?: Types.ObjectId;
+  adjustedAt?: Date;
+  adjustmentNote?: string;
+  originalStatus?: string;
+
+  detectionCount: number;
+  lastDetectedAt?: Date;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RecordAttendanceRequest {
+  studentId: string;
+  sessionId: string;
   timestamp: Date;
   confidence: number;
-  imageUrl?: string;
-  sessionId?: string;
-  metadata?: AttendanceMetadata;
-  createdAt: Date;
-}
-
-export interface AttendanceMetadata {
-  className?: string;
-  subject?: string;
-  room?: string;
-  teacher?: string;
-  location?: string;
   method: 'face_recognition' | 'manual';
-  [key: string]: unknown;
 }
 
-export interface CreateAttendanceRequest {
-  personId: string;
-  personName: string;
-  confidence: number;
-  imageUrl?: string;
-  sessionId?: string;
-  metadata?: AttendanceMetadata;
+export interface AdjustAttendanceRequest {
+  status: 'normal' | 'late' | 'absent' | 'leave';
+  note?: string;
 }
 
 export interface AttendanceQuery {
-  personId?: string;
   sessionId?: string;
-  startDate?: Date | string;
-  endDate?: Date | string;
-  minConfidence?: number;
+  courseId?: string;
+  studentId?: string;
+  status?: 'normal' | 'late' | 'absent' | 'leave';
+  startDate?: string;
+  endDate?: string;
   limit?: number;
   skip?: number;
 }
@@ -61,23 +76,6 @@ export interface DailyAttendanceStats {
   };
 }
 
-export interface AttendanceSession {
-  id: string;
-  name: string;
-  startTime: Date;
-  endTime?: Date;
-  expectedCount?: number;
-  actualCount: number;
-  status: 'active' | 'completed' | 'cancelled';
-  metadata?: {
-    className?: string;
-    subject?: string;
-    teacher?: string;
-    [key: string]: unknown;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface AttendanceReport {
   period: {

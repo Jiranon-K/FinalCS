@@ -1,6 +1,12 @@
 export { default as Student } from './Student';
 export { default as Teacher } from './Teacher';
 export { default as FaceUpdateRequest } from './FaceUpdateRequest';
+export { default as Course } from './Course';
+export { default as AttendanceSession } from './AttendanceSession';
+export { default as AttendanceRecord } from './AttendanceRecord';
 export type { StudentDocument } from './Student';
 export type { TeacherDocument } from './Teacher';
 export type { FaceUpdateRequestDocument } from './FaceUpdateRequest';
+export type { CourseDocument } from './Course';
+export type { AttendanceSessionDocument } from './AttendanceSession';
+export type { AttendanceRecordDocument } from './AttendanceRecord';

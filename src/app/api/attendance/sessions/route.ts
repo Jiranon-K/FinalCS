@@ -1,0 +1,102 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongoose';
+import { AttendanceSession, Course } from '@/models';
+import User from '@/models/User';
+import { requireAuth, serverErrorResponse } from '@/lib/auth-helpers';
+
+export async function GET(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const user = await requireAuth(request);
+
+    const { searchParams } = new URL(request.url);
+    const courseId = searchParams.get('courseId') || '';
+    const status = searchParams.get('status') || '';
+    const startDate = searchParams.get('startDate') || '';
+    const endDate = searchParams.get('endDate') || '';
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const skip = parseInt(searchParams.get('skip') || '0');
+
+    interface SessionQuery {
+      courseId?: any;
+      status?: string;
+      sessionDate?: any;
+    }
+
+    const query: SessionQuery = {};
+
+    if (courseId) {
+      query.courseId = courseId;
+    }
+
+    if (status) {
+      query.status = status as any;
+    }
+
+    if (startDate || endDate) {
+      query.sessionDate = {};
+      if (startDate) {
+        query.sessionDate.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        query.sessionDate.$lte = new Date(endDate);
+      }
+    }
+
+    if (user.role === 'teacher') {
+      const userDoc = await User.findOne({ username: user.username });
+      if (userDoc) {
+        const teacherCourses = await Course.find({ teacherId: userDoc._id }).select('_id');
+        const courseIds = teacherCourses.map((c) => c._id);
+        query.courseId = { $in: courseIds };
+      }
+    }
+
+    if (user.role === 'student') {
+      const userDoc = await User.findOne({ username: user.username });
+      if (!userDoc?.profileId) {
+        return NextResponse.json({
+          success: true,
+          data: [],
+          pagination: { total: 0, limit, skip, hasMore: false },
+        });
+      }
+
+      const enrolledCourses = await Course.find({
+        'enrolledStudents.studentId': userDoc.profileId,
+      }).select('_id');
+      const courseIds = enrolledCourses.map((c) => c._id);
+      query.courseId = { $in: courseIds };
+    }
+
+    const [sessions, total] = await Promise.all([
+      AttendanceSession.find(query)
+        .sort({ sessionDate: -1, startTime: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      AttendanceSession.countDocuments(query),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data: sessions,
+      pagination: {
+        total,
+        limit,
+        skip,
+        hasMore: skip + sessions.length < total,
+      },
+    });
+  } catch (error: any) {
+    if (error.message === 'Authentication required' || error.message === 'Invalid token') {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 401 }
+      );
+    }
+    console.error('Error fetching sessions:', error);
+    return serverErrorResponse('Failed to fetch sessions');
+  }
+}
