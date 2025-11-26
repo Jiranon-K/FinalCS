@@ -39,6 +39,21 @@ export async function POST(request: NextRequest) {
     const parsedDate = new Date(sessionDate);
     parsedDate.setUTCHours(0, 0, 0, 0);
 
+    /*
+    // Check if session is in the past
+    const now = new Date();
+    const expiration = new Date();
+    expiration.setFullYear(parsedDate.getUTCFullYear());
+    expiration.setMonth(parsedDate.getUTCMonth());
+    expiration.setDate(parsedDate.getUTCDate());
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    expiration.setHours(endHour, endMinute, 0, 0);
+
+    if (now > expiration) {
+      return badRequestResponse('Cannot open a session that has already ended.');
+    }
+    */
+
     const existingSession = await AttendanceSession.findOne({
       courseId: course._id,
       sessionDate: parsedDate,

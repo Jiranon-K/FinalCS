@@ -77,3 +77,18 @@ export function isWithinTimeRange(
 ): boolean {
   return currentTime >= startTime && currentTime <= endTime;
 }
+
+export function isSessionExpired(session: AttendanceSession): boolean {
+  const now = new Date();
+  const sDate = new Date(session.sessionDate);
+  
+  const expiration = new Date();
+  expiration.setFullYear(sDate.getUTCFullYear());
+  expiration.setMonth(sDate.getUTCMonth());
+  expiration.setDate(sDate.getUTCDate());
+  
+  const [h, m] = session.endTime.split(':').map(Number);
+  expiration.setHours(h, m, 0, 0);
+  
+  return now > expiration;
+}

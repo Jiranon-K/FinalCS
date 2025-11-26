@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongoose';
 import { AttendanceSession, AttendanceRecord, Course } from '@/models';
 import { Student } from '@/models';
 import { RecordAttendanceRequest } from '@/types/attendance';
-import { calculateAttendanceStatus } from '@/lib/attendance-helpers';
+import { calculateAttendanceStatus, isSessionExpired } from '@/lib/attendance-helpers';
 import { badRequestResponse, notFoundResponse, serverErrorResponse } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
@@ -25,6 +25,13 @@ export async function POST(request: NextRequest) {
 
     if (session.status !== 'active') {
       return badRequestResponse('Session is not active');
+    }
+
+    if (isSessionExpired(session)) {
+      session.status = 'closed';
+      session.closedAt = new Date();
+      await session.save();
+      return badRequestResponse('Session has expired');
     }
 
     const course = await Course.findById(session.courseId);

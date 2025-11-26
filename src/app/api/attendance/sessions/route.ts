@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongoose';
 import { AttendanceSession, Course } from '@/models';
 import User from '@/models/User';
 import { requireAuth, serverErrorResponse } from '@/lib/auth-helpers';
+import { isSessionExpired } from '@/lib/attendance-helpers';
 import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
@@ -93,9 +94,25 @@ export async function GET(request: NextRequest) {
       AttendanceSession.countDocuments(query),
     ]);
 
+    const expiredSessionIds: string[] = [];
+    const processedSessions = sessions.map((session) => {
+      if (session.status === 'active' && isSessionExpired(session as any)) {
+        expiredSessionIds.push(session._id.toString());
+        return { ...session, status: 'closed', closedAt: new Date() };
+      }
+      return session;
+    });
+
+    if (expiredSessionIds.length > 0) {
+      await AttendanceSession.updateMany(
+        { _id: { $in: expiredSessionIds } },
+        { $set: { status: 'closed', closedAt: new Date() } }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      data: sessions,
+      data: processedSessions,
       pagination: {
         total,
         limit,

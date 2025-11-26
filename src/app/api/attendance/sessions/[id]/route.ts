@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { AttendanceSession, AttendanceRecord } from '@/models';
 import { requireAuth, canAccessCourse, notFoundResponse, forbiddenResponse, serverErrorResponse } from '@/lib/auth-helpers';
+import { isSessionExpired } from '@/lib/attendance-helpers';
 
 export async function GET(
   request: NextRequest,
@@ -13,10 +14,16 @@ export async function GET(
     const user = await requireAuth(request);
     const { id: sessionId } = await params;
 
-    const session = await AttendanceSession.findOne({ id: sessionId }).lean();
+    const session = await AttendanceSession.findOne({ id: sessionId });
 
     if (!session) {
       return notFoundResponse('Session not found');
+    }
+
+    if (session.status === 'active' && isSessionExpired(session)) {
+      session.status = 'closed';
+      session.closedAt = new Date();
+      await session.save();
     }
 
     const hasAccess = await canAccessCourse(session.courseId.toString(), user);
