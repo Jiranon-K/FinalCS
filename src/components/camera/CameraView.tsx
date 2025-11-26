@@ -481,17 +481,34 @@ export default function CameraView() {
 
         {/* Active Sessions Overlay */}
         {activeSessions.length > 0 && (
-          <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 max-w-xs">
+          <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 w-56">
             {activeSessions.map(session => (
-              <div key={session.id} className="bg-base-100/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-base-content/10">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-primary">{session.courseCode}</span>
-                  <span className="text-xs bg-success/20 text-success px-1.5 py-0.5 rounded">Active</span>
+              <div key={session.id} className="relative overflow-hidden bg-base-100/90 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-base-content/5 transition-transform hover:scale-[1.02]">
+                <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                
+                <div className="flex items-center justify-between mb-1.5 pl-2">
+                  <span className="font-black text-base text-base-content tracking-tight leading-none">
+                    {session.courseCode}
+                  </span>
+                  <div className="flex items-center gap-1 bg-success/10 px-1.5 py-0.5 rounded-full border border-success/10">
+                     <span className="relative flex h-1.5 w-1.5">
+                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success"></span>
+                     </span>
+                     <span className="text-[9px] font-bold uppercase tracking-wider text-success">Active</span>
+                  </div>
                 </div>
-                <h3 className="text-sm font-medium truncate mb-2" title={session.courseName}>{session.courseName}</h3>
-                <div className="flex items-center justify-between text-xs text-base-content/70">
-                   <span>{session.startTime} - {session.endTime}</span>
-                   <span>{session.stats?.presentCount || 0} Present</span>
+                
+                <h3 className="text-xs font-medium text-base-content/70 truncate mb-2 pl-2" title={session.courseName}>
+                  {session.courseName}
+                </h3>
+                
+                <div className="flex items-center justify-between text-[10px] bg-base-200/50 rounded-md p-1.5 ml-2">
+                   <span className="font-mono text-base-content/60">{session.startTime} - {session.endTime}</span>
+                   <div className="flex items-center gap-1">
+                      <span className="font-bold text-base-content">{session.stats?.presentCount || 0}</span>
+                      <span className="text-base-content/40">Present</span>
+                   </div>
                 </div>
               </div>
             ))}

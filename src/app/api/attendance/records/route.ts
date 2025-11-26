@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
+        .populate('studentId', 'imageUrl')
         .lean(),
       AttendanceRecord.countDocuments(query),
     ]);

@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useLocale } from '@/hooks/useLocale';
 import { AttendanceRecord } from '@/types/attendance';
 
@@ -8,20 +10,24 @@ interface RecentAttendanceProps {
   loading?: boolean;
 }
 
-const CheckCircleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-  </svg>
-);
-
-const ClockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+const ClockIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
   </svg>
 );
 
 export default function RecentAttendance({ records, loading }: RecentAttendanceProps) {
   const { t } = useLocale();
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setNow(Date.now()), 0);
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, []);
 
   const formatTime = (date?: Date | string) => {
     if (!date) return '-';
@@ -37,121 +43,105 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
     return nameParts[0]?.substring(0, 2).toUpperCase() || '??';
   };
 
+  const visibleRecords = records?.filter(record => {
+    if (!now) return false;
+    if (!record.checkInTime) return false;
+    const checkIn = new Date(record.checkInTime).getTime();
+    return (now - checkIn) < 60000; 
+  }) || [];
+
+  const isExpiring = (record: AttendanceRecord) => {
+    if (!now) return false;
+    if (!record.checkInTime) return false;
+    const checkIn = new Date(record.checkInTime).getTime();
+    const age = now - checkIn;
+    return age > 55000; 
+  };
+
   if (loading) {
     return (
-      <div className="bg-base-200/20 rounded-2xl shadow-lg border border-base-content/10 p-6">
-        <h3 className="text-lg font-bold mb-4 text-base-content">
-          {t.attendanceManagement.recentRecords}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-base-300 rounded-xl h-24"></div>
-            </div>
-          ))}
-        </div>
+      <div className="w-full space-y-4">
+        <div className="h-6 w-32 bg-base-300 rounded animate-pulse mb-2"></div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center p-3 bg-base-100 rounded-xl border border-base-200 shadow-sm animate-pulse h-20"></div>
+        ))}
       </div>
     );
   }
 
-  if (!records || records.length === 0) {
+  if (visibleRecords.length === 0) {
     return (
-      <div className="bg-base-200/20 rounded-2xl shadow-lg border border-base-content/10 p-6">
-        <h3 className="text-lg font-bold mb-4 text-base-content">
-          {t.attendanceManagement.recentRecords}
-        </h3>
-        <div className="text-center py-8">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto text-base-content/20 mb-2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
-          </svg>
-          <p className="text-base-content/50 text-sm">
-            {t.attendanceManagement.noRecentRecords}
-          </p>
-        </div>
-      </div>
+       <div className="flex flex-col items-center justify-center p-8 text-base-content/40 bg-base-100/50 rounded-2xl border border-base-content/5">
+          <ClockIcon className="w-10 h-10 mb-2 opacity-50" />
+          <p className="text-sm">{t.attendanceManagement.noRecentRecords}</p>
+       </div>
     );
   }
 
   return (
-    <div className="bg-base-200/20 rounded-2xl shadow-lg border border-base-content/10 p-6">
-      <h3 className="text-lg font-bold mb-4 text-base-content flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-primary">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-        {t.attendanceManagement.recentRecords}
-      </h3>
+    <div className="w-full">
+      <div className="flex items-center gap-2 mb-4 px-1">
+        <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+           <ClockIcon className="w-5 h-5" />
+        </div>
+        <h3 className="font-bold text-lg text-base-content">{t.attendanceManagement.recentRecords}</h3>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {records.map((record, index) => (
+      <div className="flex flex-col gap-3">
+        {visibleRecords.map((record) => (
           <div
-            key={record._id?.toString() || record.id || index}
-            className="bg-base-100 rounded-xl p-4 shadow-md border border-base-content/10 hover:shadow-lg transition-shadow"
+            key={record._id?.toString() || record.id}
+            className={`group flex items-center justify-between p-3 bg-base-100 hover:bg-base-50 rounded-2xl border border-base-200 shadow-sm hover:shadow-md transition-all duration-1000 ${isExpiring(record) ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}
           >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="avatar placeholder">
-                <div className="bg-primary text-primary-content w-12 h-12 rounded-full">
-                  <span className="text-sm font-semibold">
-                    {getInitials(record.studentName)}
-                  </span>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className={`avatar ${!((record.studentId as unknown) as { imageUrl?: string })?.imageUrl ? 'placeholder' : ''}`}>
+                {((record.studentId as unknown) as { imageUrl?: string })?.imageUrl ? (
+                  <div className="w-12 h-12 rounded-full shadow-inner relative overflow-hidden">
+                    <Image 
+                      src={((record.studentId as unknown) as { imageUrl: string }).imageUrl} 
+                      alt={record.studentName}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-neutral text-neutral-content rounded-full w-12 h-12 shadow-inner">
+                    <span className="text-lg font-bold">{getInitials(record.studentName)}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-base-content truncate">
+              <div className="flex flex-col">
+                <h4 className="font-bold text-base-content leading-tight group-hover:text-primary transition-colors">
                   {record.studentName}
                 </h4>
                 {record.studentNumber && (
-                  <p className="text-xs text-base-content/60 font-mono">
+                  <span className="text-xs font-mono text-base-content/50 tracking-wide">
                     {record.studentNumber}
-                  </p>
+                  </span>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div
-                className={`badge gap-1 ${
-                  record.status === 'normal'
-                    ? 'badge-success'
-                    : record.status === 'late'
-                    ? 'badge-warning'
-                    : record.status === 'absent'
-                    ? 'badge-error'
-                    : 'badge-info'
-                }`}
-              >
-                {record.status === 'normal' ? (
-                  <>
-                    <CheckCircleIcon />
-                    {t.attendanceManagement.onTime}
-                  </>
-                ) : record.status === 'late' ? (
-                  <>
-                    <ClockIcon />
-                    {t.attendanceManagement.statusLate}
-                  </>
-                ) : record.status === 'absent' ? (
-                  <>{t.attendanceManagement.statusAbsent}</>
-                ) : (
-                  <>{t.attendanceManagement.statusLeave}</>
-                )}
-              </div>
-
-              <div className="text-right">
-                <p className="text-sm font-semibold text-base-content">
+            <div className="flex flex-col items-end gap-1.5">
+               <div className={`badge badge-sm gap-1.5 border-0 font-medium ${
+                  record.status === 'normal' ? 'bg-success/15 text-success' :
+                  record.status === 'late' ? 'bg-warning/15 text-warning' :
+                  'bg-error/15 text-error'
+               }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                     record.status === 'normal' ? 'bg-success' :
+                     record.status === 'late' ? 'bg-warning' :
+                     'bg-error'
+                  }`}></span>
+                  {record.status === 'normal' ? t.attendanceManagement.onTime :
+                   record.status === 'late' ? t.attendanceManagement.statusLate :
+                   t.attendanceManagement.statusAbsent}
+               </div>
+               <span className="text-xs font-bold text-base-content/70 font-mono">
                   {formatTime(record.checkInTime)}
-                </p>
-              </div>
+               </span>
             </div>
-
-            {record.checkInMethod && (
-              <div className="mt-2 pt-2 border-t border-base-content/10">
-                <span className="badge badge-sm badge-outline">
-                  {record.checkInMethod === 'face_recognition'
-                    ? t.attendanceManagement.faceRecognition
-                    : t.attendanceManagement.manual}
-                </span>
-              </div>
-            )}
           </div>
         ))}
       </div>
