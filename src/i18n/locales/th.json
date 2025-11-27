@@ -168,7 +168,9 @@
     "cancel": "ยกเลิก",
     "saving": "กำลังบันทึก...",
     "accessDenied": "ปฏิเสธการเข้าถึง",
-    "remove": "ลบออก"
+    "remove": "ลบออก",
+    "student": "นักเรียน",
+    "noData": "ไม่มีข้อมูล"
   },
   "attendance": {
     "title": "เช็คชื่อเข้าชั้นเรียน",
@@ -579,6 +581,7 @@
   "attendanceManagement": {
     "title": "จัดการการเข้าเรียน",
     "recordAttendance": "บันทึกการเข้าเรียน",
+    "recentActivity": "กิจกรรมล่าสุด",
     "attendanceRecords": "บันทึกการเข้าเรียน",
     "attendanceStats": "สถิติการเข้าเรียน",
     "checkIn": "เช็คอิน",
@@ -711,6 +714,14 @@
     "noStudentsEnrolled": "ไม่มีนักเรียนลงทะเบียน",
     "pleaseSelectCourse": "กรุณาเลือกรายวิชา",
     "pleaseSelectSession": "กรุณาเลือกเซสชัน",
-    "viewDetails": "ดูรายละเอียด"
+    "viewDetails": "ดูรายละเอียด",
+    "atRiskStudents": "นักเรียนที่มีความเสี่ยง",
+    "noAtRiskStudents": "เยี่ยม! ไม่มีนักเรียนที่มีความเสี่ยง",
+    "missed": "ขาดเรียน",
+    "attendanceRate": "อัตราการเข้าเรียน",
+    "thisPeriod": "ในช่วงเวลาที่เลือก",
+    "studentsChecked": "นักเรียนที่ตรวจสอบแล้ว",
+    "averageAttendance": "การเข้าเรียนเฉลี่ย",
+    "todaySessions": "เซสชันวันนี้"
   }
 }

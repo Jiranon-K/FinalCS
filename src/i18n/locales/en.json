@@ -168,7 +168,9 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "accessDenied": "Access denied",
-    "remove": "Remove"
+    "remove": "Remove",
+    "student": "Student",
+    "noData": "No data available"
   },
   "attendance": {
     "title": "Class Attendance",
@@ -579,6 +581,7 @@
   "attendanceManagement": {
     "title": "Attendance Management",
     "recordAttendance": "Record Attendance",
+    "recentActivity": "Recent Activity",
     "attendanceRecords": "Attendance Records",
     "attendanceStats": "Attendance Statistics",
     "checkIn": "Check In",
@@ -711,6 +714,13 @@
     "noStudentsEnrolled": "No Students Enrolled",
     "pleaseSelectCourse": "Please Select Course",
     "pleaseSelectSession": "Please Select Session",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "atRiskStudents": "At Risk Students",
+    "noAtRiskStudents": "Great! No students at risk.",
+    "missed": "Missed",
+    "thisPeriod": "In selected period",
+    "studentsChecked": "Students checked",
+    "averageAttendance": "Average attendance",
+    "todaySessions": "Today Sessions"
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { AttendanceRecord, AttendanceSession, Course } from '@/models';
 import User from '@/models/User';
+import Student from '@/models/Student';
 import { requireAuth, serverErrorResponse } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       endDate.setHours(23, 59, 59, 999);
     } else if (range === 'week') {
       const day = startDate.getDay();
-      const diff = startDate.getDate() - day + (day === 0 ? -6 : 1);
+      const diff = startDate.getDate() - day + (day === 0 ? -6 : 1); 
       startDate.setDate(diff);
       startDate.setHours(0, 0, 0, 0);
       endDate.setHours(23, 59, 59, 999);
@@ -33,25 +34,26 @@ export async function GET(request: NextRequest) {
     const sessionQuery: any = {
       sessionDate: { $gte: startDate, $lte: endDate }
     };
-
+    let teacherCourseIds: string[] = [];
     if (user.role === 'teacher') {
       const userDoc = await User.findOne({ username: user.username });
       if (userDoc) {
         const teacherCourses = await Course.find({ teacherId: userDoc._id }).select('_id');
-        sessionQuery.courseId = { $in: teacherCourses.map(c => c._id) };
+        teacherCourseIds = teacherCourses.map(c => c._id.toString());
+        sessionQuery.courseId = { $in: teacherCourseIds };
       }
     }
 
-    const sessions = await AttendanceSession.find(sessionQuery);
+    const sessions = await AttendanceSession.find(sessionQuery).sort({ sessionDate: -1 });
     const sessionIds = sessions.map(s => s._id);
 
     const records = await AttendanceRecord.find({
       sessionId: { $in: sessionIds }
     });
 
+    // --- Basic Stats ---
     const totalSessions = sessions.length;
     const totalRecords = records.length;
-
     const presentCount = records.filter(r => r.status === 'normal').length;
     const lateCount = records.filter(r => r.status === 'late').length;
     const absentCount = records.filter(r => r.status === 'absent').length;
@@ -61,10 +63,27 @@ export async function GET(request: NextRequest) {
       ? ((presentCount + lateCount) / totalRecords) * 100
       : 0;
 
+   
     const courseStatsMap = new Map();
+    
+    if (user.role === 'teacher') {
+        const allTeacherCourses = await Course.find({ _id: { $in: teacherCourseIds } }).select('courseName courseCode');
+        for (const course of allTeacherCourses) {
+            courseStatsMap.set(course._id.toString(), {
+                courseId: course._id.toString(),
+                courseName: course.courseName,
+                courseCode: course.courseCode,
+                totalSessions: 0,
+                presentCount: 0,
+                totalExpected: 0,
+                attendanceRate: 0
+            });
+        }
+    }
 
     for (const session of sessions) {
       const courseId = session.courseId.toString();
+      
       if (!courseStatsMap.has(courseId)) {
         const course = await Course.findById(courseId).select('courseName courseCode');
         if (course) {
@@ -74,7 +93,8 @@ export async function GET(request: NextRequest) {
             courseCode: course.courseCode,
             totalSessions: 0,
             presentCount: 0,
-            totalExpected: 0
+            totalExpected: 0,
+            attendanceRate: 0
           });
         }
       }
@@ -82,7 +102,91 @@ export async function GET(request: NextRequest) {
       const stats = courseStatsMap.get(courseId);
       if (stats) {
         stats.totalSessions++;
+        const sessionRecords = records.filter(r => r.sessionId.toString() === session._id.toString());
+        stats.totalExpected += sessionRecords.length;
+        stats.presentCount += sessionRecords.filter(r => r.status === 'normal' || r.status === 'late').length;
       }
+    }
+
+    for (const stats of courseStatsMap.values()) {
+        stats.attendanceRate = stats.totalExpected > 0 
+            ? (stats.presentCount / stats.totalExpected) * 100 
+            : 0;
+    }
+
+    
+    const trendMap = new Map();
+    if (range === 'week') {
+        const curr = new Date(startDate);
+        while (curr <= endDate) {
+            const dateStr = curr.toISOString().split('T')[0];
+            trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
+            curr.setDate(curr.getDate() + 1);
+        }
+    }
+
+    records.forEach(record => {
+        const session = sessions.find(s => s._id.toString() === record.sessionId.toString());
+        if (session) {
+            const dateStr = new Date(session.sessionDate).toISOString().split('T')[0];
+            if (!trendMap.has(dateStr)) {
+                 trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
+            }
+            const entry = trendMap.get(dateStr);
+            if (record.status === 'normal') entry.present++;
+            else if (record.status === 'late') entry.late++;
+            else if (record.status === 'absent') entry.absent++;
+            else if (record.status === 'leave') entry.leave++;
+        }
+    });
+    const trend = Array.from(trendMap.values()).sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+ 
+    const recentSessions = await Promise.all(sessions.slice(0, 5).map(async (session) => {
+        const sessionRecords = records.filter(r => r.sessionId.toString() === session._id.toString());
+        const sessionPresent = sessionRecords.filter(r => r.status === 'normal' || r.status === 'late').length;
+        const sessionTotal = sessionRecords.length;
+        const course = courseStatsMap.get(session.courseId.toString()) || await Course.findById(session.courseId).select('courseName courseCode');
+        
+        return {
+            id: session._id,
+            courseName: course?.courseName || 'Unknown Course',
+            date: session.sessionDate,
+            presentCount: sessionPresent,
+            totalCount: sessionTotal,
+            status: session.status
+        };
+    }));
+    
+    const studentStats = new Map();
+    records.forEach(record => {
+        const studentId = record.studentId.toString();
+        if (!studentStats.has(studentId)) {
+            studentStats.set(studentId, { total: 0, present: 0, studentId });
+        }
+        const stats = studentStats.get(studentId);
+        stats.total++;
+        if (record.status === 'normal' || record.status === 'late') {
+            stats.present++;
+        }
+    });
+
+    const atRiskStudents = [];
+    for (const [studentId, stats] of studentStats.entries()) {
+        const rate = (stats.present / stats.total) * 100;
+        if (rate < 80) { 
+            const student = await Student.findById(studentId).select('firstName lastName studentId');
+            if (student) {
+                atRiskStudents.push({
+                    id: student._id,
+                    name: student.name,
+                    studentId: student.studentId,
+                    rate: rate,
+                    totalClasses: stats.total,
+                    missed: stats.total - stats.present
+                });
+            }
+        }
     }
 
     return NextResponse.json({
@@ -92,18 +196,25 @@ export async function GET(request: NextRequest) {
         totalRecords,
         averageRate,
         todayStats: {
-          sessions: totalSessions,
-          present: presentCount,
-          late: lateCount,
-          absent: absentCount,
-          leave: leaveCount
+            sessions: sessions.filter(s => {
+                const d = new Date(s.sessionDate);
+                const today = new Date();
+                return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+            }).length,
+            present: presentCount,
+            late: lateCount,
+            absent: absentCount,
+            leave: leaveCount
         },
         weeklyStats: {
           sessions: totalSessions,
           presentRate: averageRate
         }
       },
-      courseStats: Array.from(courseStatsMap.values())
+      courseStats: Array.from(courseStatsMap.values()),
+      trend,
+      recentSessions,
+      atRiskStudents: atRiskStudents.sort((a, b) => a.rate - b.rate).slice(0, 5) 
     });
 
   } catch (error: any) {

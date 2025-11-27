@@ -429,6 +429,16 @@ export default function CourseDetailPage() {
               </div>
             </div>
           </div>
+
+          {canManageCourse && (
+            <button
+              className="btn btn-outline btn-primary w-full gap-2"
+              onClick={() => router.push(`/schedule/${courseId}/edit`)}
+            >
+              <EditIcon />
+              {t.users.edit}
+            </button>
+          )}
         </div>
       </div>
 
