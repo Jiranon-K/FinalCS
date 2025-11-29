@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useLocale } from "@/i18n/useLocale";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
@@ -15,7 +15,14 @@ interface SidebarProps {
 const Sidebar = ({ isOpen }: SidebarProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  const isActive = (path: string) => {
+    if (path === '/' && pathname === '/') return true;
+    if (path !== '/' && pathname?.startsWith(path)) return true;
+    return false;
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -72,7 +79,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
 
         {(!user || user.role !== 'student' || user.hasProfileRegistered) && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.home : undefined}>
-            <Link href="/" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/house.png"
                 alt="Home"
@@ -87,7 +94,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
 
         {(!user || user.role !== 'student') && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.camera : undefined}>
-            <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/camera" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/camera') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/camera.png"
                 alt="Camera"
@@ -102,7 +109,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         {/* Register - Only for Admin and Students who HAVEN'T registered */}
         {(user?.role === 'admin' || (user?.role === 'student' && !user.hasProfileRegistered)) && (
            <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.register : undefined}>
-            <Link href="/register" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/register" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/register') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/document.png"
                 alt="Register"
@@ -118,7 +125,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         {/* Profile - Only for Students who HAVE registered */}
         {user?.role === 'student' && user.hasProfileRegistered && (
            <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.profile : undefined}>
-            <Link href="/profile" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/profile" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/profile') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/profile.png"
                 alt="Profile"
@@ -134,7 +141,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         {/* Face Requests - Only for Admin */}
         {user?.role === 'admin' && (
            <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.faceRequests : undefined}>
-            <Link href="/face-requests" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/face-requests" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/face-requests') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/folder-approve.png"
                 alt="Face Requests"
@@ -149,7 +156,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
 
         {user?.role === 'admin' && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.users : undefined}>
-            <Link href="/users" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/users" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/users') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/user-manage.png"
                 alt="Users"
@@ -165,7 +172,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         {/* Teaching Schedule - Only for Admin and Teacher */}
         {(!user || user.role !== 'student') && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.schedule : undefined}>
-            <Link href="/schedule" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/schedule" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/schedule') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/book.png"
                 alt="Schedule"
@@ -181,7 +188,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         {/* Attendance Management - Only for Admin and Teacher */}
         {(!user || user.role !== 'student') && (
           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.attendanceManagement : undefined}>
-            <Link href="/attendance" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+            <Link href="/attendance" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/attendance') ? 'bg-primary text-primary-content' : ''}`}>
               <Image
                 src="/menu-icon/document.png"
                 alt="Attendance Management"
@@ -195,7 +202,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
         )}
 
         <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.settings : undefined}>
-          <Link href="/settings" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''}`}>
+          <Link href="/settings" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/settings') ? 'bg-primary text-primary-content' : ''}`}>
             <Image
               src="/menu-icon/setting.png"
               alt="Settings"

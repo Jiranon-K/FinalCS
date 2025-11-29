@@ -14,6 +14,8 @@ export interface FaceUpdateRequestDocument extends mongoose.Document {
   reviewedAt?: Date;
   reviewedBy?: mongoose.Types.ObjectId;
   rejectionReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const faceUpdateRequestSchema = new Schema<FaceUpdateRequestDocument>(

@@ -161,9 +161,9 @@ export default function LoginPage() {
                     <span className="label-text-alt text-error">{errors.password}</span>
                   </label>
                 )}
-                <label className="label px-0 pt-3">
+                {/* <label className="label px-0 pt-3">
                   <a href="#" className="label-text-alt link link-hover text-purple-500 hover:text-purple-600 transition-colors duration-300">{t.login.forgotPassword}</a>
-                </label>
+                </label> */}
               </div>
 
               <div className="form-control mt-6">

@@ -170,7 +170,9 @@
     "accessDenied": "ปฏิเสธการเข้าถึง",
     "remove": "ลบออก",
     "student": "นักเรียน",
-    "noData": "ไม่มีข้อมูล"
+    "noData": "ไม่มีข้อมูล",
+    "view": "ดูรายละเอียด",
+    "actions": "การดำเนินการ"
   },
   "attendance": {
     "title": "เช็คชื่อเข้าชั้นเรียน",
@@ -200,18 +202,25 @@
     "export": "ส่งออกรายงาน",
     "checkInSuccess": "บันทึกการเข้าเรียนสำเร็จ",
     "alreadyCheckedIn": "บุคคลนี้ได้เช็คชื่อไปแล้ว",
-    "recognizedAndCheckedIn": "จดจำและบันทึกการเข้าเรียนเรียบร้อย"
+    "recognizedAndCheckedIn": "จดจำและบันทึกการเข้าเรียนเรียบร้อย",
+    "checkIn": "เช็คชื่อ",
+    "totalSessions": "จำนวนคาบเรียนทั้งหมด"
   },
   "dashboard": {
     "title": "แดชบอร์ด",
     "subtitle": "ภาพรวมระบบและสถิติ",
+    "welcome": "ยินดีต้อนรับกลับ,",
     "overview": "ภาพรวม",
     "statistics": "สถิติ",
     "recentActivity": "กิจกรรมล่าสุด",
     "activeSessions": "เซสชันที่ใช้งานอยู่",
     "totalPersons": "บุคคลทั้งหมด",
     "totalStudents": "นักเรียนทั้งหมด",
+    "enrolledStudents": "นักเรียนที่ลงทะเบียน",
+    "activeStudents": "นักเรียนที่ใช้งานอยู่",
+    "verifiedProfiles": "ยืนยันตัวตนแล้ว",
     "totalTeachers": "ครูทั้งหมด",
+    "todaySessions": "เซสชันวันนี้",
     "todayAttendance": "เข้าเรียนวันนี้",
     "thisWeek": "สัปดาห์นี้",
     "thisMonth": "เดือนนี้",
