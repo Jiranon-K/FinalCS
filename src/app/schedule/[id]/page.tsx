@@ -310,7 +310,7 @@ export default function CourseDetailPage() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* Active Session Control */}
-          {canManageCourse && (
+          {(canManageCourse || user?.role === 'student') && (
             <div className="card bg-base-100 shadow-lg border border-base-200">
               <div className="card-body">
                 <div className="flex justify-between items-center mb-4">
@@ -328,30 +328,32 @@ export default function CourseDetailPage() {
                     )}
                   </h2>
                   
-                  {activeSession ? (
-                    <button
-                      className="btn btn-error btn-sm gap-2"
-                      onClick={handleCloseSession}
-                      disabled={closingSession}
-                    >
-                      {closingSession ? (
-                        <span className="loading loading-spinner loading-xs"></span>
-                      ) : (
-                        <StopIcon />
-                      )}
-                      {t.course.closeSession}
-                    </button>
-                  ) : (
-                    <button
-                      className="btn btn-primary btn-sm gap-2"
-                      onClick={() => {
-                        fetchSessions();
-                        setOpenSessionModalOpen(true);
-                      }}
-                    >
-                      <PlayIcon />
-                      {t.course.openSession}
-                    </button>
+                  {canManageCourse && (
+                    activeSession ? (
+                      <button
+                        className="btn btn-error btn-sm gap-2"
+                        onClick={handleCloseSession}
+                        disabled={closingSession}
+                      >
+                        {closingSession ? (
+                          <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                          <StopIcon />
+                        )}
+                        {t.course.closeSession}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-primary btn-sm gap-2"
+                        onClick={() => {
+                          fetchSessions();
+                          setOpenSessionModalOpen(true);
+                        }}
+                      >
+                        <PlayIcon />
+                        {t.course.openSession}
+                      </button>
+                    )
                   )}
                 </div>
 

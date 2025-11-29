@@ -11,6 +11,7 @@ interface SessionTableProps {
   loading: boolean;
   onSessionClosed: () => void;
   onSessionDeleted: () => void;
+  readOnly?: boolean;
 }
 
 export default function SessionTable({
@@ -18,6 +19,7 @@ export default function SessionTable({
   loading,
   onSessionClosed,
   onSessionDeleted,
+  readOnly = false,
 }: SessionTableProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
@@ -191,7 +193,7 @@ export default function SessionTable({
                 </td>
                 <td>
                   <div className="flex items-center gap-2">
-                    {session.status === 'active' ? (
+                    {!readOnly && session.status === 'active' ? (
                       <button
                         className="btn btn-error btn-xs gap-1"
                         onClick={() => handleCloseSession(session.id)}
@@ -207,10 +209,10 @@ export default function SessionTable({
                         {t.attendanceManagement.statusClosed}
                       </button>
                     ) : (
-                      <span className="text-base-content/40">-</span>
+                      <span className="text-base-content/40">{readOnly ? '-' : '-'}</span>
                     )}
 
-                    {session.status === 'closed' && (
+                    {!readOnly && session.status === 'closed' && (
                       <button
                         className="btn btn-ghost btn-xs text-error hover:bg-error/10"
                         onClick={() => handleDeleteClick(session)}

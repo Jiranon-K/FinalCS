@@ -218,7 +218,7 @@ export default function StudentDashboard() {
               {courses.length === 0 && (
                 <div className="text-center py-4 opacity-50">{t.course?.noCourses}</div>
               )}
-              <Link href="/profile" className="btn btn-outline btn-sm mt-2">
+              <Link href="/schedule" className="btn btn-outline btn-sm mt-2">
                 {t.common?.view} {t.course?.title}
               </Link>
             </div>

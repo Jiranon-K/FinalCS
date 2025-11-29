@@ -28,9 +28,12 @@ export default function AttendancePage() {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
 
   useEffect(() => {
-    if (user && user.role !== 'admin' && user.role !== 'teacher') {
+    if (user && user.role !== 'admin' && user.role !== 'teacher' && user.role !== 'student') {
       showToast({ type: 'error', message: t.common?.accessDenied || 'Access denied' });
       router.push('/');
+    }
+    if (user?.role === 'student') {
+        setActiveTab('history');
     }
   }, [user, router, showToast, t]);
 
@@ -91,24 +94,28 @@ export default function AttendancePage() {
       </div>
 
       <div className="tabs tabs-boxed bg-base-200 mb-6 p-1">
-        <button
-          className={`tab ${activeTab === 'manual' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('manual')}
-        >
-          {t.attendanceManagement.manual}
-        </button>
+        {user?.role !== 'student' && (
+            <button
+            className={`tab ${activeTab === 'manual' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('manual')}
+            >
+            {t.attendanceManagement.manual}
+            </button>
+        )}
         <button
           className={`tab ${activeTab === 'history' ? 'tab-active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           {t.attendanceManagement.history}
         </button>
-        <button
-          className={`tab ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          {t.attendanceManagement.dashboard}
-        </button>
+        {user?.role !== 'student' && (
+            <button
+            className={`tab ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+            >
+            {t.attendanceManagement.dashboard}
+            </button>
+        )}
       </div>
 
       {activeTab !== 'dashboard' && (

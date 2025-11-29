@@ -95,7 +95,7 @@ export default function SchedulePage() {
   useEffect(() => {
     if (!authLoading && user) {
       fetchCourses();
-      if (user.role === 'admin' || user.role === 'teacher') {
+      if (user.role === 'admin' || user.role === 'teacher' || user.role === 'student') {
         fetchSessions();
       }
     }
@@ -254,7 +254,7 @@ export default function SchedulePage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="relative flex-1 max-w-xs">
+        {/* <div className="relative flex-1 max-w-xs">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-base-content/40 absolute left-3 top-1/2 -translate-y-1/2">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
@@ -286,7 +286,7 @@ export default function SchedulePage() {
           <option value="active">{t.course.statusActive}</option>
           <option value="archived">{t.course.statusArchived}</option>
           <option value="draft">{t.course.statusDraft}</option>
-        </select>
+        </select> */}
 
         {hasFilters && (
           <button
@@ -397,7 +397,7 @@ export default function SchedulePage() {
         </>
       )}
 
-      {(user?.role === 'admin' || user?.role === 'teacher') && (
+      {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'student') && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -407,7 +407,7 @@ export default function SchedulePage() {
               {t.attendanceManagement.title}
             </h2>
             
-            {courses.length > 0 && (
+            {(user?.role === 'admin' || user?.role === 'teacher') && courses.length > 0 && (
               <div className="dropdown dropdown-end">
                 <div tabIndex={0} role="button" className="btn btn-primary btn-sm gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -434,6 +434,7 @@ export default function SchedulePage() {
             loading={sessionsLoading}
             onSessionClosed={fetchSessions}
             onSessionDeleted={fetchSessions}
+            readOnly={user?.role === 'student'}
           />
         </div>
       )}

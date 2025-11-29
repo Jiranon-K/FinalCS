@@ -169,37 +169,33 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           </li>
         )}
 
-        {/* Teaching Schedule - Only for Admin and Teacher */}
-        {(!user || user.role !== 'student') && (
-          <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.schedule : undefined}>
-            <Link href="/schedule" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/schedule') ? 'bg-primary text-primary-content' : ''}`}>
-              <Image
-                src="/menu-icon/book.png"
-                alt="Schedule"
-                width={32}
-                height={32}
-                className="w-8 h-8"
-              />
-              <span className={!isOpen ? 'hidden' : ''}>{t.nav.schedule}</span>
-            </Link>
-          </li>
-        )}
+        {/* Teaching Schedule - Available for Everyone */}
+        <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.schedule : undefined}>
+          <Link href="/schedule" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/schedule') ? 'bg-primary text-primary-content' : ''}`}>
+            <Image
+              src="/menu-icon/book.png"
+              alt="Schedule"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
+            <span className={!isOpen ? 'hidden' : ''}>{t.nav.schedule}</span>
+          </Link>
+        </li>
 
-        {/* Attendance Management - Only for Admin and Teacher */}
-        {(!user || user.role !== 'student') && (
-          <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.attendanceManagement : undefined}>
-            <Link href="/attendance" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/attendance') ? 'bg-primary text-primary-content' : ''}`}>
-              <Image
-                src="/menu-icon/document.png"
-                alt="Attendance Management"
-                width={32}
-                height={32}
-                className="w-8 h-8"
-              />
-              <span className={!isOpen ? 'hidden' : ''}>{t.nav.attendanceManagement}</span>
-            </Link>
-          </li>
-        )}
+        {/* Attendance Management - Available for Everyone */}
+        <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.attendanceManagement : undefined}>
+          <Link href="/attendance" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/attendance') ? 'bg-primary text-primary-content' : ''}`}>
+            <Image
+              src="/menu-icon/document.png"
+              alt="Attendance Management"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
+            <span className={!isOpen ? 'hidden' : ''}>{t.nav.attendanceManagement}</span>
+          </Link>
+        </li>
 
         <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.settings : undefined}>
           <Link href="/settings" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/settings') ? 'bg-primary text-primary-content' : ''}`}>
