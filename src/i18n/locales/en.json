@@ -208,6 +208,7 @@
     "overview": "Overview",
     "statistics": "Statistics",
     "recentActivity": "Recent Activity",
+    "activeSessions": "Active Sessions",
     "totalPersons": "Total Persons",
     "totalStudents": "Total Students",
     "totalTeachers": "Total Teachers",
@@ -722,5 +723,20 @@
     "studentsChecked": "Students checked",
     "averageAttendance": "Average attendance",
     "todaySessions": "Today Sessions"
+  },
+  "liveness": {
+    "title": "Liveness Verification",
+    "instruction": "Please verify that you are a real person",
+    "start": "Start Verification",
+    "blinkInstruction": "Please blink {count} times",
+    "progress": "Progress",
+    "status": "Status",
+    "eyeOpen": "✓ Eyes Open",
+    "blinking": "👀 Blinking...",
+    "verified": "✓ Verification Successful!",
+    "verifying": "Verifying...",
+    "failed": "Verification Failed",
+    "attempts": "Failed attempts: {current}/{max}",
+    "ear": "Eye Aspect Ratio"
   }
 }

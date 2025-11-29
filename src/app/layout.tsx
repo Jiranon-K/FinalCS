@@ -11,6 +11,7 @@ import FloatingCameraPreview from "@/components/camera/FloatingCameraPreview";
 import { FaceAPIProvider } from "@/contexts/FaceAPIContext";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LivenessProvider } from '@/contexts/LivenessContext';
 
 const notoSansThai = Noto_Sans_Thai({
   variable: "--font-noto-sans-thai",
@@ -36,12 +37,13 @@ export default function RootLayout({
       <body className={`${notoSansThai.variable} antialiased`}>
         <ThemeProvider>
           <LocaleProvider>
-            <FaceAPIProvider>
-              <CameraProvider>
-                <ToastProvider>
-                  <AuthProvider>
-                    <AuthGuard>
-                      <Drawer>{children}</Drawer>
+            <LivenessProvider>
+              <FaceAPIProvider>
+                <CameraProvider>
+                  <ToastProvider>
+                    <AuthProvider>
+                      <AuthGuard>
+                        <Drawer>{children}</Drawer>
                       <ToastContainer />
                       <FloatingCameraPreview />
                     </AuthGuard>
@@ -49,6 +51,7 @@ export default function RootLayout({
                 </ToastProvider>
               </CameraProvider>
             </FaceAPIProvider>
+          </LivenessProvider>
           </LocaleProvider>
         </ThemeProvider>
       </body>

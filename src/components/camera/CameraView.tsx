@@ -6,13 +6,17 @@ import { useCameraContext } from '@/contexts/CameraContext';
 import { useFaceAPI } from '@/hooks/useFaceAPI';
 import { useToast } from '@/hooks/useToast';
 import Loading from '@/components/ui/Loading';
-import RecentAttendance from '@/components/camera/RecentAttendance';
+import LivenessCheck from '@/components/liveness/LivenessCheck';
 import type { FaceDetectionResult } from '@/types/face';
 import type { PersonForRecognition } from '@/types/person';
 import type { AttendanceSession } from '@/types/session';
-import type { AttendanceRecord } from '@/types/attendance';
 
-export default function CameraView() {
+interface CameraViewProps {
+  activeSessions: AttendanceSession[];
+  onAttendanceRecorded: () => void;
+}
+
+export default function CameraView({ activeSessions, onAttendanceRecorded }: CameraViewProps) {
   const { t } = useLocale();
   const { showToast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -26,10 +30,9 @@ export default function CameraView() {
   const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number; id?: string }>>(new Map());
   const [knownPersons, setKnownPersons] = useState<PersonForRecognition[]>([]);
 
-  const [activeSessions, setActiveSessions] = useState<AttendanceSession[]>([]);
   const [lastAttendanceRecord, setLastAttendanceRecord] = useState<Map<string, Date>>(new Map());
-  const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
-  const [loadingRecords, setLoadingRecords] = useState(false);
+  const [showLivenessCheck, setShowLivenessCheck] = useState(false);
+  const [pendingPerson, setPendingPerson] = useState<{ id: string; name: string } | null>(null);
 
   const {
     stream,
@@ -51,41 +54,6 @@ export default function CameraView() {
     }
   }, [stream]);
 
-  const fetchRecentRecords = async () => {
-    try {
-      setLoadingRecords(true);
-      const response = await fetch('/api/attendance/records?limit=3&skip=0');
-      const data = await response.json();
-      if (data.success) {
-        setRecentRecords(data.data);
-      }
-    } catch (err) {
-      console.error('Error fetching recent records:', err);
-    } finally {
-      setLoadingRecords(false);
-    }
-  };
-
-  useEffect(() => {
-    const fetchActiveSessions = async () => {
-      try {
-        const response = await fetch('/api/attendance/sessions/active');
-        const data = await response.json();
-        if (data.success) {
-          setActiveSessions(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching active sessions:', err);
-      }
-    };
-
-    fetchActiveSessions();
-    fetchRecentRecords();
-    const interval = setInterval(fetchActiveSessions, 10000); // Poll every 10 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
   useEffect(() => {
     const loadKnownPersons = async () => {
       try {
@@ -93,7 +61,6 @@ export default function CameraView() {
         const data = await response.json();
         if (data.success) {
           setKnownPersons(data.data);
-          console.log(`✅ Loaded ${data.data.length} known persons for recognition`);
         }
       } catch (err) {
         console.error('Error loading known persons:', err);
@@ -142,7 +109,6 @@ export default function CameraView() {
         });
 
         if (!response.ok) {
-          console.warn(`API returned ${response.status} for ${personName}`);
           continue;
         }
 
@@ -164,9 +130,22 @@ export default function CameraView() {
     pendingRecordsRef.current.delete(personId);
 
     if (recorded) {
-      // Status already updated optimistically above
-      fetchRecentRecords();
+      onAttendanceRecorded();
     }
+  };
+
+  const handleLivenessVerified = () => {
+    if (pendingPerson) {
+      recordAttendance(pendingPerson.id, pendingPerson.name);
+    }
+    setShowLivenessCheck(false);
+    setPendingPerson(null);
+  };
+
+  const handleLivenessFailed = () => {
+    showToast({ type: 'error', message: t.liveness?.failed || 'Verification Failed' });
+    setShowLivenessCheck(false);
+    setPendingPerson(null);
   };
 
   useEffect(() => {
@@ -207,7 +186,10 @@ export default function CameraView() {
                 });
                 
                 if (match.confidence > 0.45 && match.personId) {
-                    recordAttendance(match.personId, match.personName);
+                    if (!showLivenessCheck) {
+                      setPendingPerson({ id: match.personId, name: match.personName });
+                      setShowLivenessCheck(true);
+                    }
                 }
 
               } else {
@@ -275,10 +257,10 @@ export default function CameraView() {
               }
 
               if (face.landmarks) {
-                ctx.fillStyle = '#3b82f6'; 
+                ctx.fillStyle = '#00ffcc'; 
                 face.landmarks.positions.forEach((point) => {
                   ctx.beginPath();
-                  ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                  ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
                   ctx.fill();
                 });
               }
@@ -290,7 +272,7 @@ export default function CameraView() {
       }
     };
 
-    detectionIntervalRef.current = window.setInterval(runDetection, 300);
+    detectionIntervalRef.current = window.setInterval(runDetection, 200);
 
     return () => {
       video.removeEventListener('loadedmetadata', updateCanvasSize);
@@ -298,12 +280,12 @@ export default function CameraView() {
         clearInterval(detectionIntervalRef.current);
       }
     };
-  }, [isStreaming, faceDetectionEnabled, modelsLoaded, detectFaces, recognizeFace, knownPersons, activeSessions, lastAttendanceRecord]); // Added dependencies
+  }, [isStreaming, faceDetectionEnabled, modelsLoaded, detectFaces, recognizeFace, knownPersons, activeSessions, lastAttendanceRecord, showLivenessCheck]);
 
   return (
     <div className="flex flex-col h-full w-full gap-4">
       <div className="bg-base-200/20 rounded-2xl shadow-lg border border-base-content/10">
-        <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-primary/20 rounded-xl">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-primary">
@@ -328,12 +310,12 @@ export default function CameraView() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             <div className="dropdown dropdown-end">
               <div 
                 tabIndex={0} 
                 role="button" 
-                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-60 h-auto py-1 justify-between font-normal ${isStreaming ? 'btn-disabled opacity-50' : ''}`}
+                className={`btn btn-sm bg-base-100/20 border-base-content/20 w-full sm:w-auto sm:min-w-[180px] max-w-none sm:max-w-60 h-auto py-2 sm:py-1 justify-between font-normal ${isStreaming ? 'btn-disabled opacity-50' : ''}`}
               >
                 <div className="flex flex-col items-start text-left overflow-hidden w-full mr-2">
                   <span className="font-bold text-xs truncate w-full">
@@ -398,7 +380,7 @@ export default function CameraView() {
               <div 
                 tabIndex={0} 
                 role="button" 
-                className={`btn btn-sm bg-base-100/20 border-base-content/20 min-w-[180px] max-w-60 h-auto py-1 justify-between font-normal ${devices.length === 0 || isStreaming ? 'btn-disabled opacity-50' : ''}`}
+                className={`btn btn-sm bg-base-100/20 border-base-content/20 w-full sm:w-auto sm:min-w-[180px] max-w-none sm:max-w-60 h-auto py-2 sm:py-1 justify-between font-normal ${devices.length === 0 || isStreaming ? 'btn-disabled opacity-50' : ''}`}
               >
                 <div className="flex flex-col items-start text-left overflow-hidden w-full mr-2">
                   <span className="font-bold text-xs truncate w-full">
@@ -433,7 +415,7 @@ export default function CameraView() {
 
             {!isStreaming ? (
               <button
-                className="btn btn-primary btn-sm gap-2"
+                className="btn btn-primary btn-sm gap-2 w-full sm:w-auto"
                 onClick={() => startCamera()}
                 disabled={!selectedDeviceId}
               >
@@ -444,7 +426,7 @@ export default function CameraView() {
               </button>
             ) : (
               <button
-                className="btn btn-error btn-sm gap-2"
+                className="btn btn-error btn-sm gap-2 w-full sm:w-auto"
                 onClick={stopCamera}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -466,54 +448,30 @@ export default function CameraView() {
         </div>
       )}
 
-      <div className="flex-1 min-h-[600px] relative bg-base-200/20 rounded-2xl overflow-hidden shadow-lg border border-base-content/10">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="w-full h-full object-cover"
+      {showLivenessCheck && detectedFaces.length > 0 && (
+        <LivenessCheck
+          detectedFace={detectedFaces[0]}
+          onVerified={handleLivenessVerified}
+          onFailed={handleLivenessFailed}
         />
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        />
+      )}
 
-        {/* Active Sessions Overlay */}
-        {activeSessions.length > 0 && (
-          <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 w-56">
-            {activeSessions.map(session => (
-              <div key={session.id} className="relative overflow-hidden bg-base-100/90 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-base-content/5 transition-transform hover:scale-[1.02]">
-                <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-                
-                <div className="flex items-center justify-between mb-1.5 pl-2">
-                  <span className="font-black text-base text-base-content tracking-tight leading-none">
-                    {session.courseCode}
-                  </span>
-                  <div className="flex items-center gap-1 bg-success/10 px-1.5 py-0.5 rounded-full border border-success/10">
-                     <span className="relative flex h-1.5 w-1.5">
-                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success"></span>
-                     </span>
-                     <span className="text-[9px] font-bold uppercase tracking-wider text-success">Active</span>
-                  </div>
-                </div>
-                
-                <h3 className="text-xs font-medium text-base-content/70 truncate mb-2 pl-2" title={session.courseName}>
-                  {session.courseName}
-                </h3>
-                
-                <div className="flex items-center justify-between text-[10px] bg-base-200/50 rounded-md p-1.5 ml-2">
-                   <span className="font-mono text-base-content/60">{session.startTime} - {session.endTime}</span>
-                   <div className="flex items-center gap-1">
-                      <span className="font-bold text-base-content">{session.stats?.presentCount || 0}</span>
-                      <span className="text-base-content/40">Present</span>
-                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="flex-1 min-h-[350px] lg:min-h-[600px] relative bg-base-200/20 rounded-2xl overflow-hidden shadow-lg border border-base-content/10 flex items-center justify-center bg-black">
+        <div className="relative">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="max-w-full max-h-full w-auto h-auto"
+            style={{ maxHeight: 'calc(100vh - 300px)' }}
+          />
+          <canvas
+            ref={canvasRef}
+            className="absolute top-0 left-0 w-full h-full pointer-events-none"
+          />
+        </div>
+
 
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-base-200/50 backdrop-blur-sm z-10">
@@ -609,8 +567,6 @@ export default function CameraView() {
         )}
       </div>
 
-      {/* Recent Attendance Records */}
-      <RecentAttendance records={recentRecords} loading={loadingRecords} />
     </div>
   );
 }
