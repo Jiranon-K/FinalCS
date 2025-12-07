@@ -282,7 +282,7 @@ export default function EditCoursePage() {
 
       if (result.success) {
         showToast({ message: t.course.updateSuccess || 'Course updated successfully', type: 'success' });
-        router.push(`/schedule/${courseId}`);
+        router.push('/schedule');
       } else {
         throw new Error(result.error || t.course.createError);
       }
@@ -322,7 +322,7 @@ export default function EditCoursePage() {
     <div className="container mx-auto p-6 max-w-5xl">
       <div className="mb-6">
         <button
-          onClick={() => router.push(`/schedule/${courseId}`)}
+          onClick={() => router.push('/schedule')}
           className="btn btn-ghost btn-sm gap-2 mb-4"
         >
           <BackIcon />
@@ -781,7 +781,7 @@ export default function EditCoursePage() {
             <div className="flex gap-3 ml-auto">
               <button
                 type="button"
-                onClick={() => router.push(`/schedule/${courseId}`)}
+                onClick={() => router.push('/schedule')}
                 className="btn btn-ghost"
                 disabled={saving}
               >

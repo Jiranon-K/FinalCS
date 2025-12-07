@@ -503,7 +503,10 @@
     "allSchedules": "ตารางทั้งหมด",
     "clickToViewDetails": "คลิกเพื่อดูรายละเอียด",
     "noCoursesYet": "ยังไม่มีรายวิชา",
-    "addFirstCourse": "เพิ่มรายวิชาแรกของคุณเพื่อดูที่นี่"
+    "addFirstCourse": "เพิ่มรายวิชาแรกของคุณเพื่อดูที่นี่",
+    "today": "วันนี้",
+    "filterByDay": "กรองตามวัน",
+    "allDays": "ทั้งหมด"
   },
   "course": {
     "title": "รายวิชา",
