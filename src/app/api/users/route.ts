@@ -57,8 +57,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let imageUrl = `${process.env.R2_PUBLIC_URL}/default_profile/user.png`;
-    let imageKey = 'default_profile/user.png';
+    const defaultImageName = role === 'student' ? 'student.png' : 'teacher.png';
+    let imageUrl = `${process.env.R2_PUBLIC_URL}/default_profile/${defaultImageName}`;
+    let imageKey = `default_profile/${defaultImageName}`;
 
     if (imageData) {
       const uploadResult = await uploadBase64Image(imageData, username, 'user');
