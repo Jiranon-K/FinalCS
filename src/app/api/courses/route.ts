@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Types } from 'mongoose';
 import { connectDB } from '@/lib/mongoose';
 import { Course } from '@/models';
 import User from '@/models/User';
@@ -84,14 +85,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
-    if (error.message === 'Authentication required' || error.message === 'Invalid token') {
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'Authentication required' || error.message === 'Invalid token')) {
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 401 }
       );
     }
-    if (error.message === 'Insufficient permissions') {
+    if (error instanceof Error && error.message === 'Insufficient permissions') {
       return forbiddenResponse();
     }
     console.error('Error creating course:', error);
@@ -110,6 +111,7 @@ export async function GET(request: NextRequest) {
     const teacherId = searchParams.get('teacherId') || '';
     const semester = searchParams.get('semester') || '';
     const status = searchParams.get('status') || '';
+    const studentId = searchParams.get('studentId') || '';
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = parseInt(searchParams.get('skip') || '0');
 
@@ -118,9 +120,10 @@ export async function GET(request: NextRequest) {
         courseName?: { $regex: string; $options: string };
         courseCode?: { $regex: string; $options: string };
       }>;
-      teacherId?: any;
+      teacherId?: string | Types.ObjectId;
       semester?: string;
       status?: string;
+      'enrolledStudents.studentId'?: string | Types.ObjectId;
     }
 
     const query: CourseQuery = {};
@@ -135,13 +138,17 @@ export async function GET(request: NextRequest) {
     if (teacherId) {
       query.teacherId = teacherId;
     }
+    
+    if (studentId) {
+       query['enrolledStudents.studentId'] = studentId;
+    }
 
     if (semester) {
       query.semester = semester;
     }
 
     if (status) {
-      query.status = status as any;
+      query.status = status;
     }
 
     if (user.role === 'teacher') {
@@ -204,8 +211,8 @@ export async function GET(request: NextRequest) {
         hasMore: skip + courses.length < total,
       },
     });
-  } catch (error: any) {
-    if (error.message === 'Authentication required' || error.message === 'Invalid token') {
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'Authentication required' || error.message === 'Invalid token')) {
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 401 }

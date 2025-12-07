@@ -6,8 +6,9 @@ import { useToast } from '@/hooks/useToast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUpload, faCheckCircle, faExclamationTriangle, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Image from 'next/image';
-import * as tf from '@tensorflow/tfjs';
-import * as faceapi from '@vladmandic/face-api';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FaceAPIModule = any;
 
 interface FaceUploadProps {
   onFaceDetected: (imageFile: File, faceDescriptor: number[]) => void;
@@ -29,12 +30,20 @@ export default function FaceUpload({
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modelsLoadedRef = useRef(false);
+  const faceapiRef = useRef<FaceAPIModule | null>(null);
 
   useEffect(() => {
     const loadModels = async () => {
       if (modelsLoadedRef.current) return;
 
       try {
+        const [tf, faceapi] = await Promise.all([
+          import('@tensorflow/tfjs'),
+          import('@vladmandic/face-api')
+        ]);
+
+        faceapiRef.current = faceapi;
+
         await tf.ready();
 
         const MODEL_URL = '/model';
@@ -43,7 +52,7 @@ export default function FaceUpload({
           faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
           faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         ]);
-        
+
         if (!modelsLoadedRef.current) {
           modelsLoadedRef.current = true;
           setModelsLoaded(true);
@@ -70,7 +79,9 @@ export default function FaceUpload({
   }, [t, showToast]);
 
   const detectFace = async (file: File) => {
-    if (!modelsLoaded) {
+    const faceapi = faceapiRef.current;
+
+    if (!modelsLoaded || !faceapi) {
       setDetectionError(t.faceDetection.loadingModels);
       return;
     }
@@ -106,7 +117,7 @@ export default function FaceUpload({
       setFaceDetected(true);
       setConfidence(faceConfidence);
 
-      const descriptor = Array.from(detection.descriptor);
+      const descriptor = Array.from(detection.descriptor) as number[];
       onFaceDetected(file, descriptor);
 
     } catch (error) {

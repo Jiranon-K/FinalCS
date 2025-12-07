@@ -14,6 +14,7 @@
     "attendanceManagement": "บันทึกการเข้าเรียน",
     "dashboard": "แดชบอร์ด",
     "users": "จัดการผู้ใช้",
+    "allStudents": "รายชื่อนักศึกษาทั้งหมด",
     "faceRequests": "คำขออนุมัติใบหน้า",
     "schedule": "ตารางสอน",
     "pleaseRegisterFace": "กรุณาลงทะเบียนใบหน้าก่อนใช้งาน"
@@ -286,6 +287,46 @@
     "loginFailed": "เข้าสู่ระบบล้มเหลว",
     "loginError": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
     "loading": "กำลังโหลด..."
+  },
+  "students": {
+    "title": "รายชื่อนักศึกษาทั้งหมด",
+    "subtitle": "ดูและค้นหาข้อมูลนักศึกษาทั้งหมด",
+    "search": "ค้นหา",
+    "searchPlaceholder": "ค้นหาชื่อ, รหัสนักศึกษา...",
+    "department": "สาขาวิชา",
+    "grade": "ชั้นปี",
+    "class": "ห้อง",
+    "studentId": "รหัสนักศึกษา",
+    "name": "ชื่อ-นามสกุล",
+    "email": "อีเมล",
+    "phone": "เบอร์โทรศัพท์",
+    "noStudents": "ไม่พบข้อมูลนักศึกษา",
+    "clearFilters": "ล้างตัวกรอง",
+    "loading": "กำลังโหลดข้อมูล...",
+    "importExcel": "นำเข้าข้อมูล Excel",
+    "details": {
+        "title": "รายละเอียดนักศึกษา",
+        "tabs": {
+            "profile": "ข้อมูลส่วนตัว",
+            "courses": "วิชาที่ลงทะเบียน",
+            "attendance": "ประวัติการเข้าเรียน"
+        },
+        "attendance": {
+            "date": "วันที่",
+            "course": "วิชา",
+            "status": "สถานะ",
+            "noRecords": "ไม่พบประวัติการเข้าเรียน"
+        },
+        "courses": {
+            "code": "รหัสวิชา",
+            "name": "ชื่อวิชา",
+            "semester": "ภาคการศึกษา",
+            "noCourses": "ไม่พบรายวิชาที่ลงทะเบียน"
+        }
+    },
+    "actions": "การดำเนินการ",
+    "view": "ดูรายละเอียด",
+    "edit": "แก้ไข"
   },
   "users": {
     "title": "จัดการผู้ใช้งาน",
@@ -604,7 +645,7 @@
     "method": "วิธีการ",
     "methodFaceRecognition": "ระบบจดจำใบหน้า",
     "methodManual": "กรอกด้วยตนเอง",
-    "statusNormal": "ปกติ",
+    "statusNormal": "มาเรียน",
     "statusLate": "สาย",
     "statusAbsent": "ขาด",
     "statusLeave": "ลา",
@@ -619,7 +660,7 @@
     "sessionStats": {
       "expected": "คาดว่าจะมา",
       "present": "เข้าเรียน",
-      "normal": "ปกติ",
+      "normal": "มาเรียน",
       "late": "สาย",
       "absent": "ขาด",
       "leave": "ลา",

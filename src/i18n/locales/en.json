@@ -137,18 +137,6 @@
     "fileTooLarge": "Image file must be less than 5MB",
     "faceImageInfo": "Please upload a clear face image. Only one face should be visible in the image.",
     "confirmCancel": "Are you sure you want to cancel registration?",
-    "saving": "Saving...",
-    "loginRequired": "Please login before registration",
-    "faceRequired": "Please capture face image before saving",
-    "submitting": "Submitting..."
-  },
-  "persons": {
-    "title": "Manage Persons",
-    "subtitle": "View and manage persons in the system",
-    "search": "Search",
-    "searchPlaceholder": "Search name, ID, email",
-    "filterByRole": "Filter by Role",
-    "all": "All",
     "students": "Students",
     "teachers": "Teachers",
     "totalPersons": "Total Persons",
@@ -286,6 +274,46 @@
     "loginFailed": "Login failed",
     "loginError": "An error occurred. Please try again.",
     "loading": "Loading..."
+  },
+  "students": {
+    "title": "All Students",
+    "subtitle": "View and search all students",
+    "search": "Search",
+    "searchPlaceholder": "Search name, student ID...",
+    "department": "Department",
+    "grade": "Grade",
+    "class": "Class",
+    "studentId": "Student ID",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "noStudents": "No students found",
+    "clearFilters": "Clear Filters",
+    "loading": "Loading data...",
+    "importExcel": "Import Excel",
+    "details": {
+        "title": "Student Details",
+        "tabs": {
+            "profile": "Profile",
+            "courses": "Registered Courses",
+            "attendance": "Attendance History"
+        },
+        "attendance": {
+            "date": "Date",
+            "course": "Course",
+            "status": "Status",
+            "noRecords": "No attendance records found"
+        },
+        "courses": {
+            "code": "Course Code",
+            "name": "Course Name",
+            "semester": "Semester",
+            "noCourses": "No registered courses found"
+        }
+    },
+    "actions": "Actions",
+    "view": "View Details",
+    "edit": "Edit"
   },
   "users": {
     "title": "User Management",
@@ -604,7 +632,7 @@
     "method": "Method",
     "methodFaceRecognition": "Face Recognition",
     "methodManual": "Manual Entry",
-    "statusNormal": "Normal",
+    "statusNormal": "Present",
     "statusLate": "Late",
     "statusAbsent": "Absent",
     "statusLeave": "Leave",
@@ -619,7 +647,7 @@
     "sessionStats": {
       "expected": "Expected",
       "present": "Present",
-      "normal": "Normal",
+      "normal": "Present",
       "late": "Late",
       "absent": "Absent",
       "leave": "Leave",

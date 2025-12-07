@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
+import { Types } from 'mongoose';
 import { AttendanceRecord, AttendanceSession, Course } from '@/models';
 import User from '@/models/User';
 import Student from '@/models/Student';
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     const range = searchParams.get('range') || 'today';
 
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     let endDate = new Date();
 
     if (range === 'today') {
@@ -31,7 +32,12 @@ export async function GET(request: NextRequest) {
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
 
-    const sessionQuery: any = {
+    interface SessionQueryType {
+      sessionDate: { $gte: Date; $lte: Date };
+      courseId?: { $in: string[] };
+    }
+
+    const sessionQuery: SessionQueryType = {
       sessionDate: { $gte: startDate, $lte: endDate }
     };
     let teacherCourseIds: string[] = [];
@@ -50,7 +56,7 @@ export async function GET(request: NextRequest) {
       const userDoc = await User.findOne({ username: user.username });
       if (userDoc && userDoc.profileId) {
         studentId = userDoc.profileId.toString();
-        const studentCourses = await Course.find({ enrolledStudents: { $in: [userDoc.profileId] } as any }).select('_id');
+        const studentCourses = await Course.find({ 'enrolledStudents.studentId': userDoc.profileId }).select('_id');
         const studentCourseIds = studentCourses.map(c => c._id.toString());
         sessionQuery.courseId = { $in: studentCourseIds };
       } else {
@@ -74,7 +80,12 @@ export async function GET(request: NextRequest) {
     const sessions = await AttendanceSession.find(sessionQuery).sort({ sessionDate: -1 });
     const sessionIds = sessions.map(s => s._id);
 
-    const recordQuery: any = { sessionId: { $in: sessionIds } };
+    interface RecordQueryType {
+      sessionId: { $in: Types.ObjectId[] };
+      studentId?: string;
+    }
+
+    const recordQuery: RecordQueryType = { sessionId: { $in: sessionIds } };
     if (studentId) {
       recordQuery.studentId = studentId;
     }
@@ -83,8 +94,8 @@ export async function GET(request: NextRequest) {
 
     // --- Basic Stats ---
     const totalSessions = sessions.length;
-    const totalRecords = records.length; // For student, this is number of attended/marked sessions
-    const presentCount = records.filter(r => r.status === 'normal').length;
+    const totalRecords = records.length;
+    const presentCount = records.filter(r => r.status === 'present').length;
     const lateCount = records.filter(r => r.status === 'late').length;
     const absentCount = records.filter(r => r.status === 'absent').length;
     const leaveCount = records.filter(r => r.status === 'leave').length;
@@ -117,7 +128,7 @@ export async function GET(request: NextRequest) {
             });
         }
     } else if (user.role === 'student' && studentId) {
-         const studentCourses = await Course.find({ enrolledStudents: { $in: [studentId] } as any }).select('courseName courseCode');
+         const studentCourses = await Course.find({ 'enrolledStudents.studentId': studentId }).select('courseName courseCode');
          for (const course of studentCourses) {
             courseStatsMap.set(course._id.toString(), {
                 courseId: course._id.toString(),
@@ -156,13 +167,13 @@ export async function GET(request: NextRequest) {
         if (user.role === 'student') {
              stats.totalExpected++;
              const myRecord = records.find(r => r.sessionId.toString() === session._id.toString());
-             if (myRecord && (myRecord.status === 'normal' || myRecord.status === 'late')) {
+             if (myRecord && (myRecord.status === 'present' || myRecord.status === 'late')) {
                  stats.presentCount++;
              }
         } else {
             const sessionRecords = records.filter(r => r.sessionId.toString() === session._id.toString());
             stats.totalExpected += sessionRecords.length;
-            stats.presentCount += sessionRecords.filter(r => r.status === 'normal' || r.status === 'late').length;
+            stats.presentCount += sessionRecords.filter(r => r.status === 'present' || r.status === 'late').length;
         }
       }
     }
@@ -193,11 +204,11 @@ export async function GET(request: NextRequest) {
                      trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
                 }
                 const entry = trendMap.get(dateStr);
-                if (record.status === 'normal') entry.present++;
+                if (record.status === 'present') entry.present++;
                 else if (record.status === 'late') entry.late++;
                 else if (record.status === 'absent') entry.absent++;
                 else if (record.status === 'leave') entry.leave++;
-             }
+            }
         });
     } else {
         records.forEach(record => {
@@ -208,14 +219,21 @@ export async function GET(request: NextRequest) {
                      trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
                 }
                 const entry = trendMap.get(dateStr);
-                if (record.status === 'normal') entry.present++;
+                if (record.status === 'present') entry.present++;
                 else if (record.status === 'late') entry.late++;
                 else if (record.status === 'absent') entry.absent++;
                 else if (record.status === 'leave') entry.leave++;
             }
         });
     }
-    const trend = Array.from(trendMap.values()).sort((a: any, b: any) => a.date.localeCompare(b.date));
+    interface TrendEntry {
+        date: string;
+        present: number;
+        late: number;
+        absent: number;
+        leave: number;
+    }
+    const trend = Array.from(trendMap.values()).sort((a: TrendEntry, b: TrendEntry) => a.date.localeCompare(b.date));
 
  
     const recentSessions = await Promise.all(sessions.slice(0, 5).map(async (session) => {
@@ -227,13 +245,13 @@ export async function GET(request: NextRequest) {
                 id: session._id,
                 courseName: course?.courseName || 'Unknown Course',
                 date: session.sessionDate,
-                presentCount: (myRecord && (myRecord.status === 'normal' || myRecord.status === 'late')) ? 1 : 0,
+                presentCount: (myRecord && (myRecord.status === 'present' || myRecord.status === 'late')) ? 1 : 0,
                 totalCount: 1, 
                 status: myRecord ? myRecord.status : 'absent'
             };
         } else {
             const sessionRecords = records.filter(r => r.sessionId.toString() === session._id.toString());
-            const sessionPresent = sessionRecords.filter(r => r.status === 'normal' || r.status === 'late').length;
+            const sessionPresent = sessionRecords.filter(r => r.status === 'present' || r.status === 'late').length;
             const sessionTotal = sessionRecords.length;
             
             return {
@@ -247,7 +265,16 @@ export async function GET(request: NextRequest) {
         }
     }));
     
-    let atRiskStudents: any[] = [];
+    interface AtRiskStudent {
+        id: Types.ObjectId | string;
+        name: string;
+        studentId: string;
+        rate: number;
+        totalClasses: number;
+        missed: number;
+    }
+    
+    const atRiskStudents: AtRiskStudent[] = [];
     if (user.role !== 'student') {
         const studentStats = new Map();
         records.forEach(record => {
@@ -257,7 +284,7 @@ export async function GET(request: NextRequest) {
             }
             const stats = studentStats.get(studentId);
             stats.total++;
-            if (record.status === 'normal' || record.status === 'late') {
+            if (record.status === 'present' || record.status === 'late') {
                 stats.present++;
             }
         });
@@ -265,12 +292,12 @@ export async function GET(request: NextRequest) {
         for (const [studentId, stats] of studentStats.entries()) {
             const rate = (stats.present / stats.total) * 100;
             if (rate < 80) { 
-                const student = await Student.findById(studentId).select('firstName lastName studentId');
+                const student = await Student.findById(studentId).select('firstName lastName studentId name');
                 if (student) {
                     atRiskStudents.push({
                         id: student._id,
-                        name: student.name,
-                        studentId: student.studentId,
+                        name: student.name || 'Unknown',
+                        studentId: student.studentId || 'Unknown',
                         rate: rate,
                         totalClasses: stats.total,
                         missed: stats.total - stats.present
@@ -308,7 +335,7 @@ export async function GET(request: NextRequest) {
       atRiskStudents: atRiskStudents.sort((a, b) => a.rate - b.rate).slice(0, 5) 
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching stats:', error);
     return serverErrorResponse('Failed to fetch statistics');
   }

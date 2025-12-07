@@ -11,7 +11,7 @@ export interface AttendanceRecord {
   studentName: string;
   studentNumber?: string;
 
-  status: 'normal' | 'late' | 'absent' | 'leave';
+  status: 'present' | 'late' | 'absent' | 'leave';
 
   checkInTime?: Date;
   checkInMethod: 'face_recognition' | 'manual';
@@ -40,7 +40,7 @@ export interface RecordAttendanceRequest {
 }
 
 export interface AdjustAttendanceRequest {
-  status: 'normal' | 'late' | 'absent' | 'leave';
+  status: 'present' | 'late' | 'absent' | 'leave';
   note?: string;
 }
 
@@ -48,7 +48,7 @@ export interface AttendanceQuery {
   sessionId?: string;
   courseId?: string;
   studentId?: string;
-  status?: 'normal' | 'late' | 'absent' | 'leave';
+  status?: 'present' | 'late' | 'absent' | 'leave';
   startDate?: string;
   endDate?: string;
   limit?: number;

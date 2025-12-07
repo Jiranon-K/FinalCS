@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext';
 import FaceUpload from './FaceUpload';
+import { DEPARTMENTS, GRADES, CLASSES } from '@/lib/constants';
 
 type PersonRole = 'student' | 'teacher';
 
@@ -232,21 +233,11 @@ export default function RegisterForm() {
                 required
               >
                 <option value="">{t.register.departmentPlaceholder}</option>
-                <option value="Engineering">{t.register.deptEngineering}</option>
-                <option value="Science">{t.register.deptScience}</option>
-                <option value="Business Administration">{t.register.deptBusiness}</option>
-                <option value="Education">{t.register.deptEducation}</option>
-                <option value="Law">{t.register.deptLaw}</option>
-                <option value="Medicine">{t.register.deptMedicine}</option>
-                <option value="Nursing">{t.register.deptNursing}</option>
-                <option value="Information Technology">{t.register.deptIT}</option>
-                <option value="Computer Science">{t.register.deptComputerScience}</option>
-                <option value="Architecture">{t.register.deptArchitecture}</option>
-                <option value="Liberal Arts">{t.register.deptArts}</option>
-                <option value="Communication Arts">{t.register.deptCommunication}</option>
-                <option value="Economics">{t.register.deptEconomics}</option>
-                <option value="Accounting">{t.register.deptAccounting}</option>
-                <option value="Other">{t.register.deptOther}</option>
+                {DEPARTMENTS.map(dept => (
+                    <option key={dept} value={dept}>
+                        {t.register[`dept${dept}` as keyof typeof t.register] || dept}
+                    </option>
+                ))}
               </select>
             </div>
 
@@ -265,10 +256,11 @@ export default function RegisterForm() {
                     required
                   >
                     <option value="">{t.register.gradePlaceholder}</option>
-                    <option value="1">{t.register.gradeYear1}</option>
-                    <option value="2">{t.register.gradeYear2}</option>
-                    <option value="3">{t.register.gradeYear3}</option>
-                    <option value="4">{t.register.gradeYear4}</option>
+                    {GRADES.map(g => (
+                        <option key={g} value={g}>
+                             {t.register[`gradeYear${g}` as keyof typeof t.register] || `Year ${g}`}
+                        </option>
+                    ))}
                   </select>
                 </div>
 
@@ -285,10 +277,11 @@ export default function RegisterForm() {
                     required
                   >
                     <option value="">{t.register.classPlaceholder}</option>
-                    <option value="1">{t.register.class1}</option>
-                    <option value="2">{t.register.class2}</option>
-                    <option value="3">{t.register.class3}</option>
-                    <option value="4">{t.register.class4}</option>
+                     {CLASSES.map(c => (
+                        <option key={c} value={c}>
+                            {t.register[`class${c}` as keyof typeof t.register] || `Class ${c}`}
+                        </option>
+                    ))}
                   </select>
                 </div>
               </>

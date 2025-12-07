@@ -168,6 +168,22 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             </Link>
           </li>
         )}
+        
+        {/* All Students - Only for Admin and Teacher */}
+        {(user?.role === 'admin' || user?.role === 'teacher') && (
+           <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.students.title : undefined}>
+            <Link href="/all-students" className={`${!isOpen ? 'flex justify-center items-center px-0 w-full' : ''} ${isActive('/all-students') ? 'bg-primary text-primary-content' : ''}`}>
+              <Image
+                src="/menu-icon/profile.png"
+                alt="All Students"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
+              <span className={!isOpen ? 'hidden' : ''}>{t.students.title}</span>
+            </Link>
+          </li>
+        )}
 
         {/* Teaching Schedule - Available for Everyone */}
         <li className={`${!isOpen ? 'tooltip tooltip-right flex justify-center' : ''}`} data-tip={!isOpen ? t.nav.schedule : undefined}>

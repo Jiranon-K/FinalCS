@@ -38,7 +38,7 @@ const attendanceRecordSchema = new Schema<AttendanceRecordDocument>(
     },
     status: {
       type: String,
-      enum: ['normal', 'late', 'absent', 'leave'],
+      enum: ['present', 'late', 'absent', 'leave'],
       required: true,
       default: 'absent',
       index: true,

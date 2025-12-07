@@ -23,11 +23,14 @@ export async function GET(request: NextRequest) {
     const skip = parseInt(searchParams.get('skip') || '0');
 
     interface RecordQuery {
-      sessionId?: any;
-      courseId?: any;
-      studentId?: any;
+      sessionId?: mongoose.Types.ObjectId;
+      courseId?: mongoose.Types.ObjectId | { $in: mongoose.Types.ObjectId[] };
+      studentId?: mongoose.Types.ObjectId;
       status?: string;
-      createdAt?: any;
+      createdAt?: {
+        $gte?: Date;
+        $lte?: Date; 
+      };
     }
 
     const query: RecordQuery = {};
@@ -72,7 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (status) {
-      query.status = status as any;
+      query.status = status;
     }
 
     if (startDate || endDate) {
@@ -112,6 +115,7 @@ export async function GET(request: NextRequest) {
         .skip(skip)
         .limit(limit)
         .populate('studentId', 'imageUrl')
+        .populate('courseId', 'courseCode courseName')
         .lean(),
       AttendanceRecord.countDocuments(query),
     ]);
@@ -126,8 +130,8 @@ export async function GET(request: NextRequest) {
         hasMore: skip + records.length < total,
       },
     });
-  } catch (error: any) {
-    if (error.message === 'Authentication required' || error.message === 'Invalid token') {
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'Authentication required' || error.message === 'Invalid token')) {
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 401 }
@@ -229,7 +233,7 @@ export async function POST(request: NextRequest) {
       data: record
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error recording attendance:', error);
     return serverErrorResponse('Failed to record attendance');
   }

@@ -1,9 +1,7 @@
 'use client';
 
-import React, { createContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import * as tf from '@tensorflow/tfjs';
-import * as faceapi from '@vladmandic/face-api';
 import type {
   FaceDetectionResult,
   FaceRecognitionSettings,
@@ -11,6 +9,11 @@ import type {
   FaceDescriptor,
 } from '@/types/face';
 import type { PersonForRecognition } from '@/types/person';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FaceAPIModule = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TFModule = any;
 
 interface FaceApiDetection {
   detection: {
@@ -73,6 +76,9 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<FaceRecognitionSettings>(DEFAULT_SETTINGS);
   const [error, setError] = useState<string | null>(null);
 
+  const faceapiRef = useRef<FaceAPIModule | null>(null);
+  const tfRef = useRef<TFModule | null>(null);
+
   const loadModels = useCallback(async () => {
     if (modelsLoaded) return;
 
@@ -80,6 +86,14 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
+      const [tf, faceapi] = await Promise.all([
+        import('@tensorflow/tfjs'),
+        import('@vladmandic/face-api')
+      ]);
+
+      tfRef.current = tf;
+      faceapiRef.current = faceapi;
+
       await tf.ready();
       console.log('✅ TensorFlow.js backend ready:', tf.getBackend());
 
@@ -118,7 +132,9 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
     async (
       input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement
     ): Promise<FaceDetectionResult[]> => {
-      if (!modelsLoaded) {
+      const faceapi = faceapiRef.current;
+
+      if (!modelsLoaded || !faceapi) {
         throw new Error('Models not loaded. Call loadModels() first.');
       }
 
@@ -228,7 +244,9 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
 
   const recognizeFace = useCallback(
     (descriptor: FaceDescriptor, knownPersons: PersonForRecognition[]): FaceMatch | null => {
-      if (knownPersons.length === 0) {
+      const faceapi = faceapiRef.current;
+
+      if (knownPersons.length === 0 || !faceapi) {
         return null;
       }
 
@@ -276,7 +294,7 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const isLoginPage = pathname === '/login' || pathname === '/admin/login';
-    
+
     if (typeof window !== 'undefined' && !modelsLoaded && !isLoading && !isLoginPage) {
       loadModels();
     }
