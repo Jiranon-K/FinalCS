@@ -2,7 +2,8 @@
 
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import * as faceapi from 'face-api.js';
+import * as tf from '@tensorflow/tfjs';
+import * as faceapi from '@vladmandic/face-api';
 import type {
   FaceDetectionResult,
   FaceRecognitionSettings,
@@ -79,14 +80,15 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
+      await tf.ready();
+      console.log('✅ TensorFlow.js backend ready:', tf.getBackend());
+
       const modelPath = '/model';
 
       await Promise.all([
         settings.detectorModel === 'ssd_mobilenetv1'
           ? faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath)
-          : settings.detectorModel === 'tiny_face_detector'
-          ? faceapi.nets.tinyFaceDetector.loadFromUri(modelPath)
-          : faceapi.nets.mtcnn.loadFromUri(modelPath),
+          : faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
 
         faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
 
@@ -126,15 +128,10 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
           detectionOptions = new faceapi.SsdMobilenetv1Options({
             minConfidence: settings.detectionThreshold,
           });
-        } else if (settings.detectorModel === 'tiny_face_detector') {
+        } else {
           detectionOptions = new faceapi.TinyFaceDetectorOptions({
             inputSize: 416,
             scoreThreshold: settings.detectionThreshold,
-          });
-        } else {
-          detectionOptions = new faceapi.MtcnnOptions({
-            minFaceSize: 20,
-            scaleFactor: 0.709,
           });
         }
 

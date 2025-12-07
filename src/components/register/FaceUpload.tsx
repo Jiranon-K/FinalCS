@@ -6,7 +6,8 @@ import { useToast } from '@/hooks/useToast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUpload, faCheckCircle, faExclamationTriangle, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Image from 'next/image';
-import * as faceapi from 'face-api.js';
+import * as tf from '@tensorflow/tfjs';
+import * as faceapi from '@vladmandic/face-api';
 
 interface FaceUploadProps {
   onFaceDetected: (imageFile: File, faceDescriptor: number[]) => void;
@@ -32,8 +33,10 @@ export default function FaceUpload({
   useEffect(() => {
     const loadModels = async () => {
       if (modelsLoadedRef.current) return;
-      
+
       try {
+        await tf.ready();
+
         const MODEL_URL = '/model';
         await Promise.all([
           faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),

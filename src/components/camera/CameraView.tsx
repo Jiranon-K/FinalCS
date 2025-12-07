@@ -321,12 +321,10 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                   <span className="font-bold text-xs truncate w-full">
                     {settings.detectorModel === 'ssd_mobilenetv1' && t.faceSettings.ssdMobilenetName}
                     {settings.detectorModel === 'tiny_face_detector' && t.faceSettings.tinyFaceDetectorName}
-                    {settings.detectorModel === 'mtcnn' && t.faceSettings.mtcnnName}
                   </span>
                   <span className="text-[10px] opacity-70 truncate w-full">
                     {settings.detectorModel === 'ssd_mobilenetv1' && t.faceSettings.ssdMobilenetDesc}
                     {settings.detectorModel === 'tiny_face_detector' && t.faceSettings.tinyFaceDetectorDesc}
-                    {settings.detectorModel === 'mtcnn' && t.faceSettings.mtcnnDesc}
                   </span>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 opacity-50 shrink-0">
@@ -348,7 +346,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                   </button>
                 </li>
                 <li>
-                  <button 
+                  <button
                     onClick={() => {
                       updateSettings({ detectorModel: 'tiny_face_detector' });
                       const elem = document.activeElement as HTMLElement;
@@ -358,19 +356,6 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                   >
                     <span className="font-bold text-xs">{t.faceSettings.tinyFaceDetectorName}</span>
                     <span className="text-[10px] opacity-70 truncate block w-full">{t.faceSettings.tinyFaceDetectorDesc}</span>
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => {
-                      updateSettings({ detectorModel: 'mtcnn' });
-                      const elem = document.activeElement as HTMLElement;
-                      if (elem) elem.blur();
-                    }}
-                    className={`flex flex-col items-start gap-0.5 py-2 ${settings.detectorModel === 'mtcnn' ? 'active' : ''}`}
-                  >
-                    <span className="font-bold text-xs">{t.faceSettings.mtcnnName}</span>
-                    <span className="text-[10px] opacity-70 truncate block w-full">{t.faceSettings.mtcnnDesc}</span>
                   </button>
                 </li>
               </ul>

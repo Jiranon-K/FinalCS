@@ -49,7 +49,7 @@ export interface FaceMatch {
 export interface FaceRecognitionSettings {
   detectionThreshold: number;
   recognitionThreshold: number;
-  detectorModel: 'ssd_mobilenetv1' | 'tiny_face_detector' | 'mtcnn';
+  detectorModel: 'ssd_mobilenetv1' | 'tiny_face_detector';
   enableLandmarks: boolean;
   enableExpressions: boolean;
   enableAgeGender: boolean;

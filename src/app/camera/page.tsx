@@ -41,7 +41,7 @@ export default function CameraPage() {
   useEffect(() => {
     fetchActiveSessions();
     fetchRecentRecords();
-    const interval = setInterval(fetchActiveSessions, 10000); // Poll every 10 seconds
+    const interval = setInterval(fetchActiveSessions, 10000); 
 
     return () => clearInterval(interval);
   }, [fetchRecentRecords]);
