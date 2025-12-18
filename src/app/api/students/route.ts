@@ -155,33 +155,69 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = parseInt(searchParams.get('skip') || '0');
 
-    interface StudentQuery {
-      $or?: Array<{
-        name?: { $regex: string; $options: string };
-        studentId?: { $regex: string; $options: string };
-        email?: { $regex: string; $options: string };
-      }>;
+    const hasFaceParam = searchParams.get('hasFace');
+
+    const searchConditions = search
+      ? [
+          { name: { $regex: search, $options: 'i' } },
+          { studentId: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+        ]
+      : [];
+
+    const query: Record<string, unknown> = {};
+    const conditions: Record<string, unknown>[] = [];
+
+    // Add search conditions if present
+    if (searchConditions.length > 0) {
+      conditions.push({ $or: searchConditions });
     }
 
-    const query: StudentQuery = search
-      ? {
+    // Add face filter condition if present
+    if (hasFaceParam !== null) {
+      const hasFace = hasFaceParam === 'true';
+      if (hasFace) {
+        conditions.push({
+          faceDescriptor: { $exists: true, $not: { $size: 0 } }
+        });
+      } else {
+        // Find students with NO face descriptor, NULL, or EMPTY array
+        conditions.push({
           $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { studentId: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-          ],
+            { faceDescriptor: { $exists: false } },
+            { faceDescriptor: null },
+            { faceDescriptor: { $size: 0 } }
+          ]
+        });
+      }
+    }
+
+    // Combine conditions
+    if (conditions.length > 0) {
+      if (conditions.length === 1) {
+        // If only one condition, merge it directly to avoid unnecessary $and nesting
+        // Check if the condition is an $or or simple field
+        const condition = conditions[0];
+        if (condition.$or) {
+          query.$or = condition.$or;
+        } else {
+          Object.assign(query, condition);
         }
-      : {};
+      } else {
+        query.$and = conditions;
+      }
+    }
 
     const [students, total] = await Promise.all([
       Student.find(query)
+        .lean()
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
       Student.countDocuments(query),
     ]);
-
+    
     return NextResponse.json({
       success: true,
       data: students,

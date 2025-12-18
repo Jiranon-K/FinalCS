@@ -290,7 +290,28 @@
     "noStudents": "No students found",
     "clearFilters": "Clear Filters",
     "loading": "Loading data...",
-    "importExcel": "Import Excel",
+      "importExcel": "Import Student Data",
+      "importHelp": {
+      "title": "Import Instructions",
+      "description": "Prepare an Excel file with the following headers (All fields are required):",
+      "headers": {
+        "header": "Header",
+        "required": "Status",
+        "description": "Description"
+      },
+      "fields": {
+        "studentId": "Student ID (used as Password)",
+        "name": "Full Name",
+        "email": "Email (used as Username)"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "note": "Note:",
+      "noteText": "Password will be automatically set to the Student ID.",
+      "instructionsBtn": "Instructions",
+      "required": "Required",
+      "optional": "Optional"
+    },
     "details": {
         "title": "Student Details",
         "tabs": {
@@ -313,7 +334,25 @@
     },
     "actions": "Actions",
     "view": "View Details",
-    "edit": "Edit"
+    "edit": "Edit",
+    "missingFaceData": "Missing Face Data",
+    "unregisteredModal": {
+      "title": "Unregistered Face List",
+      "loading": "Loading...",
+      "error": "Failed to load list",
+      "retry": "Retry",
+      "empty": "All students have registered faces!",
+      "foundCount": "Found {{count}} students without face data"
+    },
+    "importResult": {
+      "successTitle": "Import Successful",
+      "completeTitle": "Import Complete",
+      "failedTitle": "Import Failed",
+      "errorDetails": "Additional Information",
+      "faceDescriptorError": "Face data required",
+      "unregisteredListTitle": "Students Needing Face Registration",
+      "unregisteredListDesc": "The following students were imported but do not have face data. Please inform them to register their faces."
+    }
   },
   "users": {
     "title": "User Management",

@@ -3,12 +3,12 @@ import { connectDB } from '@/lib/mongoose';
 import { Student, Teacher } from '@/models';
 import type { PersonForRecognition } from '@/types/person';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     await connectDB();
 
     const faceFilter = {
-      faceDescriptor: { $exists: true, $ne: null },
+      faceDescriptor: { $exists: true, $ne: null, $not: { $size: 0 } },
     };
 
     const [students, teachers] = await Promise.all([

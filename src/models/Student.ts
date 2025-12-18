@@ -60,9 +60,13 @@ const studentSchema = new Schema<StudentDocument>(
     faceDescriptor: {
       type: [Number],
       required: false,
+      default: undefined,
       validate: {
-        validator: function (v: number[] | undefined) {
-          return v === undefined || v === null || v.length === 128;
+        validator: function (v: number[] | undefined | null) {
+          if (v === undefined || v === null || (Array.isArray(v) && v.length === 0)) {
+            return true;
+          }
+          return Array.isArray(v) && v.length === 128;
         },
         message: 'Face descriptor must be exactly 128 numbers',
       },

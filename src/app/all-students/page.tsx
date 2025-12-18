@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
@@ -10,9 +8,6 @@ import { useToast } from '@/hooks/useToast';
 import StudentTable, { Student } from '@/components/students/StudentTable';
 import StudentDetailModal from '@/components/students/StudentDetailModal';
 import StudentFilterCard from '@/components/students/StudentFilterCard';
-
-import { faFileExcel } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function AllStudentsPage() {
   const { t } = useLocale();
@@ -79,26 +74,14 @@ export default function AllStudentsPage() {
     return null;
   }
 
-  const handleImport = () => {
-    showToast({ message: t.settings.comingSoon, type: 'info' });
-  };
-
   return (
     <div className="min-h-screen bg-base-100 pb-10">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-3xl font-bold">{t.students.title}</h1>
-                <p className="text-base-content/60">{t.students.subtitle}</p>
-            </div>
-            
-            <button 
-                className="btn btn-success text-white btn-sm gap-2 shadow-lg shadow-success/20 hover:shadow-success/40 transition-all"
-                onClick={handleImport}
-            >
-                <FontAwesomeIcon icon={faFileExcel} />
-                {t.students.importExcel}
-            </button>
+          <div className="flex flex-col gap-1">
+              <h1 className="text-3xl font-bold">{t.students.title}</h1>
+              <p className="text-base-content/60">{t.students.subtitle}</p>
+          </div>
         </div>
 
         <StudentFilterCard
