@@ -25,7 +25,7 @@ export default function CameraSidebar({
         <div className="card-body p-4">
           <h3 className="card-title text-sm opacity-70 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary"></span>
-            {t.dashboard?.activeSessions || 'Active Sessions'}
+            {t.attendanceManagement?.activeSessions || t.dashboard?.activeSessions || 'Active Sessions'}
           </h3>
           
           {activeSessions.length > 0 ? (
@@ -69,7 +69,11 @@ export default function CameraSidebar({
       {activeSessions.length > 0 && (
         <div className="card bg-base-100 shadow-xl border border-base-200 flex-1">
           <div className="card-body p-4">
-            <RecentAttendance records={recentRecords} loading={loadingRecords} />
+            <RecentAttendance 
+              records={recentRecords} 
+              loading={loadingRecords} 
+              activeSessions={activeSessions}
+            />
           </div>
         </div>
       )}

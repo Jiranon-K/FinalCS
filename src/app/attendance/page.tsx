@@ -14,11 +14,14 @@ import type { Course } from '@/types/course';
 import type { AttendanceSession } from '@/types/session';
 import type { AttendanceRecord } from '@/types/attendance';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function AttendancePage() {
   const { t } = useLocale();
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
 
   const [internalTab, setInternalTab] = useState<'manual' | 'dashboard' | 'history'>('manual');
   const activeTab = user?.role === 'student' ? 'history' : internalTab;
@@ -28,6 +31,25 @@ export default function AttendancePage() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['manual', 'dashboard', 'history'].includes(tabParam)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setInternalTab((prev) => (prev !== tabParam ? (tabParam as 'manual' | 'dashboard' | 'history') : prev));
+    }
+
+    const courseIdParam = searchParams.get('courseId');
+    const sessionIdParam = searchParams.get('sessionId');
+
+    if (courseIdParam) {
+      setSelectedCourseId((prev) => (prev !== courseIdParam ? courseIdParam : prev));
+    }
+    
+    if (sessionIdParam) {
+      setSelectedSessionId((prev) => (prev !== sessionIdParam ? sessionIdParam : prev));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (user && user.role !== 'admin' && user.role !== 'teacher' && user.role !== 'student') {
