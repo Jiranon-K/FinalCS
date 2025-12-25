@@ -4,6 +4,7 @@ export interface SessionStats {
   expectedCount: number;
   presentCount: number;
 
+  normalCount: number;
   lateCount: number;
   absentCount: number;
   leaveCount: number;
