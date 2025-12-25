@@ -86,6 +86,45 @@ export async function GET(request: NextRequest) {
       query.courseId = { $in: courseIds };
     }
 
+    // --- Auto-Creation Logic (Lazy Loading) ---
+    try {
+      let candidateCourseIds: string[] = [];
+      if (query.courseId) {
+        const qCid = query.courseId as any;
+        if (qCid && qCid.$in) {
+           candidateCourseIds = qCid.$in.map((id: any) => id.toString());
+        } else if (typeof query.courseId === 'string' || query.courseId instanceof mongoose.Types.ObjectId) {
+           candidateCourseIds = [query.courseId.toString()];
+        }
+      }
+      if (candidateCourseIds.length === 0) {
+         if (user.role === 'teacher') {
+            const userDoc = await User.findOne({ username: user.username });
+            if (userDoc) {
+                const teacherCourses = await Course.find({ teacherId: userDoc._id }).select('_id');
+                candidateCourseIds = teacherCourses.map(c => c._id.toString());
+            }
+         } else if (user.role === 'student') {
+             const userDoc = await User.findOne({ username: user.username });
+             if (userDoc?.profileId) {
+                const enrolledCourses = await Course.find({ 'enrolledStudents.studentId': userDoc.profileId }).select('_id');
+                candidateCourseIds = enrolledCourses.map(c => c._id.toString());
+             }
+         }
+      }
+
+      const { checkAndCreateScheduledSessions } = await import('@/lib/session-service');
+      if (candidateCourseIds.length > 0) {
+         await checkAndCreateScheduledSessions(candidateCourseIds);
+      } else if (user.role === 'admin') {
+         await checkAndCreateScheduledSessions();
+      }
+
+    } catch (err) {
+      console.error('Error in auto-creation key block:', err);
+    } 
+    // ------------------------------------------
+
     const [sessions, total] = await Promise.all([
       AttendanceSession.find(query)
         .sort({ sessionDate: -1, startTime: -1 })

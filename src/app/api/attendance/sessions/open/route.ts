@@ -47,6 +47,24 @@ export async function POST(request: NextRequest) {
     const [endHour, endMinute] = endTime.split(':').map(Number);
     sessionEndDateTime.setHours(endHour, endMinute, 0, 0);
 
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const sessionStartDateTime = new Date(sessionDate);
+    sessionStartDateTime.setHours(startHour, startMinute, 0, 0);
+
+    if (now < sessionStartDateTime) {
+      const formattedDate = new Date(sessionDate).toLocaleDateString(
+        locale === 'th' ? 'th-TH' : 'en-US',
+        { year: 'numeric', month: 'long', day: 'numeric' }
+      );
+      
+      const errorMessage = translate('attendanceManagement.sessionTooEarly', {
+        startTime,
+        date: formattedDate
+      }) || `It is too early to open this session. Please wait until ${startTime}.`;
+
+      return badRequestResponse(errorMessage);
+    }
+
     if (now > sessionEndDateTime) {
       const formattedDate = new Date(sessionDate).toLocaleDateString(
         locale === 'th' ? 'th-TH' : 'en-US',

@@ -54,9 +54,13 @@ export default function OpenSessionModal({
   const { t } = useLocale();
   const { showToast } = useToast();
 
-  const [sessionDate, setSessionDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [sessionDate, setSessionDate] = useState(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [selectedSlot, setSelectedSlot] = useState<CourseScheduleSlot | null>(
     course.schedule[0] || null
   );
@@ -84,14 +88,44 @@ export default function OpenSessionModal({
     });
   }, [existingSessions, sessionDate]);
 
-  const isSlotUsed = (slot: CourseScheduleSlot) => {
-    return sessionsOnSelectedDate.some(s => s.startTime === slot.startTime);
+  const getSessionForSlot = (slot: CourseScheduleSlot) => {
+    return sessionsOnSelectedDate.find(s => s.startTime === slot.startTime);
   };
 
-  const isSelectedSlotAvailable = selectedSlot && !isSlotUsed(selectedSlot);
+
+
+  const isSelectedSlotAvailable = useMemo(() => {
+    if (!selectedSlot) return false;
+    
+    // Check if slot is already occupied by an ACTIVE session
+    const session = getSessionForSlot(selectedSlot);
+    if (session?.status === 'active') return false;
+    
+    // If session is closed, we CAN open it again (re-open)
+    
+    const now = new Date();
+    const [startHour, startMinute] = selectedSlot.startTime.split(':').map(Number);
+    const [endHour, endMinute] = selectedSlot.endTime.split(':').map(Number);
+    
+    const slotStart = new Date(sessionDate);
+    slotStart.setHours(startHour, startMinute, 0, 0);
+    
+    const slotEnd = new Date(sessionDate);
+    slotEnd.setHours(endHour, endMinute, 0, 0);
+
+    if (now < slotStart) return false;
+    if (now > slotEnd) return false;
+
+    return true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSlot, sessionsOnSelectedDate, sessionDate]);
 
   const resetForm = () => {
-    setSessionDate(new Date().toISOString().split('T')[0]);
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    setSessionDate(`${year}-${month}-${day}`);
     setSelectedSlot(course.schedule[0] || null);
     setCustomRoom('');
   };
@@ -109,7 +143,8 @@ export default function OpenSessionModal({
       return;
     }
 
-    if (isSlotUsed(selectedSlot)) {
+    const session = getSessionForSlot(selectedSlot);
+    if (session?.status === 'active') {
       showToast({ 
         message: t.attendanceManagement.sessionAlreadyExists || 'Session already exists for this time slot', 
         type: 'error' 
@@ -161,7 +196,7 @@ export default function OpenSessionModal({
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-md">
+      <div className="modal-box w-11/12 max-w-md [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-bold text-xl flex items-center gap-2">
             <CalendarIcon />
@@ -217,14 +252,38 @@ export default function OpenSessionModal({
             </label>
             <div className="space-y-2">
               {course.schedule.map((slot, idx) => {
-                const slotUsed = isSlotUsed(slot);
+                const session = getSessionForSlot(slot);
+                const isActive = session?.status === 'active';
+                const isClosed = session?.status === 'closed';
                 const isSelected = selectedSlot === slot;
                 
+                const now = new Date();
+                const [startHour, startMinute] = slot.startTime.split(':').map(Number);
+                const [endHour, endMinute] = slot.endTime.split(':').map(Number);
+                
+                const slotStart = new Date(sessionDate);
+                slotStart.setHours(startHour, startMinute, 0, 0);
+                
+                const slotEnd = new Date(sessionDate);
+                slotEnd.setHours(endHour, endMinute, 0, 0);
+
+                let timeStatus: 'available' | 'early' | 'expired' = 'available';
+                
+                if (now < slotStart) {
+                   timeStatus = 'early';
+                } else if (now > slotEnd) {
+                   timeStatus = 'expired';
+                }
+
+                // Disabled if active session exists OR time is invalid.
+                // Closed sessions are NOT disabled.
+                const isDisabled = opening || isActive || timeStatus !== 'available';
+
                 return (
                   <label
                     key={idx}
-                    className={`flex items-center gap-3 p-3 border-2 rounded-xl transition-all cursor-pointer
-                      ${slotUsed 
+                    className={`flex items-start sm:items-center gap-3 p-3 border-2 rounded-xl transition-all cursor-pointer
+                      ${isDisabled 
                         ? 'border-base-300 bg-base-200/50 opacity-60 cursor-not-allowed' 
                         : isSelected 
                           ? 'border-primary bg-primary/5' 
@@ -234,12 +293,12 @@ export default function OpenSessionModal({
                     <input
                       type="radio"
                       name="schedule-slot"
-                      className="radio radio-primary radio-sm"
+                      className="radio radio-primary radio-sm mt-1 sm:mt-0"
                       checked={isSelected}
-                      onChange={() => !slotUsed && setSelectedSlot(slot)}
-                      disabled={opening || slotUsed}
+                      onChange={() => !isDisabled && setSelectedSlot(slot)}
+                      disabled={isDisabled}
                     />
-                    <div className="flex-1 flex items-center justify-between">
+                    <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{getDayName(slot.dayOfWeek)}</span>
                         <div className="flex items-center gap-1 text-sm text-base-content/70">
@@ -247,19 +306,42 @@ export default function OpenSessionModal({
                           <span>{slot.startTime} - {slot.endTime}</span>
                         </div>
                       </div>
-                      {slotUsed && (
-                        <span className="badge badge-success badge-sm gap-1">
-                          <CheckCircleIcon />
-                          {t.attendanceManagement.statusActive || 'Active'}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isActive && (
+                            <span className="badge badge-success badge-sm gap-1">
+                            <CheckCircleIcon />
+                            {t.attendanceManagement.statusActive || 'Active'}
+                            </span>
+                        )}
+                        {isClosed && (
+                            <span className="badge badge-neutral badge-sm gap-1">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {(t.attendanceManagement as any).statusClosed || 'Closed'}
+                            </span>
+                        )}
+                        {!isActive && !isClosed && timeStatus === 'early' && (
+                            <span className="badge badge-warning badge-sm badge-outline text-[10px]">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {(t.attendanceManagement as any).tooEarly || 'Too Early'}
+                            </span>
+                        )}
+                        {!isActive && !isClosed && timeStatus === 'expired' && (
+                            <span className="badge badge-error badge-sm badge-outline text-[10px]">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                {(t.attendanceManagement as any).expired || 'Expired'}
+                            </span>
+                        )}
+                      </div>
                     </div>
                   </label>
                 );
               })}
             </div>
             
-            {course.schedule.every(slot => isSlotUsed(slot)) && (
+            {course.schedule.every(slot => {
+                const session = getSessionForSlot(slot);
+                return session?.status === 'active';
+            }) && (
               <div className="alert alert-warning mt-3 py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -285,7 +367,15 @@ export default function OpenSessionModal({
             </div>
           </details>
 
-          <div className="flex gap-2 pt-2">
+          {(!isSelectedSlotAvailable && !opening && selectedSlot) && (
+             <div className="alert alert-warning alert-soft shadow-sm mt-4 text-sm py-2">
+               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+               <span>{(t.attendanceManagement as any).sessionTimeTip || 'Sessions can only be opened during the scheduled time'}</span>
+             </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={handleClose}
@@ -294,6 +384,7 @@ export default function OpenSessionModal({
             >
               {t.common.cancel}
             </button>
+            
             <button 
               type="submit" 
               className="btn btn-primary flex-1" 

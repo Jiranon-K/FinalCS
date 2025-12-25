@@ -9,6 +9,10 @@ export async function GET() {
     await connectDB();
     await checkAndCloseExpiredSessions();
 
+    const { checkAndCreateScheduledSessions } = await import('@/lib/session-service');
+    // Trigger auto-creation provided it is the right time
+    await checkAndCreateScheduledSessions();
+
     const activeSessions = await AttendanceSession.find({ status: 'active' })
       .sort({ sessionDate: -1, startTime: -1 })
       .lean();
