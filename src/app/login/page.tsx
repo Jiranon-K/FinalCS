@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState } from 'react';
@@ -59,7 +60,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="hero min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
+    <div className="hero min-h-screen bg-linear-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
       <div className="absolute top-4 right-4 z-50">
         <LanguageSwitcher />
       </div>
@@ -71,7 +72,7 @@ export default function LoginPage() {
       <div className="hero-content flex-col lg:flex-row-reverse gap-12 lg:gap-20 z-10">
         
         <div className="text-center lg:text-left max-w-md animate-fade-in-up">
-          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 mb-4 drop-shadow-sm">
+          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-purple-600 to-indigo-600 mb-4 drop-shadow-sm">
             {t.login.welcome}
           </h1>
           <p className="py-6 text-slate-600 text-lg leading-relaxed opacity-0 animate-fade-in-up [animation-delay:200ms] [animation-fill-mode:forwards]">
@@ -175,7 +176,7 @@ export default function LoginPage() {
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="btn border-none bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-500 w-full text-lg font-medium disabled:opacity-70 disabled:scale-100"
+                  className="btn border-none bg-linear-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all duration-500 w-full text-lg font-medium disabled:opacity-70 disabled:scale-100"
                 >
                   {isLoading ? t.login.loading : t.login.loginButton}
                 </button>

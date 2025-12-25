@@ -455,7 +455,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
         />
       )}
 
-      <div className="flex-1 min-h-[350px] lg:min-h-[600px] relative bg-base-200/20 rounded-2xl overflow-hidden shadow-lg border border-base-content/10 flex items-center justify-center bg-black">
+      <div className="flex-1 min-h-[350px] lg:min-h-[600px] relative bg-base-200/20 rounded-2xl overflow-hidden shadow-lg border border-base-content/10 flex items-center justify-center">
         <div className="relative">
           <video
             ref={videoRef}

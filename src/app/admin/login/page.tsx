@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState } from 'react';
@@ -59,7 +60,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="hero min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
+    <div className="hero min-h-screen bg-linear-to-br from-purple-50 via-white to-purple-100 relative overflow-hidden">
       <div className="absolute top-4 right-4 z-50">
         <LanguageSwitcher />
       </div>
@@ -74,7 +75,7 @@ export default function AdminLoginPage() {
             <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
             {t.login.adminBadge}
           </div>
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-900 to-indigo-900 drop-shadow-sm">
+          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-purple-900 to-indigo-900 drop-shadow-sm">
             {t.login.adminTitle}
           </h1>
           <p className="py-4 text-slate-500 opacity-0 animate-fade-in-up [animation-delay:200ms] [animation-fill-mode:forwards]">
@@ -145,7 +146,7 @@ export default function AdminLoginPage() {
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="btn border-none bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg shadow-purple-900/20 hover:shadow-purple-900/40 hover:scale-[1.02] transition-all duration-500 w-full text-lg font-medium disabled:opacity-70 disabled:scale-100"
+                  className="btn border-none bg-linear-to-r from-purple-800 to-indigo-900 text-white shadow-lg shadow-purple-900/20 hover:shadow-purple-900/40 hover:scale-[1.02] transition-all duration-500 w-full text-lg font-medium disabled:opacity-70 disabled:scale-100"
                 >
                   {isLoading ? t.login.loading : t.login.adminLoginButton}
                 </button>

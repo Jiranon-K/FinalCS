@@ -322,7 +322,7 @@ export default function SchedulePage() {
       </div>
 
       {!loading && todaysCourses.length > 0 && (
-        <div className="card bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 mb-6">
+        <div className="card bg-linear-to-r from-primary/10 to-secondary/10 border border-primary/20 mb-6">
           <div className="card-body p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
