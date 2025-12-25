@@ -1,19 +1,5 @@
 import { AttendanceSession } from '@/types/session';
 
-export function calculateAttendanceStatus(
-  checkInTime: Date,
-  sessionStartTime: string,
-  sessionDate: Date,
-  graceMinutes: number
-): 'normal' | 'late' {
-  const [hour, minute] = sessionStartTime.split(':').map(Number);
-  const sessionStart = new Date(sessionDate);
-  sessionStart.setHours(hour, minute, 0, 0);
-
-  const graceEnd = new Date(sessionStart.getTime() + graceMinutes * 60000);
-
-  return checkInTime <= graceEnd ? 'normal' : 'late';
-}
 
 export function findMatchingActiveSession(
   activeSessions: AttendanceSession[],

@@ -103,6 +103,16 @@ export function LivenessProvider({ children }: { children: React.ReactNode }) {
       if (!state.isActive || !blinkDetectorRef.current) return;
 
       const result = blinkDetectorRef.current.detect(landmarks);
+      
+      if (result.isBlinking || Math.random() < 0.1) {
+          console.log('Liveness Process:', { 
+              isActive: state.isActive,
+              isBlinking: result.isBlinking, 
+              ear: result.ear, 
+              totalBlinks: result.totalBlinks, 
+              required: settings.requiredBlinks 
+          });
+      }
 
       setState((prev) => {
         const newState = {
@@ -113,6 +123,7 @@ export function LivenessProvider({ children }: { children: React.ReactNode }) {
         };
 
         if (result.totalBlinks >= settings.requiredBlinks && prev.currentChallenge) {
+          console.log('Liveness Challenge Completed!');
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
           }

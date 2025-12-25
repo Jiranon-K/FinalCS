@@ -65,23 +65,23 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
     
     const sorted = [...records];
     sorted.sort((a, b) => {
-      let aValue: any = a[sortConfig.key];
-      let bValue: any = b[sortConfig.key];
-
-      if (aValue === undefined || aValue === null) aValue = '';
-      if (bValue === undefined || bValue === null) bValue = '';
-
       if (sortConfig.key === 'checkInTime') {
-        aValue = a.checkInTime ? new Date(a.checkInTime).getTime() : 0;
-        bValue = b.checkInTime ? new Date(b.checkInTime).getTime() : 0;
+        const aTime = a.checkInTime ? new Date(a.checkInTime).getTime() : 0;
+        const bTime = b.checkInTime ? new Date(b.checkInTime).getTime() : 0;
+        
+        if (aTime < bTime) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aTime > bTime) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
       }
 
-      if (aValue < bValue) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
+      const aVal = a[sortConfig.key] as unknown as string | undefined | null;
+      const bVal = b[sortConfig.key] as unknown as string | undefined | null;
+      
+      const aStr = String(aVal ?? '').toLowerCase();
+      const bStr = String(bVal ?? '').toLowerCase();
+
+      if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
     return sorted;
@@ -102,14 +102,10 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'normal':
+      case 'present':
         return 'badge-success bg-success/10 text-success border-success/20';
-      case 'late':
-        return 'badge-warning bg-warning/10 text-warning border-warning/20';
       case 'absent':
         return 'badge-error bg-error/10 text-error border-error/20';
-      case 'leave':
-        return 'badge-info bg-info/10 text-info border-info/20';
       default:
         return 'badge-ghost';
     }
@@ -117,14 +113,10 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'normal':
+      case 'present':
         return <CheckCircleIcon />;
-      case 'late':
-        return <ClockIcon />;
       case 'absent':
         return <XCircleIcon />;
-      case 'leave':
-        return <DocumentIcon />;
       default:
         return null;
     }
@@ -132,14 +124,10 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'normal':
+      case 'present':
         return t.attendanceManagement.statusNormal;
-      case 'late':
-        return t.attendanceManagement.statusLate;
       case 'absent':
         return t.attendanceManagement.statusAbsent;
-      case 'leave':
-        return t.attendanceManagement.statusLeave;
       default:
         return status;
     }
@@ -367,20 +355,12 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
 
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleAdjustStatus('normal')}
+                  onClick={() => handleAdjustStatus('present')}
                   disabled={adjustingRecord === (selectedRecord._id?.toString() || selectedRecord.id)}
-                  className={`btn btn-outline ${selectedRecord.status === 'normal' ? 'btn-active' : ''} hover:btn-success hover:text-white`}
+                  className={`btn btn-outline ${selectedRecord.status === 'present' ? 'btn-active' : ''} hover:btn-success hover:text-white`}
                 >
                   <CheckCircleIcon />
                   {t.attendanceManagement.statusNormal}
-                </button>
-                <button
-                  onClick={() => handleAdjustStatus('late')}
-                  disabled={adjustingRecord === (selectedRecord._id?.toString() || selectedRecord.id)}
-                  className={`btn btn-outline ${selectedRecord.status === 'late' ? 'btn-active' : ''} hover:btn-warning hover:text-white`}
-                >
-                  <ClockIcon />
-                  {t.attendanceManagement.statusLate}
                 </button>
                 <button
                   onClick={() => handleAdjustStatus('absent')}
@@ -389,14 +369,6 @@ export default function AttendanceTable({ records, user, onRefresh }: Attendance
                 >
                   <XCircleIcon />
                   {t.attendanceManagement.statusAbsent}
-                </button>
-                <button
-                  onClick={() => handleAdjustStatus('leave', t.attendanceManagement.markedAsLeave)}
-                  disabled={adjustingRecord === (selectedRecord._id?.toString() || selectedRecord.id)}
-                  className={`btn btn-outline ${selectedRecord.status === 'leave' ? 'btn-active' : ''} hover:btn-info hover:text-white`}
-                >
-                  <DocumentIcon />
-                  {t.attendanceManagement.statusLeave}
                 </button>
               </div>
             </div>

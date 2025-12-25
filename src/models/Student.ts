@@ -57,6 +57,7 @@ const studentSchema = new Schema<StudentDocument>(
       type: String,
       required: false,
     },
+
     faceDescriptor: {
       type: [Number],
       required: false,
@@ -69,6 +70,19 @@ const studentSchema = new Schema<StudentDocument>(
           return Array.isArray(v) && v.length === 128;
         },
         message: 'Face descriptor must be exactly 128 numbers',
+      },
+    },
+
+    faceDescriptors: {
+      type: [[Number]],
+      required: false,
+      default: undefined,
+      validate: {
+        validator: function (v: number[][] | undefined | null) {
+          if (!v) return true;
+          return Array.isArray(v) && v.every(arr => Array.isArray(arr) && arr.length === 128);
+        },
+        message: 'Each face descriptor must be exactly 128 numbers',
       },
     },
   },

@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
       grade,
       class: className,
       faceDescriptor,
+      faceDescriptors,
       imageData,
     } = body;
 
@@ -72,7 +73,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!faceDescriptor || !Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
+    const hasSingleDescriptor = faceDescriptor && Array.isArray(faceDescriptor) && faceDescriptor.length === 128;
+    const hasMultiDescriptors = faceDescriptors && Array.isArray(faceDescriptors) && faceDescriptors.length > 0;
+
+    if (!hasMultiDescriptors && !hasSingleDescriptor) {
       return NextResponse.json(
         { success: false, error: 'Invalid face descriptor' },
         { status: 400 }
@@ -120,12 +124,15 @@ export async function POST(request: NextRequest) {
       class: className || undefined,
       imageUrl,
       imageKey,
-      faceDescriptor,
+      faceDescriptor: faceDescriptor || (faceDescriptors && faceDescriptors[0]),
+      faceDescriptors: faceDescriptors,
     });
 
     await User.findByIdAndUpdate(user._id, {
       $set: {
         profileId: newStudent._id,
+        imageUrl,
+        imageKey,
       },
     });
 
@@ -210,6 +217,7 @@ export async function GET(request: NextRequest) {
 
     const [students, total] = await Promise.all([
       Student.find(query)
+        .populate('userId', 'imageUrl')
         .lean()
         .sort({ createdAt: -1 })
         .skip(skip)

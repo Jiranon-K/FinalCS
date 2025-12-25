@@ -130,6 +130,36 @@
     "detectingFace": "Detecting face...",
     "faceDetected": "Face detected",
     "submit": "Submit",
+    "submitting": "Submitting...",
+    "faceSteps": {
+        "center": "Center",
+        "centerInstruction": "Look straight at the camera",
+        "left": "Turn Left",
+        "leftInstruction": "Turn your face slightly to the left",
+        "right": "Turn Right",
+        "rightInstruction": "Turn your face slightly to the right",
+        "up": "Look Up",
+        "upInstruction": "Tilt your head up slightly",
+        "down": "Look Down",
+        "downInstruction": "Tilt your head down slightly",
+        "nextStep": "Saved! Next angle",
+        "completed": "All 5 angles captured",
+        "reset": "Reset All"
+    },
+    "validation": {
+        "centerError": "Please look straight (Face not centered)",
+        "leftError": "Please turn left more",
+        "rightError": "Please turn right more",
+        "upError": "Please look up more",
+        "downError": "Please look down more",
+        "invalidPose": "Invalid face angle"
+    },
+    "advice": {
+        "title": "Photo Advice",
+        "lighting": "Use good lighting",
+        "accessories": "Avoid sunglasses or masks",
+        "instructions": "Follow instructions for best accuracy"
+    },
     "cancel": "Cancel",
     "success": "Registration successful",
     "error": "Registration failed",

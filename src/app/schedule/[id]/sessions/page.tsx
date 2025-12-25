@@ -83,7 +83,9 @@ export default function SessionsPage() {
 
   const fetchAttendanceRecords = useCallback(async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/attendance/sessions/${sessionId}`);
+      const response = await fetch(`/api/attendance/sessions/${sessionId}`, {
+        cache: 'no-store'
+      });
       const result = await response.json();
 
       if (result.success) {
@@ -102,11 +104,16 @@ export default function SessionsPage() {
   }, [authLoading, user, fetchCourseDetails, fetchSessions]);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout;
     if (activeSession) {
       fetchAttendanceRecords(activeSession.id);
+      interval = setInterval(() => {
+        fetchAttendanceRecords(activeSession.id);
+      }, 5000);
     } else {
       setAttendanceRecords([]);
     }
+    return () => clearInterval(interval);
   }, [activeSession, fetchAttendanceRecords]);
 
   const handleCloseSession = async () => {
@@ -244,10 +251,6 @@ export default function SessionsPage() {
                   <div className="flex flex-col p-3 bg-success/10 text-success rounded-box text-center">
                      <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.present}</span>
                     <span className="text-2xl font-bold">{activeSession.stats.presentCount}</span>
-                  </div>
-                  <div className="flex flex-col p-3 bg-warning/10 text-warning rounded-box text-center">
-                     <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.statusLate}</span>
-                    <span className="text-2xl font-bold">{activeSession.stats.lateCount}</span>
                   </div>
                   <div className="flex flex-col p-3 bg-error/10 text-error rounded-box text-center">
                      <span className="text-xs uppercase tracking-wider opacity-70">{t.attendanceManagement.statusAbsent}</span>

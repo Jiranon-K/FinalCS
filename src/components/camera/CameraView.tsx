@@ -73,15 +73,21 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
   }, [modelsLoaded]);
 
   const recordAttendance = async (personId: string, personName: string) => {
-    if (activeSessions.length === 0) return;
+    console.log('Attempting to record attendance:', { personId, personName, activeSessions: activeSessions.length });
+    if (activeSessions.length === 0) {
+      console.warn('No active sessions found');
+      return;
+    }
 
     if (pendingRecordsRef.current.has(personId)) {
+      console.log('Record already pending for:', personId);
       return;
     }
 
     const now = Date.now();
     const lastTime = lastRecordTimeRef.current.get(personId);
     if (lastTime && (now - lastTime) < 30 * 1000) {
+      console.log('Throttled request for:', personId, 'wait:', 30 - (now - lastTime) / 1000, 's');
       return;
     }
 
@@ -105,6 +111,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
             timestamp: new Date(now).toISOString(),
             confidence: 0.9,
             method: 'face_recognition',
+            status: 'present',
           }),
         });
 
@@ -115,8 +122,8 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
         const data = await response.json();
 
         if (data.success) {
+          recorded = true;
           if (data.isNewCheckIn) {
-            recorded = true;
             showToast({ type: 'success', message: `✅ ${t.attendanceManagement?.recordSuccess || 'บันทึกการเข้าเรียนสำเร็จ'}: ${personName}` });
           }
         } else if (data.error === 'Student is not enrolled in this course') {
@@ -135,11 +142,18 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
   };
 
   const handleLivenessVerified = () => {
+    console.log('Liveness verified!', { pendingPerson });
     if (pendingPerson) {
       recordAttendance(pendingPerson.id, pendingPerson.name);
+      
+      setTimeout(() => {
+        setShowLivenessCheck(false);
+        setPendingPerson(null);
+      }, 3000);
+    } else {
+      console.warn('No pending person to record attendance for');
+      setShowLivenessCheck(false);
     }
-    setShowLivenessCheck(false);
-    setPendingPerson(null);
   };
 
   const handleLivenessFailed = () => {
@@ -433,9 +447,9 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
         </div>
       )}
 
-      {showLivenessCheck && detectedFaces.length > 0 && (
+      {showLivenessCheck && (
         <LivenessCheck
-          detectedFace={detectedFaces[0]}
+          detectedFace={detectedFaces.length > 0 ? detectedFaces[0] : null}
           onVerified={handleLivenessVerified}
           onFailed={handleLivenessFailed}
         />

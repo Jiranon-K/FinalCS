@@ -18,6 +18,7 @@ export interface Student {
   _id: string;
   name: string;
   studentId: string;
+  userId?: string | { _id: string; imageUrl?: string; };
   email?: string;
   phone?: string;
   department?: string;
@@ -89,18 +90,19 @@ export default function StudentTable({
             <tr key={student._id} className="hover:bg-base-200/30 transition-colors border-b-base-200/50 last:border-none">
               <td className="py-3">
                 <div className="avatar">
-                  <div className="mask mask-squircle w-10 h-10 bg-base-200">
-                    {student.imageUrl ? (
+                  <div className="mask mask-squircle w-12 h-12">
+                    {/* Prioritize User profile image, then Student legacy image */}
+                    {(typeof student.userId === 'object' && student.userId?.imageUrl) || student.imageUrl ? (
                       <Image
-                        src={student.imageUrl}
+                        src={(typeof student.userId === 'object' && student.userId?.imageUrl) || student.imageUrl || ''}
                         alt={student.name}
-                        width={40}
-                        height={40}
+                        width={48}
+                        height={48}
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-lg text-primary/40">
-                        {student.name.substring(0, 1).toUpperCase()}
+                      <div className="bg-success text-success-content w-full h-full flex items-center justify-center font-bold text-lg">
+                        {student.name.substring(0, 2).toUpperCase()}
                       </div>
                     )}
                   </div>
@@ -116,7 +118,7 @@ export default function StudentTable({
               <td className="py-3">
                  {student.department ? (
                     <div className="badge badge-sm badge-ghost font-normal text-xs gap-1">
-                       {t.register[`dept${student.department}` as keyof typeof t.register] || student.department}
+                       {(t.register[`dept${student.department}` as keyof typeof t.register] as string) || student.department}
                     </div>
                 ) : (
                   <span className="text-base-content/30 text-xs">-</span>
@@ -125,7 +127,7 @@ export default function StudentTable({
               <td className="py-3">
                 {student.grade ? (
                     <span className="text-xs badge badge-xs badge-neutral badge-outline opacity-60">
-                        {t.register[`grade${student.grade}` as keyof typeof t.register] || student.grade}
+                        {(t.register[`grade${student.grade}` as keyof typeof t.register] as string) || student.grade}
                     </span>
                 ) : (
                     <span className="text-base-content/30 text-xs">-</span>
@@ -134,7 +136,7 @@ export default function StudentTable({
               <td className="py-3">
                 {student.class ? (
                     <span className="text-xs opacity-70">
-                    {t.register[`class${student.class}` as keyof typeof t.register] || student.class}
+                    {(t.register[`class${student.class}` as keyof typeof t.register] as string) || student.class}
                     </span>
                 ) : (
                     <span className="text-base-content/30 text-xs">-</span>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+
 import Image from 'next/image';
 import { useLocale } from '@/hooks/useLocale';
 import { AttendanceRecord } from '@/types/attendance';
+import { Student } from '@/types/student';
 
 interface RecentAttendanceProps {
   records: AttendanceRecord[];
@@ -18,16 +19,7 @@ const ClockIcon = ({ className }: { className?: string }) => (
 
 export default function RecentAttendance({ records, loading }: RecentAttendanceProps) {
   const { t } = useLocale();
-  const [now, setNow] = useState<number | null>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setNow(Date.now()), 0);
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
-    };
-  }, []);
 
   const formatTime = (date?: Date | string) => {
     if (!date) return '-';
@@ -43,20 +35,7 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
     return nameParts[0]?.substring(0, 2).toUpperCase() || '??';
   };
 
-  const visibleRecords = records?.filter(record => {
-    if (!now) return false;
-    if (!record.checkInTime) return false;
-    const checkIn = new Date(record.checkInTime).getTime();
-    return (now - checkIn) < 60000; 
-  }) || [];
 
-  const isExpiring = (record: AttendanceRecord) => {
-    if (!now) return false;
-    if (!record.checkInTime) return false;
-    const checkIn = new Date(record.checkInTime).getTime();
-    const age = now - checkIn;
-    return age > 55000; 
-  };
 
   if (loading) {
     return (
@@ -69,7 +48,7 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
     );
   }
 
-  if (visibleRecords.length === 0) {
+  if (records.length === 0) {
     return (
        <div className="flex flex-col items-center justify-center p-8 text-base-content/40 bg-base-100/50 rounded-2xl border border-base-content/5">
           <ClockIcon className="w-10 h-10 mb-2 opacity-50" />
@@ -88,17 +67,21 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
       </div>
 
       <div className="flex flex-col gap-3">
-        {visibleRecords.map((record) => (
+        {records.map((record) => {
+           const student = record.studentId as unknown as Student;
+           const imageUrl = (typeof student?.userId === 'object' ? student.userId.imageUrl : undefined) || student?.imageUrl;
+           
+           return (
           <div
             key={record._id?.toString() || record.id}
-            className={`group flex items-center justify-between p-3 bg-base-100 hover:bg-base-50 rounded-2xl border border-base-200 shadow-sm hover:shadow-md transition-all duration-1000 ${isExpiring(record) ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}
+            className={`group flex items-center justify-between p-3 bg-base-100 hover:bg-base-50 rounded-2xl border border-base-200 shadow-sm hover:shadow-md transition-all duration-1000`}
           >
             <div className="flex items-center gap-4">
-              <div className={`avatar ${!((record.studentId as unknown) as { imageUrl?: string })?.imageUrl ? 'placeholder' : ''}`}>
-                {((record.studentId as unknown) as { imageUrl?: string })?.imageUrl ? (
+              <div className={`avatar ${!imageUrl ? 'placeholder' : ''}`}>
+                {imageUrl ? (
                   <div className="w-12 h-12 rounded-full shadow-inner relative overflow-hidden">
                     <Image 
-                      src={((record.studentId as unknown) as { imageUrl: string }).imageUrl} 
+                      src={imageUrl} 
                       alt={record.studentName}
                       fill
                       sizes="48px"
@@ -125,17 +108,14 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
 
             <div className="flex flex-col items-end gap-1.5">
                <div className={`badge badge-sm gap-1.5 border-0 font-medium ${
-                  record.status === 'normal' ? 'bg-success/15 text-success' :
-                  record.status === 'late' ? 'bg-warning/15 text-warning' :
+                  (record.status === 'present' || record.status === 'normal') ? 'bg-success/15 text-success' :
                   'bg-error/15 text-error'
                }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${
-                     record.status === 'normal' ? 'bg-success' :
-                     record.status === 'late' ? 'bg-warning' :
+                     (record.status === 'present' || record.status === 'normal') ? 'bg-success' :
                      'bg-error'
                   }`}></span>
-                  {record.status === 'normal' ? t.attendanceManagement.onTime :
-                   record.status === 'late' ? t.attendanceManagement.statusLate :
+                  {(record.status === 'present' || record.status === 'normal') ? t.attendanceManagement.statusNormal :
                    t.attendanceManagement.statusAbsent}
                </div>
                <span className="text-xs font-bold text-base-content/70 font-mono">
@@ -143,7 +123,8 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
                </span>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

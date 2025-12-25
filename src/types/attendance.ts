@@ -11,7 +11,7 @@ export interface AttendanceRecord {
   studentName: string;
   studentNumber?: string;
 
-  status: 'present' | 'late' | 'absent' | 'leave';
+  status: 'present' | 'late' | 'absent' | 'leave' | 'normal';
 
   checkInTime?: Date;
   checkInMethod: 'face_recognition' | 'manual';

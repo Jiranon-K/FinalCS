@@ -111,10 +111,17 @@ export async function GET(request: NextRequest) {
 
     const [records, total] = await Promise.all([
       AttendanceRecord.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('studentId', 'imageUrl')
+        .populate({
+          path: 'studentId',
+          select: 'imageUrl userId',
+          populate: {
+            path: 'userId',
+            select: 'imageUrl'
+          }
+        })
         .populate('courseId', 'courseCode courseName')
         .lean(),
       AttendanceRecord.countDocuments(query),

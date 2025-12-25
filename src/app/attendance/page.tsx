@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,7 +20,9 @@ export default function AttendancePage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'manual' | 'dashboard' | 'history'>('manual');
+  const [internalTab, setInternalTab] = useState<'manual' | 'dashboard' | 'history'>('manual');
+  const activeTab = user?.role === 'student' ? 'history' : internalTab;
+  const setActiveTab = setInternalTab;
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -32,9 +34,6 @@ export default function AttendancePage() {
       showToast({ type: 'error', message: t.common?.accessDenied || 'Access denied' });
       router.push('/');
     }
-    if (user?.role === 'student') {
-        setActiveTab('history');
-    }
   }, [user, router, showToast, t]);
 
   const handleCourseSelect = (courseId: string, course: Course) => {
@@ -45,19 +44,11 @@ export default function AttendancePage() {
     setAttendanceRecords([]);
   };
 
-  const handleSessionSelect = (sessionId: string | null, session: AttendanceSession | null) => {
-    setSelectedSessionId(sessionId);
-    setSelectedSession(session);
-    if (sessionId) {
-      fetchAttendanceRecords(sessionId);
-    } else {
-      setAttendanceRecords([]);
-    }
-  };
-
-  const fetchAttendanceRecords = async (sessionId: string) => {
+  const fetchAttendanceRecords = useCallback(async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/attendance/records?sessionId=${sessionId}&limit=1000`);
+      const response = await fetch(`/api/attendance/records?sessionId=${sessionId}&limit=1000`, {
+        cache: 'no-store'
+      });
       const data = await response.json();
       if (data.success) {
         setAttendanceRecords(data.data);
@@ -65,6 +56,28 @@ export default function AttendancePage() {
     } catch (error) {
       console.error('Error fetching attendance records:', error);
       showToast({ type: 'error', message: t.attendanceManagement.recordError });
+    }
+  }, [t.attendanceManagement.recordError, showToast]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (selectedSessionId) {
+      const loadData = async () => {
+        await fetchAttendanceRecords(selectedSessionId);
+      };
+      loadData();
+      interval = setInterval(() => {
+        fetchAttendanceRecords(selectedSessionId);
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [selectedSessionId, fetchAttendanceRecords]);
+
+  const handleSessionSelect = (sessionId: string | null, session: AttendanceSession | null) => {
+    setSelectedSessionId(sessionId);
+    setSelectedSession(session);
+    if (!sessionId) {
+      setAttendanceRecords([]);
     }
   };
 

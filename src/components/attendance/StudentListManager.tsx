@@ -25,6 +25,15 @@ interface EnrolledStudentInfo {
   imageUrl?: string;
 }
 
+interface Student {
+  _id: string;
+  name: string;
+  studentId: string;
+  imageUrl?: string;
+  imageKey?: string;
+  userId?: string | { _id: string; imageUrl?: string };
+}
+
 interface SearchStudentResult {
   _id: string;
   name: string;
@@ -46,10 +55,10 @@ export default function StudentListManager({
   const [filter, setFilter] = useState<'all' | 'checked-in' | 'not-checked-in'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchStudentResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -82,6 +91,7 @@ export default function StudentListManager({
 
   useEffect(() => {
     fetchEnrolledStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [course, showToast]);
 
   useEffect(() => {
@@ -97,7 +107,7 @@ export default function StudentListManager({
         const data = await response.json();
         if (data.success) {
           const enrolledIds = new Set(enrolledStudents.map(s => s._id.toString()));
-          const filtered = data.data.filter((s: any) => !enrolledIds.has(s._id.toString()));
+          const filtered = data.data.filter((s: Student) => !enrolledIds.has(s._id.toString()));
           setSearchResults(filtered);
         }
       } catch (error) {
@@ -121,7 +131,9 @@ export default function StudentListManager({
         studentName: student.name,
         studentNumber: student.studentId,
         hasFaceData: !!student.imageKey || !!student.imageUrl,
-        imageUrl: student.imageUrl,
+        imageUrl: (typeof student.userId === 'object' && student.userId?.imageUrl) 
+          ? student.userId.imageUrl 
+          : student.imageUrl,
       });
     });
     
@@ -207,75 +219,9 @@ export default function StudentListManager({
     }
   };
 
-  const handleMarkAllPresent = async () => {
-    if (!confirm(t.attendanceManagement.confirmMarkAllPresent || 'Mark all students as present?')) return;
-    
-    setIsRecording(true);
-    try {
-      const studentsToMark = students.filter(s => !s.record);
-      
-      const batchSize = 5;
-      for (let i = 0; i < studentsToMark.length; i += batchSize) {
-        const batch = studentsToMark.slice(i, i + batchSize);
-        await Promise.all(batch.map(student => 
-          fetch('/api/attendance/records', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              studentId: student.studentId,
-              sessionId: session.id || session._id?.toString(),
-              status: 'normal',
-              method: 'manual',
-              note: t.attendanceManagement.markAllPresentNote,
-            }),
-          })
-        ));
-      }
 
-      showToast({ type: 'success', message: t.attendanceManagement.recordSuccess });
-      onRecordUpdated();
-    } catch (error) {
-      console.error('Error marking all present:', error);
-      showToast({ type: 'error', message: t.attendanceManagement.recordError });
-    } finally {
-      setIsRecording(false);
-    }
-  };
 
-  const handleMarkRemainingAbsent = async () => {
-    if (!confirm(t.attendanceManagement.confirmMarkRemainingAbsent || 'Mark remaining students as absent?')) return;
 
-    setIsRecording(true);
-    try {
-      const studentsToMark = students.filter(s => !s.record);
-      
-      const batchSize = 5;
-      for (let i = 0; i < studentsToMark.length; i += batchSize) {
-        const batch = studentsToMark.slice(i, i + batchSize);
-        await Promise.all(batch.map(student => 
-          fetch('/api/attendance/records', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              studentId: student.studentId,
-              sessionId: session.id || session._id?.toString(),
-              status: 'absent',
-              method: 'manual',
-              note: t.attendanceManagement.markRemainingAbsentNote,
-            }),
-          })
-        ));
-      }
-
-      showToast({ type: 'success', message: t.attendanceManagement.recordSuccess });
-      onRecordUpdated();
-    } catch (error) {
-      console.error('Error marking remaining absent:', error);
-      showToast({ type: 'error', message: t.attendanceManagement.recordError });
-    } finally {
-      setIsRecording(false);
-    }
-  };
 
   const handleEnrollStudents = async () => {
     if (selectedStudentsToEnroll.length === 0) return;
@@ -294,15 +240,17 @@ export default function StudentListManager({
         showToast({ type: 'success', message: t.course.enrollSuccess });
         setSelectedStudentsToEnroll([]);
         setStudentSearchQuery('');
-        setIsAddModalOpen(false);
+        setStudentSearchQuery('');
+        // setIsAddModalOpen(false);
         addModalRef.current?.close();
         fetchEnrolledStudents();
       } else {
         throw new Error(data.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error enrolling students:', error);
-      showToast({ type: 'error', message: error.message || t.course.createError });
+      const errorMessage = error instanceof Error ? error.message : t.course.createError;
+      showToast({ type: 'error', message: errorMessage });
     } finally {
       setIsEnrolling(false);
     }
@@ -333,31 +281,16 @@ export default function StudentListManager({
       } else {
         throw new Error(data.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error unenrolling student:', error);
-      showToast({ type: 'error', message: error.message || t.course.deleteError });
+      const errorMessage = error instanceof Error ? error.message : t.course.deleteError;
+      showToast({ type: 'error', message: errorMessage });
     }
   };
 
-  const getStatusBadgeClass = (status?: string) => {
-    switch (status) {
-      case 'normal': return 'badge-success text-white';
-      case 'late': return 'badge-warning text-white';
-      case 'absent': return 'badge-error text-white';
-      case 'leave': return 'badge-info text-white';
-      default: return 'badge-ghost';
-    }
-  };
 
-  const getStatusText = (status?: string) => {
-    switch (status) {
-      case 'normal': return t.attendanceManagement.statusNormal;
-      case 'late': return t.attendanceManagement.statusLate;
-      case 'absent': return t.attendanceManagement.statusAbsent;
-      case 'leave': return t.attendanceManagement.statusLeave;
-      default: return t.attendanceManagement.notCheckedIn;
-    }
-  };
+
+
 
   const checkedInCount = students.filter(s => s.record && s.record.status !== 'absent').length;
   const totalCount = students.length;
@@ -366,7 +299,7 @@ export default function StudentListManager({
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-base-100 p-4 rounded-xl shadow-sm border border-base-200">
         <div className="flex items-center gap-4">
-          <div className="radial-progress text-primary" style={{ "--value": totalCount > 0 ? (checkedInCount / totalCount) * 100 : 0 } as any} role="progressbar">
+          <div className="radial-progress text-primary" style={{ "--value": totalCount > 0 ? (checkedInCount / totalCount) * 100 : 0 } as React.CSSProperties} role="progressbar">
             {totalCount > 0 ? Math.round((checkedInCount / totalCount) * 100) : 0}%
           </div>
           <div>
@@ -392,7 +325,7 @@ export default function StudentListManager({
           <button 
             className="btn btn-outline btn-sm flex-1 lg:flex-none"
             onClick={() => {
-              setIsAddModalOpen(true);
+              // setIsAddModalOpen(true);
               addModalRef.current?.showModal();
             }}
           >
@@ -524,9 +457,7 @@ export default function StudentListManager({
                   <td className="text-center">
                     <select 
                       className={`select select-sm w-full max-w-[140px] font-medium ${
-                        student.record?.status === 'normal' ? 'select-success text-success-content' :
-                        student.record?.status === 'late' ? 'select-warning text-warning-content' :
-                        student.record?.status === 'leave' ? 'select-info text-info-content' :
+                        student.record?.status === 'present' ? 'select-success text-success-content' :
                         student.record?.status === 'absent' ? 'select-error text-error-content' :
                         'select-bordered'
                       }`}
@@ -535,10 +466,8 @@ export default function StudentListManager({
                       disabled={isRecording}
                     >
                       <option value="" disabled>{t.attendanceManagement.recordAttendance}</option>
-                      <option value="normal">{t.attendanceManagement.statusNormal}</option>
-                      <option value="late">{t.attendanceManagement.statusLate}</option>
+                      <option value="present">{t.attendanceManagement.statusNormal}</option>
                       <option value="absent">{t.attendanceManagement.statusAbsent}</option>
-                      <option value="leave">{t.attendanceManagement.statusLeave}</option>
                     </select>
                   </td>
                 </tr>
@@ -561,7 +490,7 @@ export default function StudentListManager({
              <button 
               className="btn btn-primary btn-sm mt-4"
               onClick={() => {
-                setIsAddModalOpen(true);
+                 // setIsAddModalOpen(true);
                 addModalRef.current?.showModal();
               }}
             >
@@ -660,7 +589,7 @@ export default function StudentListManager({
           <div className="modal-action">
             <form method="dialog">
               <button className="btn mr-2" onClick={() => {
-                setIsAddModalOpen(false);
+                 // setIsAddModalOpen(false);
                 setStudentSearchQuery('');
                 setSelectedStudentsToEnroll([]);
               }}>{t.common.cancel}</button>
@@ -677,7 +606,6 @@ export default function StudentListManager({
         </div>
         <form method="dialog" className="modal-backdrop">
           <button onClick={() => {
-             setIsAddModalOpen(false);
              setStudentSearchQuery('');
              setSelectedStudentsToEnroll([]);
           }}>close</button>

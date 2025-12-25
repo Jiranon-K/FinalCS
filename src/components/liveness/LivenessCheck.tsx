@@ -20,6 +20,14 @@ export default function LivenessCheck({
   const { state, settings, startVerification, processFrame, resetVerification } = useLiveness();
 
   useEffect(() => {
+    resetVerification();
+    const timer = setTimeout(() => {
+      startVerification();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [resetVerification, startVerification]);
+
+  useEffect(() => {
     if (state.isActive && detectedFace?.landmarks?.positions) {
       processFrame(detectedFace.landmarks.positions);
     }
@@ -27,10 +35,7 @@ export default function LivenessCheck({
 
   useEffect(() => {
     if (state.isVerified) {
-      const timer = setTimeout(() => {
-        onVerified();
-      }, 1500);
-      return () => clearTimeout(timer);
+      onVerified();
     }
   }, [state.isVerified, onVerified]);
 
@@ -53,22 +58,16 @@ export default function LivenessCheck({
         {!state.isActive && !state.isVerified && (
           <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
             <div className="p-4 rounded-full bg-base-100/20 backdrop-blur-md border border-white/20 shadow-xl">
-              <span className="text-6xl">👤</span>
+              <span className="text-6xl animate-pulse">👤</span>
             </div>
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-bold text-white drop-shadow-md">
                 {t.liveness?.title || 'Liveness Check'}
               </h2>
               <p className="text-white/80 text-lg font-medium drop-shadow-sm">
-                {t.liveness?.instruction || 'Verify you are real'}
+                {t.liveness?.['preparing' as keyof typeof t.liveness] || 'Preparing verification...'}
               </p>
             </div>
-            <button
-              onClick={startVerification}
-              className="btn btn-primary btn-lg glass rounded-full px-12 text-xl shadow-xl hover:scale-105 transition-transform"
-            >
-              {t.liveness?.start || 'Start'}
-            </button>
           </div>
         )}
 

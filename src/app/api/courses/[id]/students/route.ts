@@ -32,20 +32,22 @@ export async function GET(
       return forbiddenResponse('You do not have access to this course');
     }
 
-    const studentIds = course.enrolledStudents.map((s: any) => s.studentId);
+    const studentIds = course.enrolledStudents.map(s => s.studentId);
 
     const students = await Student.find({ _id: { $in: studentIds } })
-      .select('name studentId imageKey imageUrl')
+      .select('name studentId imageKey imageUrl userId')
+      .populate('userId', 'imageUrl')
       .lean();
 
     return NextResponse.json({
       success: true,
       data: students,
     });
-  } catch (error: any) {
-    if (error.message === 'Authentication required' || error.message === 'Invalid token') {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage === 'Authentication required' || errorMessage === 'Invalid token') {
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: errorMessage },
         { status: 401 }
       );
     }

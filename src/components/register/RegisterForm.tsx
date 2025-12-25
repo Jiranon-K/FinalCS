@@ -23,7 +23,7 @@ export default function RegisterForm() {
   const { t } = useLocale();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [faceDescriptor, setFaceDescriptor] = useState<number[] | null>(null);
+  const [faceDescriptors, setFaceDescriptors] = useState<number[][] | null>(null);
   const [faceImagePreview, setFaceImagePreview] = useState<string | null>(null);
   const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
@@ -31,12 +31,12 @@ export default function RegisterForm() {
     studentId: '',
     phone: '',
     role: 'student',
-    department: '',
+    department: DEPARTMENTS[0] || '',
     grade: '',
     class: '',
   });
 
-  // Pre-fill
+
   useState(() => {
     if (user && user.role === 'student') {
       setFormData(prev => ({
@@ -58,18 +58,13 @@ export default function RegisterForm() {
     }));
   };
 
-  const handleFaceDetected = (imageFile: File, descriptor: number[]) => {
-    setFaceDescriptor(descriptor);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFaceImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(imageFile);
+  const handleFaceDetected = (imageFile: File, descriptors: number[][], mainImage: string) => {
+    setFaceDescriptors(descriptors);
+    setFaceImagePreview(mainImage);
   };
 
   const handleImageRemove = () => {
-    setFaceDescriptor(null);
+    setFaceDescriptors(null);
     setFaceImagePreview(null);
   };
 
@@ -81,7 +76,7 @@ export default function RegisterForm() {
       return;
     }
 
-    if (!faceDescriptor || !faceImagePreview) {
+    if (!faceDescriptors || !faceImagePreview) {
       showToast({ message: t.register.imageRequired, type: 'error' });
       return;
     }
@@ -99,8 +94,7 @@ export default function RegisterForm() {
         ),
         phone: formData.phone,
         department: formData.department,
-        faceDescriptor,
-        imageData: faceImagePreview,
+        faceDescriptors,
       };
 
       const response = await fetch(apiEndpoint, {
@@ -119,7 +113,7 @@ export default function RegisterForm() {
 
       showToast({ message: t.register.success, type: 'success' });
 
-      // Redirect to home page and reload to update user session
+
       window.location.href = '/';
 
     } catch (error) {
@@ -235,7 +229,7 @@ export default function RegisterForm() {
                 <option value="">{t.register.departmentPlaceholder}</option>
                 {DEPARTMENTS.map(dept => (
                     <option key={dept} value={dept}>
-                        {t.register[`dept${dept}` as keyof typeof t.register] || dept}
+                        {(t.register[`dept${dept}` as keyof typeof t.register] as string) || dept}
                     </option>
                 ))}
               </select>
@@ -258,7 +252,7 @@ export default function RegisterForm() {
                     <option value="">{t.register.gradePlaceholder}</option>
                     {GRADES.map(g => (
                         <option key={g} value={g}>
-                             {t.register[`gradeYear${g}` as keyof typeof t.register] || `Year ${g}`}
+                             {(t.register[`gradeYear${g}` as keyof typeof t.register] as string) || `Year ${g}`}
                         </option>
                     ))}
                   </select>
@@ -279,7 +273,7 @@ export default function RegisterForm() {
                     <option value="">{t.register.classPlaceholder}</option>
                      {CLASSES.map(c => (
                         <option key={c} value={c}>
-                            {t.register[`class${c}` as keyof typeof t.register] || `Class ${c}`}
+                            {(t.register[`class${c}` as keyof typeof t.register] as string) || `Class ${c}`}
                         </option>
                     ))}
                   </select>
@@ -316,7 +310,7 @@ export default function RegisterForm() {
         <button
           type="submit"
           className="btn btn-primary btn-lg px-8"
-          disabled={isSubmitting || !formData.name.trim() || !faceDescriptor}
+          disabled={isSubmitting || !formData.name.trim() || !faceDescriptors}
         >
           {isSubmitting ? (
             <>

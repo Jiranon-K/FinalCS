@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongoose';
 import { AttendanceSession, AttendanceRecord, Course } from '@/models';
 import { Student } from '@/models';
 import { RecordAttendanceRequest } from '@/types/attendance';
-import { calculateAttendanceStatus, isSessionExpired } from '@/lib/attendance-helpers';
+import { isSessionExpired } from '@/lib/attendance-helpers';
 import { badRequestResponse, notFoundResponse, serverErrorResponse } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
@@ -60,15 +60,9 @@ export async function POST(request: NextRequest) {
       sessionId: session._id,
       studentId: student._id,
     });
+    const status = 'present';
 
     if (!record) {
-      const status = calculateAttendanceStatus(
-        checkInTime,
-        session.startTime,
-        session.sessionDate,
-        session.graceMinutes
-      );
-
       record = new AttendanceRecord({
         id: `${session._id}-${student._id}-${Date.now()}`,
         sessionId: session._id,
@@ -86,13 +80,9 @@ export async function POST(request: NextRequest) {
 
       await record.save();
 
+      // Update Session Stats: New Check-in
       session.stats.absentCount = Math.max(0, session.stats.absentCount - 1);
       session.stats.presentCount++;
-      if (status === 'normal') {
-        session.stats.normalCount++;
-      } else {
-        session.stats.lateCount++;
-      }
       await session.save();
 
       return NextResponse.json({
@@ -103,55 +93,33 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (!record.checkInTime) {
-      const status = calculateAttendanceStatus(
-        checkInTime,
-        session.startTime,
-        session.sessionDate,
-        session.graceMinutes
-      );
+    const oldStatus = record.status;
+    let statsUpdated = false;
 
-      record.checkInTime = checkInTime;
-      record.status = status;
-      record.confidence = confidence;
-      record.checkInMethod = method;
-      record.detectionCount = 1;
-      record.lastDetectedAt = checkInTime;
-
-      await record.save();
-
-      session.stats.absentCount = Math.max(0, session.stats.absentCount - 1);
-      session.stats.presentCount++;
-      if (status === 'normal') {
-        session.stats.normalCount++;
-      } else {
-        session.stats.lateCount++;
+    if (record.status !== 'present') {
+      record.status = 'present';
+      if (oldStatus !== 'present') {
+        session.stats.absentCount = Math.max(0, session.stats.absentCount - 1);
+        session.stats.presentCount++;
+        statsUpdated = true;
       }
-      await session.save();
-
-      return NextResponse.json({
-        success: true,
-        data: record.toObject(),
-        message: 'Attendance recorded successfully',
-        isNewCheckIn: true,
-      });
     }
 
-    const minutesSinceCheckIn = (checkInTime.getTime() - record.checkInTime.getTime()) / 60000;
-
-    if (minutesSinceCheckIn >= 5) {
-      record.checkOutTime = checkInTime;
-    }
-
-    record.detectionCount = (record.detectionCount || 0) + 1;
+    record.checkInTime = record.checkInTime || checkInTime; 
     record.lastDetectedAt = checkInTime;
+    record.detectionCount = (record.detectionCount || 0) + 1;
+    record.confidence = Math.max(record.confidence || 0, confidence); 
 
     await record.save();
+
+    if (statsUpdated && session.status === 'active') {
+      await session.save();
+    }
 
     return NextResponse.json({
       success: true,
       data: record.toObject(),
-      message: 'Detection updated',
+      message: 'Attendance updated',
       isNewCheckIn: false,
     });
   } catch (error) {

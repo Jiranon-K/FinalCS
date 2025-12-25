@@ -26,7 +26,7 @@ export default function CameraPage() {
   const fetchRecentRecords = useCallback(async () => {
     try {
       setLoadingRecords(true);
-      const response = await fetch('/api/attendance/records?limit=10&skip=0');
+      const response = await fetch('/api/attendance/records?limit=10&skip=0&status=present', { cache: 'no-store' });
       const data = await response.json();
       if (data.success) {
         setRecentRecords(data.data);
@@ -53,7 +53,10 @@ export default function CameraPage() {
         <div className="lg:col-span-8 h-auto lg:h-full flex flex-col min-h-0">
           <CameraView 
             activeSessions={activeSessions} 
-            onAttendanceRecorded={fetchRecentRecords} 
+            onAttendanceRecorded={() => {
+              fetchRecentRecords();
+              fetchActiveSessions();
+            }} 
           />
         </div>
 
