@@ -43,6 +43,11 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
   const [courses, setCourses] = useState<Course[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
 
+  const getRegisterString = (key: string): string | undefined => {
+    const value = t.register[key as keyof typeof t.register];
+    return typeof value === 'string' ? value : undefined;
+  };
+
   useEffect(() => {
     const fetchAttendance = async () => {
       if (!student) return;
@@ -118,7 +123,7 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
                     <p className="text-base-content/60 font-mono">{student.studentId}</p>
                     <div className="flex gap-2 mt-2">
                         <span className="badge badge-primary badge-outline bg-primary/5">
-                            {t.register[`dept${student.department}` as keyof typeof t.register] || student.department}
+                            {getRegisterString(`dept${student.department}`) || student.department}
                         </span>
                     </div>
                 </div>
@@ -176,19 +181,19 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
                     <div className="form-control w-full">
                         <label className="label text-base-content/50 text-sm font-medium uppercase tracking-wider">{t.register.department}</label>
                         <div className="text-lg font-medium border-b border-base-200 pb-2">
-                            {t.register[`dept${student.department}` as keyof typeof t.register] || student.department || '-'}
+                            {getRegisterString(`dept${student.department}`) || student.department || '-'}
                         </div>
                     </div>
                     <div className="form-control w-full">
                          <label className="label text-base-content/50 text-sm font-medium uppercase tracking-wider">{t.register.grade}</label>
                          <div className="text-lg font-medium border-b border-base-200 pb-2">
-                            {t.register[`gradeYear${student.grade}` as keyof typeof t.register] || student.grade || '-'}
+                            {getRegisterString(`gradeYear${student.grade}`) || student.grade || '-'}
                          </div>
                     </div>
                     <div className="form-control w-full">
                          <label className="label text-base-content/50 text-sm font-medium uppercase tracking-wider">{t.register.class}</label>
                          <div className="text-lg font-medium border-b border-base-200 pb-2">
-                             {t.register[`class${student.class}` as keyof typeof t.register] || student.class || '-'}
+                             {getRegisterString(`class${student.class}`) || student.class || '-'}
                          </div>
                     </div>
                 </div>
