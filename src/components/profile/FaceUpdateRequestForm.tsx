@@ -17,13 +17,11 @@ export default function FaceUpdateRequestForm({ onSuccess, onCancel }: FaceUpdat
   const [faceDescriptor, setFaceDescriptor] = useState<number[] | null>(null);
   const [faceImagePreview, setFaceImagePreview] = useState<string | null>(null);
 
-  const handleFaceDetected = (imageFile: File, descriptor: number[]) => {
-    setFaceDescriptor(descriptor);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFaceImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(imageFile);
+  const handleFaceDetected = (imageFile: File, descriptors: number[][], mainImage: string) => {
+    if (descriptors.length > 0) {
+      setFaceDescriptor(descriptors[0]);
+    }
+    setFaceImagePreview(mainImage);
   };
 
   const handleImageRemove = () => {
