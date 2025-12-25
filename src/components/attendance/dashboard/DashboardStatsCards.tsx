@@ -7,9 +7,7 @@ interface DashboardStats {
   todayStats: {
     sessions: number;
     present: number;
-    late: number;
     absent: number;
-    leave: number;
   };
   weeklyStats: {
     sessions: number;

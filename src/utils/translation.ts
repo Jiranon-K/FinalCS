@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Safely retrieves a string value from the register translation object.
  * This is necessary because some keys in the register object (like 'faceSteps')

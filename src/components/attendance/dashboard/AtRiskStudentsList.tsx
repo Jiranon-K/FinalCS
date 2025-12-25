@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useLocale } from '@/hooks/useLocale';
 
 interface AtRiskStudent {

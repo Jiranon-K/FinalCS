@@ -4,9 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 interface StatusDistributionProps {
   stats: {
     present: number;
-    late: number;
     absent: number;
-    leave: number;
   } | undefined;
 }
 
@@ -15,9 +13,7 @@ export default function StatusDistributionChart({ stats }: StatusDistributionPro
 
   const data = [
     { name: t.attendanceManagement.statusNormal || 'Present', value: stats?.present || 0, color: '#22c55e' },
-    { name: t.attendanceManagement.statusLate || 'Late', value: stats?.late || 0, color: '#eab308' },
     { name: t.attendanceManagement.statusAbsent || 'Absent', value: stats?.absent || 0, color: '#ef4444' },
-    { name: t.attendanceManagement.statusLeave || 'Leave', value: stats?.leave || 0, color: '#3b82f6' },
   ].filter(item => item.value > 0);
 
   if (data.length === 0) {

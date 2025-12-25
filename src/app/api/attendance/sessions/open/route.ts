@@ -68,6 +68,29 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingSession) {
+      if (existingSession.status === 'closed' || existingSession.status === 'cancelled') {
+        if (now > sessionEndDateTime) {
+             existingSession.status = 'active';
+             existingSession.closedAt = undefined; 
+             await existingSession.save();
+
+             return NextResponse.json({
+                success: true,
+                data: existingSession.toObject(),
+                message: 'Session re-opened successfully',
+             });
+        }
+         existingSession.status = 'active';
+         existingSession.closedAt = undefined;
+         await existingSession.save();
+
+         return NextResponse.json({
+            success: true,
+            data: existingSession.toObject(),
+            message: 'Session re-opened successfully',
+         });
+      }
+
       return badRequestResponse(
         `Session already exists for this course on ${parsedDate.toLocaleDateString()} at ${startTime}. Please choose a different date or time slot.`
       );
@@ -96,10 +119,7 @@ export async function POST(request: NextRequest) {
       stats: {
         expectedCount: course.enrolledStudents.length,
         presentCount: 0,
-        normalCount: 0,
-        lateCount: 0,
         absentCount: course.enrolledStudents.length,
-        leaveCount: 0,
       },
     });
 
@@ -134,6 +154,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Error opening session:', error);
 

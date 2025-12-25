@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { AttendanceRecord, AttendanceSession } from '@/models';
@@ -55,22 +56,13 @@ export async function PUT(
     await record.save();
 
     let presentCount = 0;
-    let normalCount = 0;
-    let lateCount = 0;
     let absentCount = 0;
-    let leaveCount = 0;
 
     const allRecords = await AttendanceRecord.find({ sessionId: session._id });
 
     for (const rec of allRecords) {
-      if (rec.status === 'normal') {
+      if (rec.status === 'present') {
         presentCount++;
-        normalCount++;
-      } else if (rec.status === 'late') {
-        presentCount++;
-        lateCount++;
-      } else if (rec.status === 'leave') {
-        leaveCount++;
       } else if (rec.status === 'absent') {
         absentCount++;
       }
@@ -79,10 +71,7 @@ export async function PUT(
     session.stats = {
       expectedCount: session.stats.expectedCount,
       presentCount,
-      normalCount,
-      lateCount,
       absentCount,
-      leaveCount,
     };
 
     await session.save();

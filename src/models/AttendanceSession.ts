@@ -16,26 +16,7 @@ const sessionStatsSchema = new Schema<SessionStats>({
     default: 0,
     min: 0,
   },
-  normalCount: {
-    type: Number,
-    required: true,
-    default: 0,
-    min: 0,
-  },
-
-  lateCount: {
-    type: Number,
-    required: true,
-    default: 0,
-    min: 0,
-  },
   absentCount: {
-    type: Number,
-    required: true,
-    default: 0,
-    min: 0,
-  },
-  leaveCount: {
     type: Number,
     required: true,
     default: 0,

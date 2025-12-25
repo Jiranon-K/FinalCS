@@ -1,6 +1,7 @@
 'use client';
 
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useLocale } from '@/hooks/useLocale';
 import { AttendanceRecord } from '@/types/attendance';
@@ -19,6 +20,20 @@ const ClockIcon = ({ className }: { className?: string }) => (
 
 export default function RecentAttendance({ records, loading }: RecentAttendanceProps) {
   const { t } = useLocale();
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const displayRecords = records.filter(r => {
+    if (!r.checkInTime) return false;
+    const checkInTime = new Date(r.checkInTime).getTime();
+    return (now.getTime() - checkInTime) < 30000; // 30 seconds
+  });
 
 
   const formatTime = (date?: Date | string) => {
@@ -48,7 +63,7 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
     );
   }
 
-  if (records.length === 0) {
+  if (displayRecords.length === 0) {
     return (
        <div className="flex flex-col items-center justify-center p-8 text-base-content/40 bg-base-100/50 rounded-2xl border border-base-content/5">
           <ClockIcon className="w-10 h-10 mb-2 opacity-50" />
@@ -67,14 +82,14 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
       </div>
 
       <div className="flex flex-col gap-3">
-        {records.map((record) => {
+        {displayRecords.map((record) => {
            const student = record.studentId as unknown as Student;
            const imageUrl = (typeof student?.userId === 'object' ? student.userId.imageUrl : undefined) || student?.imageUrl;
            
            return (
           <div
             key={record._id?.toString() || record.id}
-            className={`group flex items-center justify-between p-3 bg-base-100 hover:bg-base-50 rounded-2xl border border-base-200 shadow-sm hover:shadow-md transition-all duration-1000`}
+            className={`group flex items-center justify-between p-3 bg-base-100 hover:bg-base-50 rounded-2xl border border-base-200 shadow-sm hover:shadow-md transition-all duration-1000 animate-in fade-in slide-in-from-bottom-2`}
           >
             <div className="flex items-center gap-4">
               <div className={`avatar ${!imageUrl ? 'placeholder' : ''}`}>
@@ -108,14 +123,14 @@ export default function RecentAttendance({ records, loading }: RecentAttendanceP
 
             <div className="flex flex-col items-end gap-1.5">
                <div className={`badge badge-sm gap-1.5 border-0 font-medium ${
-                  (record.status === 'present' || record.status === 'normal') ? 'bg-success/15 text-success' :
+                  record.status === 'present' ? 'bg-success/15 text-success' :
                   'bg-error/15 text-error'
                }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${
-                     (record.status === 'present' || record.status === 'normal') ? 'bg-success' :
+                     record.status === 'present' ? 'bg-success' :
                      'bg-error'
                   }`}></span>
-                  {(record.status === 'present' || record.status === 'normal') ? t.attendanceManagement.statusNormal :
+                  {record.status === 'present' ? t.attendanceManagement.statusNormal :
                    t.attendanceManagement.statusAbsent}
                </div>
                <span className="text-xs font-bold text-base-content/70 font-mono">

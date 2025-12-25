@@ -4,9 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 interface TrendData {
   date: string;
   present: number;
-  late: number;
   absent: number;
-  leave: number;
 }
 
 interface AttendanceTrendChartProps {
@@ -36,10 +34,6 @@ export default function AttendanceTrendChart({ data }: AttendanceTrendChartProps
                   <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
                   <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
                 </linearGradient>
-                <linearGradient id="colorLate" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#eab308" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
-                </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="oklch(var(--b3))" />
               <XAxis 
@@ -67,14 +61,6 @@ export default function AttendanceTrendChart({ data }: AttendanceTrendChartProps
                 stroke="#22c55e" 
                 fill="url(#colorPresent)" 
                 name={t.attendanceManagement.statusNormal || 'Present'}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="late" 
-                stackId="1" 
-                stroke="#eab308" 
-                fill="url(#colorLate)" 
-                name={t.attendanceManagement.statusLate || 'Late'}
               />
             </AreaChart>
           </ResponsiveContainer>

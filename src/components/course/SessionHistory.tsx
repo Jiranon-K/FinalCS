@@ -1,19 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { AttendanceSession } from '@/types/session';
 import { useLocale } from '@/hooks/useLocale';
-import { useRouter } from 'next/navigation';
 
 interface SessionHistoryProps {
   sessions: AttendanceSession[];
   courseId: string;
 }
-
-const CalendarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-  </svg>
-);
 
 const ClockIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -28,16 +22,9 @@ const LocationIcon = () => (
   </svg>
 );
 
-const ViewIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-  </svg>
-);
-
 export default function SessionHistory({ sessions, courseId }: SessionHistoryProps) {
   const { t } = useLocale();
-  const router = useRouter();
+  // const router = useRouter();
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -85,10 +72,6 @@ export default function SessionHistory({ sessions, courseId }: SessionHistoryPro
       month: 'short',
       day: 'numeric',
     });
-  };
-
-  const handleViewSession = (sessionId: string) => {
-    router.push(`/schedule/${courseId}/session/${sessionId}`);
   };
 
   const calculateAttendanceRate = (stats: any) => {
@@ -139,7 +122,7 @@ export default function SessionHistory({ sessions, courseId }: SessionHistoryPro
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="stat p-3 bg-base-200 rounded-lg">
                 <div className="stat-title text-xs">{t.attendanceManagement.expected}</div>
                 <div className="stat-value text-xl">{session.stats.expectedCount}</div>
@@ -151,16 +134,6 @@ export default function SessionHistory({ sessions, courseId }: SessionHistoryPro
                 <div className="stat-desc text-success">
                   {calculateAttendanceRate(session.stats)}%
                 </div>
-              </div>
-
-              <div className="stat p-3 bg-base-200 rounded-lg">
-                <div className="stat-title text-xs">{t.attendanceManagement.statusNormal}</div>
-                <div className="stat-value text-xl">{session.stats.normalCount}</div>
-              </div>
-
-              <div className="stat p-3 bg-warning/10 rounded-lg">
-                <div className="stat-title text-xs text-warning">{t.attendanceManagement.statusLate}</div>
-                <div className="stat-value text-xl text-warning">{session.stats.lateCount}</div>
               </div>
 
               <div className="stat p-3 bg-error/10 rounded-lg">

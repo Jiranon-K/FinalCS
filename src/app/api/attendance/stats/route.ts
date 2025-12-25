@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
             totalSessions: 0,
             totalRecords: 0,
             averageRate: 0,
-            todayStats: { sessions: 0, present: 0, late: 0, absent: 0, leave: 0 },
+            todayStats: { sessions: 0, present: 0, absent: 0 },
             weeklyStats: { sessions: 0, presentRate: 0 }
           },
           courseStats: [],
@@ -96,18 +96,16 @@ export async function GET(request: NextRequest) {
     const totalSessions = sessions.length;
     const totalRecords = records.length;
     const presentCount = records.filter(r => r.status === 'present').length;
-    const lateCount = records.filter(r => r.status === 'late').length;
     const absentCount = records.filter(r => r.status === 'absent').length;
-    const leaveCount = records.filter(r => r.status === 'leave').length;
 
     let averageRate = 0;
     if (user.role === 'student') {
         averageRate = totalSessions > 0 
-            ? ((presentCount + lateCount) / totalSessions) * 100 
+            ? (presentCount / totalSessions) * 100 
             : 0;
     } else {
         averageRate = totalRecords > 0
-            ? ((presentCount + lateCount) / totalRecords) * 100
+            ? (presentCount / totalRecords) * 100
             : 0;
     }
 
@@ -167,13 +165,13 @@ export async function GET(request: NextRequest) {
         if (user.role === 'student') {
              stats.totalExpected++;
              const myRecord = records.find(r => r.sessionId.toString() === session._id.toString());
-             if (myRecord && (myRecord.status === 'present' || myRecord.status === 'late')) {
+             if (myRecord && myRecord.status === 'present') {
                  stats.presentCount++;
              }
         } else {
             const sessionRecords = records.filter(r => r.sessionId.toString() === session._id.toString());
             stats.totalExpected += sessionRecords.length;
-            stats.presentCount += sessionRecords.filter(r => r.status === 'present' || r.status === 'late').length;
+            stats.presentCount += sessionRecords.filter(r => r.status === 'present').length;
         }
       }
     }
@@ -190,7 +188,7 @@ export async function GET(request: NextRequest) {
         const curr = new Date(startDate);
         while (curr <= endDate) {
             const dateStr = curr.toISOString().split('T')[0];
-            trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
+            trendMap.set(dateStr, { date: dateStr, present: 0, absent: 0 });
             curr.setDate(curr.getDate() + 1);
         }
     }
@@ -201,13 +199,11 @@ export async function GET(request: NextRequest) {
              if (session) {
                 const dateStr = new Date(session.sessionDate).toISOString().split('T')[0];
                 if (!trendMap.has(dateStr)) {
-                     trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
+                     trendMap.set(dateStr, { date: dateStr, present: 0, absent: 0 });
                 }
                 const entry = trendMap.get(dateStr);
                 if (record.status === 'present') entry.present++;
-                else if (record.status === 'late') entry.late++;
                 else if (record.status === 'absent') entry.absent++;
-                else if (record.status === 'leave') entry.leave++;
             }
         });
     } else {
@@ -216,22 +212,18 @@ export async function GET(request: NextRequest) {
             if (session) {
                 const dateStr = new Date(session.sessionDate).toISOString().split('T')[0];
                 if (!trendMap.has(dateStr)) {
-                     trendMap.set(dateStr, { date: dateStr, present: 0, late: 0, absent: 0, leave: 0 });
+                     trendMap.set(dateStr, { date: dateStr, present: 0, absent: 0 });
                 }
                 const entry = trendMap.get(dateStr);
                 if (record.status === 'present') entry.present++;
-                else if (record.status === 'late') entry.late++;
                 else if (record.status === 'absent') entry.absent++;
-                else if (record.status === 'leave') entry.leave++;
             }
         });
     }
     interface TrendEntry {
         date: string;
         present: number;
-        late: number;
         absent: number;
-        leave: number;
     }
     const trend = Array.from(trendMap.values()).sort((a: TrendEntry, b: TrendEntry) => a.date.localeCompare(b.date));
 
@@ -245,13 +237,13 @@ export async function GET(request: NextRequest) {
                 id: session._id,
                 courseName: course?.courseName || 'Unknown Course',
                 date: session.sessionDate,
-                presentCount: (myRecord && (myRecord.status === 'present' || myRecord.status === 'late')) ? 1 : 0,
+                presentCount: (myRecord && myRecord.status === 'present') ? 1 : 0,
                 totalCount: 1, 
                 status: myRecord ? myRecord.status : 'absent'
             };
         } else {
             const sessionRecords = records.filter(r => r.sessionId.toString() === session._id.toString());
-            const sessionPresent = sessionRecords.filter(r => r.status === 'present' || r.status === 'late').length;
+            const sessionPresent = sessionRecords.filter(r => r.status === 'present').length;
             const sessionTotal = sessionRecords.length;
             
             return {
@@ -284,7 +276,7 @@ export async function GET(request: NextRequest) {
             }
             const stats = studentStats.get(studentId);
             stats.total++;
-            if (record.status === 'present' || record.status === 'late') {
+            if (record.status === 'present') {
                 stats.present++;
             }
         });
@@ -320,9 +312,7 @@ export async function GET(request: NextRequest) {
                 return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
             }).length,
             present: presentCount,
-            late: lateCount,
             absent: absentCount,
-            leave: leaveCount
         },
         weeklyStats: {
           sessions: totalSessions,

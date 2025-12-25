@@ -65,12 +65,14 @@ export default function CameraSidebar({
         </div>
       </div>
 
-      {/* Recent Attendance Card */}
-      <div className="card bg-base-100 shadow-xl border border-base-200 flex-1">
-        <div className="card-body p-4">
-          <RecentAttendance records={recentRecords} loading={loadingRecords} />
+      {/* Recent Attendance Card - Only show when there are active sessions */}
+      {activeSessions.length > 0 && (
+        <div className="card bg-base-100 shadow-xl border border-base-200 flex-1">
+          <div className="card-body p-4">
+            <RecentAttendance records={recentRecords} loading={loadingRecords} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
