@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useToast } from '@/hooks/useToast';
+import { getSafeRegisterString } from '@/utils/translation';
 import { useAuth } from '@/contexts/AuthContext';
 import FaceUpload from './FaceUpload';
 import { DEPARTMENTS, GRADES, CLASSES } from '@/lib/constants';
@@ -229,7 +230,7 @@ export default function RegisterForm() {
                 <option value="">{t.register.departmentPlaceholder}</option>
                 {DEPARTMENTS.map(dept => (
                     <option key={dept} value={dept}>
-                        {(t.register[`dept${dept}` as keyof typeof t.register] as string) || dept}
+                        {getSafeRegisterString(t.register, `dept${dept}`) || dept}
                     </option>
                 ))}
               </select>
@@ -252,7 +253,7 @@ export default function RegisterForm() {
                     <option value="">{t.register.gradePlaceholder}</option>
                     {GRADES.map(g => (
                         <option key={g} value={g}>
-                             {(t.register[`gradeYear${g}` as keyof typeof t.register] as string) || `Year ${g}`}
+                             {getSafeRegisterString(t.register, `gradeYear${g}`) || `Year ${g}`}
                         </option>
                     ))}
                   </select>
@@ -273,7 +274,7 @@ export default function RegisterForm() {
                     <option value="">{t.register.classPlaceholder}</option>
                      {CLASSES.map(c => (
                         <option key={c} value={c}>
-                            {(t.register[`class${c}` as keyof typeof t.register] as string) || `Class ${c}`}
+                            {getSafeRegisterString(t.register, `class${c}`) || `Class ${c}`}
                         </option>
                     ))}
                   </select>

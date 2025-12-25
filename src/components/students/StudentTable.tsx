@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useLocale } from '@/hooks/useLocale';
+import { getSafeRegisterString } from '@/utils/translation';
 
 // Icons
 
@@ -118,7 +119,7 @@ export default function StudentTable({
               <td className="py-3">
                  {student.department ? (
                     <div className="badge badge-sm badge-ghost font-normal text-xs gap-1">
-                       {(t.register[`dept${student.department}` as keyof typeof t.register] as string) || student.department}
+                       {getSafeRegisterString(t.register, `dept${student.department}`) || student.department}
                     </div>
                 ) : (
                   <span className="text-base-content/30 text-xs">-</span>
@@ -127,7 +128,7 @@ export default function StudentTable({
               <td className="py-3">
                 {student.grade ? (
                     <span className="text-xs badge badge-xs badge-neutral badge-outline opacity-60">
-                        {(t.register[`grade${student.grade}` as keyof typeof t.register] as string) || student.grade}
+                        {getSafeRegisterString(t.register, `grade${student.grade}`) || student.grade}
                     </span>
                 ) : (
                     <span className="text-base-content/30 text-xs">-</span>
@@ -136,7 +137,7 @@ export default function StudentTable({
               <td className="py-3">
                 {student.class ? (
                     <span className="text-xs opacity-70">
-                    {(t.register[`class${student.class}` as keyof typeof t.register] as string) || student.class}
+                    {getSafeRegisterString(t.register, `class${student.class}`) || student.class}
                     </span>
                 ) : (
                     <span className="text-base-content/30 text-xs">-</span>

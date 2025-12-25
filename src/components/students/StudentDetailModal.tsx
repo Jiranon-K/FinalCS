@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Student } from './StudentTable';
 import { useLocale } from '@/hooks/useLocale';
+import { getSafeRegisterString } from '@/utils/translation';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faUser, faBook, faClock, faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -43,10 +44,6 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
   const [courses, setCourses] = useState<Course[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
 
-  const getRegisterString = (key: string): string | undefined => {
-    const value = t.register[key as keyof typeof t.register];
-    return typeof value === 'string' ? value : undefined;
-  };
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -123,7 +120,7 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
                     <p className="text-base-content/60 font-mono">{student.studentId}</p>
                     <div className="flex gap-2 mt-2">
                         <span className="badge badge-primary badge-outline bg-primary/5">
-                            {getRegisterString(`dept${student.department}`) || student.department}
+                            {getSafeRegisterString(t.register, `dept${student.department}`) || student.department}
                         </span>
                     </div>
                 </div>
@@ -181,19 +178,19 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
                     <div className="form-control w-full">
                         <label className="label text-base-content/50 text-sm font-medium uppercase tracking-wider">{t.register.department}</label>
                         <div className="text-lg font-medium border-b border-base-200 pb-2">
-                            {getRegisterString(`dept${student.department}`) || student.department || '-'}
+                            {getSafeRegisterString(t.register, `dept${student.department}`) || student.department || '-'}
                         </div>
                     </div>
                     <div className="form-control w-full">
                          <label className="label text-base-content/50 text-sm font-medium uppercase tracking-wider">{t.register.grade}</label>
                          <div className="text-lg font-medium border-b border-base-200 pb-2">
-                            {getRegisterString(`gradeYear${student.grade}`) || student.grade || '-'}
+                            {getSafeRegisterString(t.register, `gradeYear${student.grade}`) || student.grade || '-'}
                          </div>
                     </div>
                     <div className="form-control w-full">
                          <label className="label text-base-content/50 text-sm font-medium uppercase tracking-wider">{t.register.class}</label>
                          <div className="text-lg font-medium border-b border-base-200 pb-2">
-                             {getRegisterString(`class${student.class}`) || student.class || '-'}
+                             {getSafeRegisterString(t.register, `class${student.class}`) || student.class || '-'}
                          </div>
                     </div>
                 </div>

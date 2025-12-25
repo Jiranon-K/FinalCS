@@ -1,4 +1,5 @@
 import { useLocale } from '@/hooks/useLocale';
+import { getSafeRegisterString } from '@/utils/translation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { DEPARTMENTS, GRADES, CLASSES } from '@/lib/constants';
@@ -65,7 +66,7 @@ export default function StudentFilterCard({
                 <option value="">{t.students.department}</option>
                 {DEPARTMENTS.map(dept => (
                     <option key={dept} value={dept}>
-                        {t.register[`dept${dept}` as keyof typeof t.register] || dept}
+                        {getSafeRegisterString(t.register, `dept${dept}`) || dept}
                     </option>
                 ))}
             </select>
@@ -78,7 +79,7 @@ export default function StudentFilterCard({
                 <option value="">{t.students.grade}</option>
                  {GRADES.map(g => (
                     <option key={g} value={g}>
-                        {t.register[`gradeYear${g}` as keyof typeof t.register] || `Year ${g}`}
+                        {getSafeRegisterString(t.register, `gradeYear${g}`) || `Year ${g}`}
                     </option>
                 ))}
             </select>
@@ -91,7 +92,7 @@ export default function StudentFilterCard({
                 <option value="">{t.students.class}</option>
                  {CLASSES.map(c => (
                     <option key={c} value={c}>
-                        {t.register[`class${c}` as keyof typeof t.register] || `Class ${c}`}
+                        {getSafeRegisterString(t.register, `class${c}`) || `Class ${c}`}
                     </option>
                 ))}
             </select>
