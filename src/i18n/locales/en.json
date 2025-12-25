@@ -14,6 +14,8 @@
     "attendanceManagement": "Attendance Records",
     "dashboard": "Dashboard",
     "users": "User Management",
+    "persons": "Persons",
+    "allStudents": "All Students",
     "faceRequests": "Face Update Requests",
     "schedule": "Teaching Schedule",
     "pleaseRegisterFace": "Please register your face before using the system"
