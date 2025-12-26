@@ -25,7 +25,7 @@ export default function CameraSidebar({
         <div className="card-body p-4">
           <h3 className="card-title text-sm opacity-70 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary"></span>
-            {t.attendanceManagement?.activeSessions || t.dashboard?.activeSessions || 'Active Sessions'}
+            {t.camera.activeSessions}
           </h3>
           
           {activeSessions.length > 0 ? (
@@ -38,7 +38,7 @@ export default function CameraSidebar({
                     </span>
                     <div className="badge badge-success badge-xs gap-1">
                        <span className="animate-pulse w-1 h-1 rounded-full bg-white"></span>
-                       Active
+                       {t.course.statusActive || 'Active'}
                     </div>
                   </div>
                   
@@ -59,7 +59,7 @@ export default function CameraSidebar({
             </div>
           ) : (
             <div className="text-center py-8 opacity-50 text-sm bg-base-200/30 rounded-xl border-dashed border-2 border-base-200">
-              No active sessions
+              {t.camera.noActiveSessions}
             </div>
           )}
         </div>

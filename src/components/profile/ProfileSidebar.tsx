@@ -21,7 +21,7 @@ export default function ProfileSidebar({
   onViewHistory,
 }: ProfileSidebarProps) {
   const { user } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
@@ -195,7 +195,7 @@ export default function ProfileSidebar({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-base-content/50">{t.profile.accountCreated}</div>
-                  <div className="text-sm font-medium">{formatDate(user.createdAt)}</div>
+                  <div className="text-sm font-medium">{formatDate(user.createdAt, locale)}</div>
                 </div>
               </div>
             )}
@@ -209,7 +209,7 @@ export default function ProfileSidebar({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-base-content/50">{t.profile.lastLogin}</div>
-                  <div className="text-sm font-medium">{formatDate(user.lastLogin)}</div>
+                  <div className="text-sm font-medium">{formatDate(user.lastLogin, locale)}</div>
                 </div>
               </div>
             )}
@@ -241,9 +241,9 @@ function calculateProfileCompletion(user: {
   return Math.round((completed / fields.length) * 100);
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('th-TH', {
+  return date.toLocaleDateString(locale === 'th' ? 'th-TH' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

@@ -63,7 +63,17 @@
     "failedToGetDevices": "ไม่สามารถดึงรายการกล้องได้",
     "failedToStartCamera": "ไม่สามารถเปิดกล้องได้",
     "camera": "กล้อง",
-    "capture": "ถ่ายภาพ"
+    "capture": "ถ่ายภาพ",
+    "activeSessions": "เซสชันที่เปิดอยู่",
+    "noActiveSessions": "ไม่มีเซสชันที่เปิดอยู่",
+    "face": "ใบหน้า",
+    "faces": "ใบหน้า",
+    "detected": "ตรวจพบ",
+    "known": "รู้จัก",
+    "unknown": "ไม่รู้จัก",
+    "loadingModels": "กำลังโหลด AI...",
+    "initializing": "กำลังเริ่มกล้อง...",
+    "checkedIn": "เช็คชื่อแล้ว"
   },
   "faceDetection": {
     "detecting": "กำลังตรวจจับใบหน้า",
@@ -615,7 +625,9 @@
     "addFirstCourse": "เพิ่มรายวิชาแรกของคุณเพื่อดูที่นี่",
     "today": "วันนี้",
     "filterByDay": "กรองตามวัน",
-    "allDays": "ทั้งหมด"
+    "allDays": "ทั้งหมด",
+    "teacherCanEditSchedule": "คุณสามารถแก้ไขวัน-เวลาเรียนได้",
+    "adminCanEditSchedule": "แก้ไขตารางสอนรายวิชานี้"
   },
   "course": {
     "title": "รายวิชา",
@@ -702,7 +714,13 @@
     "schedule": "ตารางเรียน"
   },
   "attendanceManagement": {
-    "title": "จัดการการเข้าเรียน",
+    "title": "จัดการการเช็คชื่อ",
+    "manageActiveSessions": "จัดการเซสชัน",
+    "activeCourses": "รายวิชาที่มีการเรียนการสอน",
+    "manualCheck": "เช็คชื่อเอง",
+    "manageSession": "จัดการเซสชัน",
+    "recentRecords": "ประวัติล่าสุด",
+    "noRecentRecords": "ไม่มีประวัติล่าสุด",
     "recordAttendance": "บันทึกการเข้าเรียน",
     "recentActivity": "กิจกรรมล่าสุด",
     "attendanceRecords": "บันทึกการเข้าเรียน",
@@ -839,9 +857,7 @@
     "thisMonth": "เดือนนี้",
     "customRange": "กำหนดเอง",
     "noStudentsEnrolled": "ไม่มีนักเรียนลงทะเบียน",
-    "manageActiveSessions": "จัดการเซสชันที่เปิดอยู่",
-    "activeCourses": "รายวิชาที่กำลังเรียน",
-    "manualCheck": "เช็คชื่อเอง",
+
     "activeSessions": "เซสชันที่เปิดอยู่",
     "pleaseSelectCourse": "กรุณาเลือกรายวิชา",
     "pleaseSelectSession": "กรุณาเลือกเซสชัน",

@@ -63,7 +63,17 @@
     "failedToGetDevices": "Failed to get camera devices",
     "failedToStartCamera": "Failed to start camera",
     "camera": "Camera",
-    "capture": "Capture"
+    "capture": "Capture",
+    "activeSessions": "Active Sessions",
+    "noActiveSessions": "No active sessions",
+    "face": "Face",
+    "faces": "Faces",
+    "detected": "Detected",
+    "known": "Known",
+    "unknown": "Unknown",
+    "loadingModels": "Loading AI Models...",
+    "initializing": "Initializing Camera...",
+    "checkedIn": "Checked In"
   },
   "faceDetection": {
     "detecting": "Detecting faces",
@@ -628,7 +638,9 @@
     "addFirstCourse": "Add your first course to see it here",
     "today": "Today",
     "filterByDay": "Filter by Day",
-    "allDays": "All"
+    "allDays": "All",
+    "teacherCanEditSchedule": "You can edit the class days/times",
+    "adminCanEditSchedule": "Edit this course schedule"
   },
   "course": {
     "title": "Courses",
@@ -716,6 +728,12 @@
   },
   "attendanceManagement": {
     "title": "Attendance Management",
+    "manageActiveSessions": "Manage Active Sessions",
+    "activeCourses": "Active Courses",
+    "manualCheck": "Manual Check",
+    "manageSession": "Manage Session",
+    "recentRecords": "Recent Attendance",
+    "noRecentRecords": "No recent records",
     "recordAttendance": "Record Attendance",
     "recentActivity": "Recent Activity",
     "attendanceRecords": "Attendance Records",
@@ -854,9 +872,7 @@
     "noStudentsEnrolled": "No Students Enrolled",
     "pleaseSelectCourse": "Please Select Course",
     "pleaseSelectSession": "Please Select Session",
-    "manageActiveSessions": "Manage Active Sessions",
-    "activeCourses": "Active Courses",
-    "manualCheck": "Manual Check",
+
     "activeSessions": "Active Sessions",
     "viewDetails": "View Details",
     "atRiskStudents": "At Risk Students",

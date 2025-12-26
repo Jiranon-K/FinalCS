@@ -269,7 +269,7 @@ export default function EditCoursePage() {
         room,
         schedule,
         status: status as 'active' | 'archived' | 'draft',
-        enrolledStudentIds: isAdmin ? selectedStudents : undefined,
+        enrolledStudentIds: (isAdmin || isTeacherOwner) ? selectedStudents : undefined,
       };
 
       const response = await fetch(`/api/courses/${courseId}`, {

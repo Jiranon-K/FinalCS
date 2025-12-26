@@ -194,7 +194,7 @@ export default function CourseDetailModal({ isOpen, course, slot, onClose, user,
                 </div>
                 <div>
                   <p className="font-semibold text-warning-content">{t.schedule.editSchedule}</p>
-                  <p className="text-xs text-base-content/60">{isTeacherOwner ? 'คุณสามารถแก้ไขวัน-เวลาเรียนได้' : 'แก้ไขตารางสอนรายวิชานี้'}</p>
+                  <p className="text-xs text-base-content/60">{isTeacherOwner ? t.schedule.teacherCanEditSchedule : t.schedule.adminCanEditSchedule}</p>
                 </div>
               </div>
               <button 
@@ -207,7 +207,7 @@ export default function CourseDetailModal({ isOpen, course, slot, onClose, user,
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
                 </svg>
-                แก้ไข
+                {t.course.edit}
               </button>
             </div>
           </div>

@@ -145,13 +145,13 @@ export default function RecentAttendance({ records, loading, activeSessions = []
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
             </svg>
-            {t.attendanceManagement?.manageActiveSessions || 'Manage Active Sessions'}
+            {t.attendanceManagement.manageActiveSessions}
           </Link>
 
           {activeSessions.length > 0 && (
             <div className="space-y-2">
                <div className="text-xs font-bold text-base-content/50 uppercase tracking-wider px-1">
-                  {t.attendanceManagement?.activeCourses || 'Active Courses'}
+                  {t.attendanceManagement.activeCourses}
                </div>
                {activeSessions.map(session => (
                  <Link 
@@ -163,7 +163,7 @@ export default function RecentAttendance({ records, loading, activeSessions = []
                        <span className="flex-1 truncate text-left">{session.courseCode}</span>
                     </span>
                     <span className="flex items-center gap-1 text-primary group-hover:text-primary-content transition-colors">
-                       {t.attendanceManagement?.manualCheck || 'Manual Check'}
+                       {t.attendanceManagement.manualCheck}
                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                        </svg>

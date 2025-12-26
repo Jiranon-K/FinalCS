@@ -21,7 +21,7 @@ export default function CourseSessionSelector({
   selectedCourseId,
   selectedSessionId,
 }: CourseSessionSelectorProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { user } = useAuth();
   const { showToast } = useToast();
   
@@ -113,7 +113,7 @@ export default function CourseSessionSelector({
   };
 
   const formatSessionDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('th-TH', {
+    return new Date(date).toLocaleDateString(locale === 'th' ? 'th-TH' : 'en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',

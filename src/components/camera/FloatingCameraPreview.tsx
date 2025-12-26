@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
 import { useFaceAPI } from '@/hooks/useFaceAPI';
 import Loading from '@/components/ui/Loading';
-import type { FaceDetectionResult } from '@/types/face';
 import type { PersonForRecognition } from '@/types/person';
 
 export default function FloatingCameraPreview() {
@@ -18,8 +17,6 @@ export default function FloatingCameraPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const detectionIntervalRef = useRef<number | null>(null);
 
-  const [detectedFaces, setDetectedFaces] = useState<FaceDetectionResult[]>([]);
-  const [recognizedPersons, setRecognizedPersons] = useState<Map<number, { name: string; confidence: number }>>(new Map());
   const [knownPersons, setKnownPersons] = useState<PersonForRecognition[]>([]);
 
   const { modelsLoaded, detectFaces, recognizeFace } = useFaceAPI();
@@ -75,7 +72,7 @@ export default function FloatingCameraPreview() {
       try {
         if (video.readyState === 4) {
           const faces = await detectFaces(video);
-          setDetectedFaces(faces);
+
 
           const recognitionMap = new Map<number, { name: string; confidence: number }>();
 
@@ -96,7 +93,8 @@ export default function FloatingCameraPreview() {
               }
             }
           }
-          setRecognizedPersons(recognitionMap);
+          // setRecognizedPersons removed as it's not used for rendering
+
 
           const ctx = canvas.getContext('2d');
           if (ctx) {
@@ -118,7 +116,7 @@ export default function FloatingCameraPreview() {
               if (isKnown) {
                 label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
               } else {
-                label = `Unknown (${(face.detection.score * 100).toFixed(1)}%)`;
+                label = `${t.camera.unknown || 'Unknown'} (${(face.detection.score * 100).toFixed(1)}%)`;
               }
 
               ctx.font = 'bold 12px sans-serif';
@@ -147,7 +145,7 @@ export default function FloatingCameraPreview() {
         clearInterval(detectionIntervalRef.current);
       }
     };
-  }, [isVisible, modelsLoaded, detectFaces, recognizeFace, knownPersons]);
+  }, [isVisible, modelsLoaded, detectFaces, recognizeFace, knownPersons, t.camera.unknown]);
 
   const handleClick = () => {
     router.push('/camera');

@@ -208,7 +208,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
 
               } else {
                 recognitionMap.set(i, {
-                  name: 'Unknown',
+                  name: t.camera.unknown || 'Unknown',
                   confidence: 0
                 });
               }
@@ -224,7 +224,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
               const { box } = face.detection;
               const recognized = recognitionMap.get(index);
 
-              const isKnown = recognized && recognized.name !== 'Unknown';
+              const isKnown = recognized && recognized.name !== (t.camera.unknown || 'Unknown');
               let isCheckedIn = false;
               
               if (isKnown && recognized.id) {
@@ -245,7 +245,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
               if (isKnown) {
                 label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
               } else {
-                label = `Unknown (${(face.detection.score * 100).toFixed(1)}%)`;
+                label = `${t.camera.unknown || 'Unknown'} (${(face.detection.score * 100).toFixed(1)}%)`;
               }
 
               ctx.font = 'bold 16px sans-serif';
@@ -260,7 +260,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
               ctx.fillText(label, box.x + padding, box.y - 12);
 
               if (isCheckedIn) {
-                 const badgeText = "✓ Checked In";
+                 const badgeText = `✓ ${t.camera.checkedIn || 'Checked In'}`;
                  const badgeWidth = ctx.measureText(badgeText).width;
                  
                  ctx.fillStyle = '#2563eb';
@@ -294,7 +294,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
         clearInterval(detectionIntervalRef.current);
       }
     };
-  }, [isStreaming, faceDetectionEnabled, modelsLoaded, detectFaces, recognizeFace, knownPersons, activeSessions, lastAttendanceRecord, showLivenessCheck]);
+  }, [isStreaming, faceDetectionEnabled, modelsLoaded, detectFaces, recognizeFace, knownPersons, activeSessions, lastAttendanceRecord, showLivenessCheck, t.camera.unknown, t.camera.checkedIn]);
 
   return (
     <div className="flex flex-col h-full w-full gap-4">
@@ -474,7 +474,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
 
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-base-200/50 backdrop-blur-sm z-10">
-            <Loading variant="spinner" size="lg" text="Initializing Camera..." />
+            <Loading variant="spinner" size="lg" text={t.camera.initializing || "Initializing Camera..."} />
           </div>
         )}
         
@@ -523,7 +523,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                     <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
                   </svg>
                   <span className="text-xs font-bold">
-                    {detectedFaces.length} {detectedFaces.length === 1 ? 'Face' : 'Faces'} Detected
+                    {detectedFaces.length} {detectedFaces.length === 1 ? t.camera.face : t.camera.faces} {t.camera.detected}
                   </span>
                 </div>
 
@@ -534,7 +534,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                         <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                       </svg>
                       <span className="text-xs font-bold">
-                        {Array.from(recognizedPersons.values()).filter(p => p.name !== 'Unknown').length} Known
+                        {Array.from(recognizedPersons.values()).filter(p => p.name !== 'Unknown').length} {t.camera.known}
                       </span>
                     </div>
                     {Array.from(recognizedPersons.values()).filter(p => p.name === 'Unknown').length > 0 && (
@@ -543,7 +543,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                           <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clipRule="evenodd" />
                         </svg>
                         <span className="text-xs font-bold">
-                          {Array.from(recognizedPersons.values()).filter(p => p.name === 'Unknown').length} Unknown
+                          {Array.from(recognizedPersons.values()).filter(p => p.name === 'Unknown').length} {t.camera.unknown}
                         </span>
                       </div>
                     )}
@@ -556,7 +556,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span className="text-xs font-bold">Loading AI Models...</span>
+                    <span className="text-xs font-bold">{t.camera.loadingModels}</span>
                   </div>
                 )}
               </>

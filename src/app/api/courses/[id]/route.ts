@@ -92,7 +92,7 @@ export async function PUT(
       }));
     }
 
-    if (enrolledStudentIds !== undefined && isAdmin) {
+    if (enrolledStudentIds !== undefined && (isAdmin || isTeacherOwner)) {
       const Student = (await import('@/models/Student')).default;
       const validStudents = await Student.find({ _id: { $in: enrolledStudentIds } });
       course.enrolledStudents = validStudents.map((s: any) => ({
@@ -104,6 +104,7 @@ export async function PUT(
     if (isAdmin) {
       Object.assign(course, updateFields);
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { status, ...teacherAllowedFields } = updateFields;
       Object.assign(course, teacherAllowedFields);
     }
