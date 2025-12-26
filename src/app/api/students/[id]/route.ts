@@ -11,7 +11,10 @@ export async function GET(
     await connectDB();
     const { id } = await params;
 
-    const student = await Student.findOne({ id }).lean();
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { id };
+
+    const student = await Student.findOne(query).lean();
 
     if (!student) {
       return NextResponse.json(
@@ -53,8 +56,11 @@ export async function PUT(
     if (grade !== undefined) updateData.grade = grade;
     if (className !== undefined) updateData.class = className;
 
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { id };
+
     const result = await Student.findOneAndUpdate(
-      { id },
+      query,
       { $set: updateData },
       { new: true }
     ).lean();
@@ -87,7 +93,10 @@ export async function DELETE(
     await connectDB();
     const { id } = await params;
 
-    const result = await Student.deleteOne({ id });
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const query = isObjectId ? { _id: id } : { id };
+
+    const result = await Student.deleteOne(query);
 
     if (result.deletedCount === 0) {
       return NextResponse.json(

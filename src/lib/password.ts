@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 8;
 
 export async function hashPassword(plainPassword: string): Promise<string> {
   try {
