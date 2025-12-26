@@ -40,6 +40,7 @@ interface SearchStudentResult {
   studentId: string;
   imageUrl?: string;
   imageKey?: string;
+  userId?: { _id: string; imageUrl?: string } | string;
 }
 
 export default function StudentListManager({
@@ -96,14 +97,15 @@ export default function StudentListManager({
 
   useEffect(() => {
     const searchStudents = async () => {
-      if (!studentSearchQuery.trim()) {
-        setSearchResults([]);
-        return;
-      }
-
       setIsSearching(true);
       try {
-        const response = await fetch(`/api/students?search=${encodeURIComponent(studentSearchQuery)}&limit=10`);
+        const queryParams = new URLSearchParams();
+        if (studentSearchQuery.trim()) {
+          queryParams.set('search', studentSearchQuery);
+        }
+        queryParams.set('limit', '100');
+
+        const response = await fetch(`/api/students?${queryParams.toString()}`);
         const data = await response.json();
         if (data.success) {
           const enrolledIds = new Set(enrolledStudents.map(s => s._id.toString()));
@@ -133,7 +135,7 @@ export default function StudentListManager({
         hasFaceData: !!student.imageKey || !!student.imageUrl,
         imageUrl: (typeof student.userId === 'object' && student.userId?.imageUrl) 
           ? student.userId.imageUrl 
-          : student.imageUrl,
+          : undefined, 
       });
     });
     
@@ -400,7 +402,7 @@ export default function StudentListManager({
                   <td>
                     <div className="flex items-center gap-4">
                       <div className="avatar">
-                        <div className="w-12 h-12 rounded-full ring ring-base-200 ring-offset-base-100 ring-offset-1">
+                        <div className="w-12 h-12 rounded-full ring-2 ring-primary/20 ring-offset-base-100 ring-offset-2 relative overflow-hidden">
                           {student.imageUrl ? (
                             <Image
                               src={student.imageUrl}
@@ -411,7 +413,7 @@ export default function StudentListManager({
                               unoptimized
                             />
                           ) : (
-                            <div className="bg-neutral text-neutral-content w-full h-full flex items-center justify-center text-lg font-bold">
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-lg font-bold text-primary">
                               {student.studentName.charAt(0)}
                             </div>
                           )}
@@ -552,14 +554,17 @@ export default function StudentListManager({
                       <td>
                         <div className="flex items-center gap-3">
                           <div className="avatar">
-                            <div className="mask mask-squircle w-10 h-10">
-                              {student.imageUrl ? (
-                                <Image src={student.imageUrl} alt={student.name} width={40} height={40} unoptimized />
-                              ) : (
-                                <div className="bg-neutral text-neutral-content w-full h-full flex items-center justify-center">
-                                  {student.name.charAt(0)}
-                                </div>
-                              )}
+                            <div className="w-10 h-10 rounded-full ring-2 ring-primary/20 ring-offset-base-100 ring-offset-1 relative overflow-hidden">
+                              {(() => {
+                                const displayImage = typeof student.userId === 'object' && student.userId?.imageUrl ? student.userId.imageUrl : undefined;
+                                return displayImage ? (
+                                  <Image src={displayImage} alt={student.name} width={40} height={40} className="object-cover" unoptimized />
+                                ) : (
+                                  <div className="w-full h-full bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center font-bold text-primary">
+                                    {student.name.charAt(0)}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                           <div>
@@ -572,13 +577,9 @@ export default function StudentListManager({
                   ))}
                 </tbody>
               </table>
-            ) : studentSearchQuery ? (
-              <div className="flex justify-center items-center h-full text-base-content/50">
-                {t.course.noStudentsFoundSearch}
-              </div>
             ) : (
               <div className="flex justify-center items-center h-full text-base-content/50">
-                {t.course.searchStudentsToEnroll}
+                {t.course.noStudentsFoundSearch}
               </div>
             )}
           </div>
