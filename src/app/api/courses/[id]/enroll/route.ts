@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { Course, Student } from '@/models';
 import { EnrollStudentsRequest } from '@/types/course';
-import { requireRole, notFoundResponse, badRequestResponse, serverErrorResponse, forbiddenResponse } from '@/lib/auth-helpers';
+import { requireRole, notFoundResponse, badRequestResponse, serverErrorResponse, forbiddenResponse, canAccessCourse } from '@/lib/auth-helpers';
 import mongoose from 'mongoose';
 
 export async function POST(
@@ -13,8 +13,12 @@ export async function POST(
   try {
     await connectDB();
 
-    await requireRole(request, ['admin']);
+    const user = await requireRole(request, ['admin', 'teacher']);
     const { id: courseId } = await params;
+
+    if (!(await canAccessCourse(courseId, user))) {
+      return forbiddenResponse();
+    }
 
     const body: EnrollStudentsRequest = await request.json();
     const { studentIds } = body;

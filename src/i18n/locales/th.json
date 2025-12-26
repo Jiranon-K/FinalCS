@@ -649,6 +649,7 @@
     "enrollSelected": "ลงทะเบียนที่เลือก",
     "enrollSuccess": "เพิ่มนักเรียนสำเร็จ",
     "unenrollSuccess": "ลบนักเรียนสำเร็จ",
+    "unenrollError": "ลบนักเรียนออกจากรายวิชาไม่สำเร็จ",
     "createSuccess": "สร้างรายวิชาสำเร็จ",
     "updateSuccess": "อัปเดตรายวิชาสำเร็จ",
     "deleteSuccess": "ลบรายวิชาสำเร็จ",

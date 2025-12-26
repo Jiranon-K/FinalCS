@@ -62,7 +62,7 @@ export async function canAccessCourse(
 
   if (user.role === 'teacher') {
     const userDoc = await User.findOne({ username: user.username });
-    return course.teacherId.toString() === userDoc?._id.toString();
+    return course.teacherId.toString() === userDoc?._id?.toString();
   }
 
   if (user.role === 'student') {

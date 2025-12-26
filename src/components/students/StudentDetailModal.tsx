@@ -100,9 +100,9 @@ export default function StudentDetailModal({ student, isOpen, onClose }: Student
             <div className="flex gap-4 items-center">
                 <div className="avatar">
                     <div className="w-20 h-20 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                        {student.imageUrl ? (
+                        {(typeof student.userId === 'object' && student.userId?.imageUrl) || student.imageUrl ? (
                             <Image 
-                                src={student.imageUrl} 
+                                src={(typeof student.userId === 'object' && student.userId?.imageUrl) || student.imageUrl || ''} 
                                 alt={student.name} 
                                 width={80} 
                                 height={80} 

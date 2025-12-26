@@ -662,6 +662,7 @@
     "enrollSelected": "Enroll Selected",
     "enrollSuccess": "Students enrolled successfully",
     "unenrollSuccess": "Students removed successfully",
+    "unenrollError": "Failed to remove students from course",
     "createSuccess": "Course created successfully",
     "updateSuccess": "Course updated successfully",
     "deleteSuccess": "Course deleted successfully",

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongoose';
 import { Course, Student } from '@/models';
 import { UnenrollStudentsRequest } from '@/types/course';
-import { requireRole, notFoundResponse, badRequestResponse, serverErrorResponse, forbiddenResponse } from '@/lib/auth-helpers';
+import { requireRole, notFoundResponse, badRequestResponse, serverErrorResponse, forbiddenResponse, canAccessCourse } from '@/lib/auth-helpers';
 import mongoose from 'mongoose';
 
 export async function POST(
@@ -13,11 +13,18 @@ export async function POST(
   try {
     await connectDB();
 
-    await requireRole(request, ['admin']);
+    const user = await requireRole(request, ['admin', 'teacher']);
+
     const { id: courseId } = await params;
+
+    if (!(await canAccessCourse(courseId, user))) {
+      return forbiddenResponse();
+    }
 
     const body: UnenrollStudentsRequest = await request.json();
     const { studentIds } = body;
+
+    console.log(`Unenrolling students from course ${courseId}:`, studentIds);
 
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return badRequestResponse('Student IDs are required');
@@ -39,22 +46,33 @@ export async function POST(
     const notFound = [];
 
     for (const studentIdStr of studentIds) {
-      const student = await Student.findById(studentIdStr);
+      try {
+        if (!mongoose.Types.ObjectId.isValid(studentIdStr)) {
+          console.warn(`Invalid student ID format: ${studentIdStr}`);
+          notFound.push(studentIdStr);
+          continue;
+        }
 
-      if (!student) {
-        notFound.push(studentIdStr);
-        continue;
-      }
+        const student = await Student.findById(studentIdStr);
 
-      const initialLength = course.enrolledStudents.length;
-      course.enrolledStudents = course.enrolledStudents.filter(
-        (enrollment) => enrollment.studentId.toString() !== student._id.toString()
-      );
+        if (!student) {
+          notFound.push(studentIdStr);
+          continue;
+        }
 
-      if (course.enrolledStudents.length < initialLength) {
-        removed.push(student.name);
-      } else {
-        notFound.push(student.name);
+        const initialLength = course.enrolledStudents.length;
+        course.enrolledStudents = course.enrolledStudents.filter(
+          (enrollment) => enrollment.studentId.toString() !== student._id.toString()
+        );
+
+        if (course.enrolledStudents.length < initialLength) {
+          removed.push(student.name);
+        } else {
+          notFound.push(student.name);
+        }
+      } catch (err) {
+        console.error(`Error processing student ${studentIdStr}:`, err);
+        // Continue with other students instead of crashing entire request
       }
     }
 

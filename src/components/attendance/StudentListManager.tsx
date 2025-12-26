@@ -75,7 +75,7 @@ export default function StudentListManager({
     setLoadingStudents(true);
     try {
       const courseId = course.id || course._id?.toString();
-      const response = await fetch(`/api/courses/${courseId}/students`);
+      const response = await fetch(`/api/courses/${courseId}/students`, { cache: 'no-store' });
       const data = await response.json();
       
       if (data.success) {
@@ -154,15 +154,9 @@ export default function StudentListManager({
         if (!existing.hasFaceData && record.checkInMethod === 'face_recognition') {
            existing.hasFaceData = true;
         }
-      } else {
-        studentMap.set(record.studentId.toString(), {
-          studentId: record.studentId.toString(),
-          studentName: record.studentName,
-          studentNumber: record.studentNumber,
-          record,
-          hasFaceData: record.checkInMethod === 'face_recognition',
-        });
       }
+      // Note: We intentionally do NOT add students from records if they are not in the enrolled list.
+      // This prevents "ghost" students who have been unenrolled from appearing in the active checks list.
     });
 
     return Array.from(studentMap.values());
@@ -283,7 +277,10 @@ export default function StudentListManager({
       }
     } catch (error: unknown) {
       console.error('Error unenrolling student:', error);
-      const errorMessage = error instanceof Error ? error.message : t.course.deleteError;
+      let errorMessage = error instanceof Error ? error.message : t.course.deleteError;
+      if (errorMessage === 'Failed to unenroll students') {
+        errorMessage = t.course.unenrollError;
+      }
       showToast({ type: 'error', message: errorMessage });
     }
   };
