@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'bucket.yuhari.app',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'pub-25e24e7a8a8147cdbf9f91b65447583f.r2.dev',
         pathname: '/**',
       },
