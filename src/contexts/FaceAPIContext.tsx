@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
@@ -10,9 +11,9 @@ import type {
 } from '@/types/face';
 import type { PersonForRecognition } from '@/types/person';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type FaceAPIModule = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type TFModule = any;
 
 interface FaceApiDetection {
@@ -94,9 +95,12 @@ export function FaceAPIProvider({ children }: { children: React.ReactNode }) {
       tfRef.current = tf;
       faceapiRef.current = faceapi;
 
+      try {
+        await tf.setBackend('webgl');
+      } catch (e) {
+        console.warn('Failed to set WebGL backend, falling back to default:', e);
+      }
       await tf.ready();
-      console.log('✅ TensorFlow.js backend ready:', tf.getBackend());
-
       const modelPath = '/model';
 
       await Promise.all([

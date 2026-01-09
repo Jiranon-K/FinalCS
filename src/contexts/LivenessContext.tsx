@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { useLocale } from '@/i18n/LocaleContext';
-import { BlinkDetector } from '@/utils/livenessDetection';
+import { BlinkDetector, HeadPoseDetector, getRandomChallenges } from '@/utils/livenessDetection';
 import type {
   LivenessState,
   LivenessSettings,
@@ -54,18 +54,13 @@ export function LivenessProvider({ children }: { children: React.ReactNode }) {
       settings.consecutiveFrames
     );
 
-    const blinkChallenge: LivenessChallenge = {
-      action: 'BLINK',
-      instruction: (t.liveness?.blinkInstruction || 'Please blink {count} times').replace('{count}', settings.requiredBlinks.toString()),
-      completed: false,
-      startTime: Date.now(),
-    };
+    const challenges = getRandomChallenges(3);
 
     setState({
       ...initialState,
       isActive: true,
-      currentChallenge: blinkChallenge,
-      challenges: [blinkChallenge],
+      currentChallenge: challenges[0],
+      challenges: challenges,
       currentChallengeIndex: 0,
     });
 
@@ -80,7 +75,7 @@ export function LivenessProvider({ children }: { children: React.ReactNode }) {
         isActive: prev.failedAttempts + 1 < settings.maxFailedAttempts,
       }));
     }, settings.challengeTimeout * 1000);
-  }, [settings, t]);
+  }, [settings]);
 
   const stopVerification = useCallback(() => {
     if (timeoutRef.current) {
@@ -100,21 +95,37 @@ export function LivenessProvider({ children }: { children: React.ReactNode }) {
 
   const processFrame = useCallback(
     (landmarks: Array<{ x: number; y: number }>) => {
-      if (!state.isActive || !blinkDetectorRef.current) return;
+      if (!blinkDetectorRef.current) return;
 
       const result = blinkDetectorRef.current.detect(landmarks);
       
       if (result.isBlinking || Math.random() < 0.1) {
           console.log('Liveness Process:', { 
-              isActive: state.isActive,
               isBlinking: result.isBlinking, 
               ear: result.ear, 
-              totalBlinks: result.totalBlinks, 
-              required: settings.requiredBlinks 
           });
       }
 
       setState((prev) => {
+        if (!prev.isActive || !prev.currentChallenge) return prev;
+
+        let isActionCompleted = false;
+
+
+        if (prev.currentChallenge.action === 'BLINK') {
+
+             if (result.totalBlinks >= settings.requiredBlinks) {
+                isActionCompleted = true;
+             }
+        }
+
+        else if (prev.currentChallenge.action === 'TURN_LEFT' || prev.currentChallenge.action === 'TURN_RIGHT') {
+            const headResult = HeadPoseDetector.detect(landmarks);
+            if (headResult.action === prev.currentChallenge.action) {
+                isActionCompleted = true;
+            }
+        }
+
         const newState = {
           ...prev,
           blinkCount: result.totalBlinks,
@@ -122,28 +133,48 @@ export function LivenessProvider({ children }: { children: React.ReactNode }) {
           isBlinking: result.isBlinking,
         };
 
-        if (result.totalBlinks >= settings.requiredBlinks && prev.currentChallenge) {
-          console.log('Liveness Challenge Completed!');
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-          }
+        if (isActionCompleted && prev.currentChallenge) {
+          console.log(`Challenge ${prev.currentChallenge.action} Completed!`);
+          
+          const nextIndex = prev.currentChallengeIndex + 1;
+          const isFinished = nextIndex >= prev.challenges.length;
 
-          return {
-            ...newState,
-            isVerified: true,
-            isActive: false,
-            currentChallenge: {
-              ...prev.currentChallenge,
-              completed: true,
-              completedTime: Date.now(),
-            },
+          const updatedCurrentChallenge = {
+             ...prev.currentChallenge,
+             completed: true,
+             completedTime: Date.now(),
           };
+          
+          const updatedChallenges = [...prev.challenges];
+          updatedChallenges[prev.currentChallengeIndex] = updatedCurrentChallenge;
+
+          if (isFinished) {
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+              }
+              return {
+                ...newState,
+                challenges: updatedChallenges,
+                currentChallenge: updatedCurrentChallenge,
+                isVerified: true,
+                isActive: false,
+              };
+          } else {
+
+             
+             return {
+                 ...newState,
+                 challenges: updatedChallenges,
+                 currentChallenge: prev.challenges[nextIndex],
+                 currentChallengeIndex: nextIndex,
+             };
+          }
         }
 
         return newState;
       });
     },
-    [state.isActive, settings.requiredBlinks]
+    [settings.requiredBlinks]
   );
 
   const updateSettings = useCallback((newSettings: Partial<LivenessSettings>) => {

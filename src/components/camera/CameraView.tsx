@@ -21,7 +21,8 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
   const { showToast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const detectionIntervalRef = useRef<number | null>(null);
+  const detectionRef = useRef<number | null>(null);
+  const isDetectingRef = useRef<boolean>(false);
   const pendingRecordsRef = useRef<Set<string>>(new Set());
   const lastRecordTimeRef = useRef<Map<string, number>>(new Map());
 
@@ -162,6 +163,11 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
     setPendingPerson(null);
   };
 
+  const handleLivenessCancelled = () => {
+    setShowLivenessCheck(false);
+    setPendingPerson(null);
+  };
+
   useEffect(() => {
     if (!isStreaming || !faceDetectionEnabled || !modelsLoaded || !videoRef.current || !canvasRef.current) {
       return;
@@ -181,118 +187,165 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
     updateCanvasSize();
 
     const runDetection = async () => {
+      if (!video.videoWidth || !video.videoHeight || video.paused || video.ended || isDetectingRef.current) {
+         detectionRef.current = requestAnimationFrame(runDetection);
+         return;
+      }
+
+      isDetectingRef.current = true;
+
       try {
-        if (video.readyState === 4) {
-          const faces = await detectFaces(video);
-          setDetectedFaces(faces);
+        const faces = await detectFaces(video);
+        setDetectedFaces(faces);
 
-          const recognitionMap = new Map<number, { name: string; confidence: number; id?: string }>();
+        const recognitionMap = new Map<number, { name: string; confidence: number; id?: string }>();
 
-          for (let i = 0; i < faces.length; i++) {
-            const face = faces[i];
-            if (face.descriptor && knownPersons.length > 0) {
-              const match = recognizeFace(face.descriptor, knownPersons);
-              if (match) {
-                recognitionMap.set(i, {
-                  name: match.personName,
-                  confidence: match.confidence,
-                  id: match.personId
-                });
-                
-                if (match.confidence > 0.45 && match.personId) {
-                    if (!showLivenessCheck) {
-                      setPendingPerson({ id: match.personId, name: match.personName });
-                      setShowLivenessCheck(true);
-                    }
-                }
+        for (let i = 0; i < faces.length; i++) {
+          const face = faces[i];
+          if (face.descriptor && knownPersons.length > 0) {
+            const match = recognizeFace(face.descriptor, knownPersons);
+            if (match) {
+              recognitionMap.set(i, {
+                name: match.personName,
+                confidence: match.confidence,
+                id: match.personId
+              });
+              
+              if (match.confidence > 0.45 && match.personId) {
+                  if (!showLivenessCheck) {
 
-              } else {
-                recognitionMap.set(i, {
-                  name: t.camera.unknown || 'Unknown',
-                  confidence: 0
-                });
+                     setPendingPerson((prev) => {
+                        if (!prev && !showLivenessCheck) {
+
+                           return { id: match.personId!, name: match.personName };
+                        }
+                        return prev;
+                     });
+                     setShowLivenessCheck((prev) => {
+                        if (!prev) return true;
+                        return prev;
+                     });
+                  }
               }
+
+            } else {
+              recognitionMap.set(i, {
+                name: t.camera.unknown || 'Unknown',
+                confidence: 0
+              });
             }
           }
-          setRecognizedPersons(recognitionMap);
+        }
+        setRecognizedPersons(recognitionMap);
 
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            faces.forEach((face, index) => {
-              const { box } = face.detection;
-              const recognized = recognitionMap.get(index);
+          faces.forEach((face, index) => {
+            const { box } = face.detection;
+            const recognized = recognitionMap.get(index);
 
-              const isKnown = recognized && recognized.name !== (t.camera.unknown || 'Unknown');
-              let isCheckedIn = false;
-              
-              if (isKnown && recognized.id) {
-                const lastRecord = lastAttendanceRecord.get(recognized.id);
-                if (lastRecord) {
-                   isCheckedIn = true;
-                }
+            const isKnown = recognized && recognized.name !== (t.camera.unknown || 'Unknown');
+            let isCheckedIn = false;
+            
+            if (isKnown && recognized.id) {
+              const lastRecord = lastAttendanceRecord.get(recognized.id);
+              if (lastRecord) {
+                 isCheckedIn = true;
               }
+            }
 
-              const boxColor = isCheckedIn ? '#3b82f6' : (isKnown ? '#10b981' : '#ef4444');
-              const bgColor = isCheckedIn ? '#3b82f6' : (isKnown ? '#10b981' : '#ef4444');
+            const boxColor = isCheckedIn ? '#3b82f6' : (isKnown ? '#10b981' : '#ef4444');
+            const bgColor = isCheckedIn ? '#3b82f6' : (isKnown ? '#10b981' : '#ef4444');
 
-              ctx.strokeStyle = boxColor;
-              ctx.lineWidth = 3;
-              ctx.strokeRect(box.x, box.y, box.width, box.height);
+            ctx.lineWidth = 3;
 
-              let label = '';
-              if (isKnown) {
-                label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
-              } else {
-                label = `${t.camera.unknown || 'Unknown'} (${(face.detection.score * 100).toFixed(1)}%)`;
-              }
+            const cornerLength = Math.min(box.width, box.height) * 0.2;
+            
+            ctx.strokeStyle = boxColor;
+            ctx.beginPath();
+            
 
-              ctx.font = 'bold 16px sans-serif';
-              const textWidth = ctx.measureText(label).width;
-              const padding = 10;
-              const labelHeight = 28;
+            ctx.moveTo(box.x, box.y + cornerLength);
+            ctx.lineTo(box.x, box.y);
+            ctx.lineTo(box.x + cornerLength, box.y);
+            
 
-              ctx.fillStyle = bgColor;
-              ctx.fillRect(box.x, box.y - labelHeight - 5, textWidth + padding * 2, labelHeight);
+            ctx.moveTo(box.x + box.width - cornerLength, box.y);
+            ctx.lineTo(box.x + box.width, box.y);
+            ctx.lineTo(box.x + box.width, box.y + cornerLength);
+            
 
-              ctx.fillStyle = '#ffffff';
-              ctx.fillText(label, box.x + padding, box.y - 12);
+            ctx.moveTo(box.x + box.width, box.y + box.height - cornerLength);
+            ctx.lineTo(box.x + box.width, box.y + box.height);
+            ctx.lineTo(box.x + box.width - cornerLength, box.y + box.height);
+            
 
-              if (isCheckedIn) {
-                 const badgeText = `✓ ${t.camera.checkedIn || 'Checked In'}`;
-                 const badgeWidth = ctx.measureText(badgeText).width;
-                 
-                 ctx.fillStyle = '#2563eb';
-                 ctx.fillRect(box.x, box.y + box.height + 5, badgeWidth + padding * 2, labelHeight);
-                 
-                 ctx.fillStyle = '#ffffff';
-                 ctx.fillText(badgeText, box.x + padding, box.y + box.height + 24);
-              }
+            ctx.moveTo(box.x + cornerLength, box.y + box.height);
+            ctx.lineTo(box.x, box.y + box.height);
+            ctx.lineTo(box.x, box.y + box.height - cornerLength);
+            
+            ctx.stroke();
 
-              if (face.landmarks) {
-                ctx.fillStyle = '#00ffcc'; 
-                face.landmarks.positions.forEach((point) => {
-                  ctx.beginPath();
-                  ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
-                  ctx.fill();
-                });
-              }
-            });
-          }
+
+            let label = '';
+            if (isKnown) {
+              label = `${recognized.name} (${(recognized.confidence * 100).toFixed(1)}%)`;
+            } else {
+              label = `${t.camera.unknown || 'Unknown'} (${(face.detection.score * 100).toFixed(1)}%)`;
+            }
+
+            ctx.font = 'bold 16px sans-serif';
+            const textWidth = ctx.measureText(label).width;
+            const padding = 10;
+            const labelHeight = 28;
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(box.x, box.y - labelHeight - 5, textWidth + padding * 2, labelHeight);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(label, box.x + padding, box.y - 12);
+
+            if (isCheckedIn) {
+               const badgeText = `✓ ${t.camera.checkedIn || 'Checked In'}`;
+               const badgeWidth = ctx.measureText(badgeText).width;
+               
+               ctx.fillStyle = '#2563eb';
+               ctx.fillRect(box.x, box.y + box.height + 5, badgeWidth + padding * 2, labelHeight);
+               
+               ctx.fillStyle = '#ffffff';
+               ctx.fillText(badgeText, box.x + padding, box.y + box.height + 24);
+            }
+
+            if (face.landmarks) {
+              ctx.fillStyle = '#00ffcc'; 
+              face.landmarks.positions.forEach((point) => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                ctx.fill();
+              });
+            }
+          });
         }
       } catch (err) {
         console.error('Face detection error:', err);
+      } finally {
+        isDetectingRef.current = false;
+
+        detectionRef.current = requestAnimationFrame(runDetection);
       }
     };
 
-    detectionIntervalRef.current = window.setInterval(runDetection, 200);
+
+    runDetection();
 
     return () => {
       video.removeEventListener('loadedmetadata', updateCanvasSize);
-      if (detectionIntervalRef.current) {
-        clearInterval(detectionIntervalRef.current);
+      if (detectionRef.current) {
+        cancelAnimationFrame(detectionRef.current);
       }
+      isDetectingRef.current = false;
     };
   }, [isStreaming, faceDetectionEnabled, modelsLoaded, detectFaces, recognizeFace, knownPersons, activeSessions, lastAttendanceRecord, showLivenessCheck, t.camera.unknown, t.camera.checkedIn]);
 
@@ -452,6 +505,7 @@ export default function CameraView({ activeSessions, onAttendanceRecorded }: Cam
           detectedFace={detectedFaces.length > 0 ? detectedFaces[0] : null}
           onVerified={handleLivenessVerified}
           onFailed={handleLivenessFailed}
+          onCancel={handleLivenessCancelled}
         />
       )}
 

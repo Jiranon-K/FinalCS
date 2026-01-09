@@ -9,12 +9,14 @@ interface LivenessCheckProps {
   detectedFace: FaceDetectionResult | null;
   onVerified: () => void;
   onFailed: () => void;
+  onCancel: () => void;
 }
 
 export default function LivenessCheck({
   detectedFace,
   onVerified,
   onFailed,
+  onCancel,
 }: LivenessCheckProps) {
   const { t } = useLocale();
   const { state, settings, startVerification, processFrame, resetVerification } = useLiveness();
@@ -55,6 +57,16 @@ export default function LivenessCheck({
       <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
       
       <div className="relative w-full max-w-lg p-6 flex flex-col items-center gap-8 pointer-events-auto">
+        <button 
+          onClick={onCancel}
+          className="absolute right-0 top-0 p-2 text-white/50 hover:text-white transition-colors"
+          title={t.common?.cancel || 'Cancel'}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         {!state.isActive && !state.isVerified && (
           <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
             <div className="p-4 rounded-full bg-base-100/20 backdrop-blur-md border border-white/20 shadow-xl">
@@ -74,13 +86,18 @@ export default function LivenessCheck({
         {state.isActive && state.currentChallenge && (
           <div className="w-full flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="alert bg-base-100/30 backdrop-blur-md border-white/20 text-white shadow-xl max-w-sm">
-              <span className="text-2xl animate-pulse">👁️</span>
+              <span className="text-2xl animate-pulse">
+                {state.currentChallenge.action === 'BLINK' && '👁️'}
+                {state.currentChallenge.action === 'TURN_LEFT' && '⬅️'}
+                {state.currentChallenge.action === 'TURN_RIGHT' && '➡️'}
+                {state.currentChallenge.action === 'SMILE' && '😊'}
+              </span>
               <div className="flex-1">
                 <h3 className="font-bold text-lg">
                   {state.currentChallenge.instruction}
                 </h3>
                 <div className="text-xs opacity-80">
-                  {t.liveness?.progress || 'Progress'}: {state.blinkCount}/{settings.requiredBlinks}
+                   {state.currentChallengeIndex + 1} / {settings.requiredBlinks + 2} {(t.liveness as Record<string, string>)?.steps || 'Steps'}
                 </div>
               </div>
             </div>
@@ -91,22 +108,24 @@ export default function LivenessCheck({
               
               <div className="flex flex-col items-center gap-2 text-white drop-shadow-md">
                 <span className="text-5xl font-black tracking-tighter">
-                  {Math.round(getProgressPercentage())}%
+                   {state.currentChallenge.action === 'BLINK' ? `${state.blinkCount}/${settings.requiredBlinks}` : 'Go!'}
                 </span>
                 <span className={`badge ${state.isBlinking ? 'badge-warning' : 'badge-success'} badge-lg glass`}>
-                  {state.isBlinking ? (t.liveness?.blinking || 'Blinking') : (t.liveness?.eyeOpen || 'Eyes Open')}
+                  {state.currentChallenge.action}
                 </span>
               </div>
             </div>
 
             <div className="flex gap-2">
-              {Array.from({ length: settings.requiredBlinks }).map((_, i) => (
+              {state.challenges.map((challenge, i) => (
                 <div
                   key={i}
                   className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                    i < state.blinkCount 
+                    i < state.currentChallengeIndex 
                       ? 'bg-success scale-110 shadow-[0_0_10px_rgba(34,197,94,0.8)]' 
-                      : 'bg-white/20'
+                      : i === state.currentChallengeIndex
+                        ? 'bg-warning scale-125 animate-pulse'
+                        : 'bg-white/20'
                   }`}
                 />
               ))}
